@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Hub – Free Study Notes & Tools | Jonathan GitHub Pages</title>
+  <link rel="icon" href="../assets/images/logo.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../styles/themes.css">
+  <link rel="stylesheet" href="../styles/home.css">
+
+  <!-- JS -->
+  <script src="../script/home.js" defer></script>
+  <script src="../script/sidebar.js" defer></script>
+</head>
+
+<body data-page="home">
+  <!-- FULL-PAGE WATER EFFECTS -->
+  <div class="fx-container">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- NAVBAR -->
+  <div id="navbar">
+    <div class="logo">
+      <img src="../assets/images/logo.png" alt="Study Hub Logo">
+      <h7>STUDY HUB</h7>
+    </div>
+    <!-- Hamburger Button -->
+    <div class="home hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    
+    <!-- Advanced Sidebar Menu -->
+    <div id="side-menu">
+      <nav>
+        <a href="index.html">🏠 Home</a><br>
+        <a href="biology.html">🧬 Biology</a><br>
+        <a href="chemistry.html">⚗️ Chemistry</a><br>
+        <a href="mathematics.html">📐 Mathematics</a><br>
+        <a href="yourtube_.html">🎵 Music</a><br>
+        <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">💪Motivacity</a>
+      </nav>
+    </div>
+    
+    <!-- Overlay for darkened background -->
+    <div id="overlay"></div>
+
+  </div>
+
+  <!-- HERO SECTION -->
+  <div class="box1">
+    <h3>YOUR STUDY <br>COMPANION</h3>
+    <div class="hex">
+      <img src="../assets/images/study_pic.png" alt="hero image">
+    </div>
+  </div>
+
+  <!-- SEO CONTENT -->
+  <div class="seo-content">
+    <h1>Study Hub – Free Academic Notes and Learning Tools</h1>
+    <p>
+      Study Hub is a simple and accessible learning platform that provides free academic notes,
+      mathematics explanations, biology and chemistry content, and useful study tools.
+      It helps students access reliable study resources easily.
+    </p>
+  </div>
+
+  <!-- SUBJECT CARDS -->
+  <!-- SUBJECT CARDS -->
+  <div class="card-box">
+  
+    <!-- BIOLOGY -->
+    <div class="home-card biology-card">
+      <h1>BIOLOGY</h1>
+      <p>Understand life processes easily with simplified notes and diagrams.</p>
+      <a href="biology.html">click</a>
+    </div>
+  
+    <!-- CHEMISTRY -->
+    <div class="home-card chemistry-card">
+      <h1>CHEMISTRY</h1>
+      <p>Equations, calculations, and theory simplified for fast understanding and exam success</p>
+      <a href="chemistry.html">click</a>
+    </div>
+  
+    <!-- MATHEMATICS -->
+    <div class="home-card mathematics-card">
+      <h1>MATHEMATICS</h1>
+      <p>Master every topic with structured notes designed for clarity and precision.</p>
+      <a href="mathematics.html">click</a>
+    </div>
+  
+  </div>
+
+
+  <!-- INLINE SECTIONS -->
+  <div id="inline">
+    <div id="music">
+      <img src="../assets/images/music.png" alt="music">
+      <div>
+        <p>Are you exhausted?<br>Make music your second companion in this struggle.
+          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">get in</a> 🎧
+        </p>
+      </div>
+    </div>
+    <div id="grind">
+      <img src="../assets/images/grit.jpg" alt="grind">
+      <p>Find the right academic motivation<br>Here on STUDY HUB
+        <a
+          href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">check_out</a>🔥
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; All rights reserved // STUDY HUB // 2026+
+  </footer>
+</body>
+
+  <script>
+    document.querySelectorAll(".home-card").forEach(card => {
+
+      let allowTilt = true; // PC & mobile tilt control
+
+      /* -----------------------------
+           3D TILT (MOUSE – PC)
+      ------------------------------*/
+      card.addEventListener("mousemove", e => {
+        if (!allowTilt) return;
+
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = ((x / rect.width) - 0.5) * 18;   // left-right angle
+        const rotateX = -((y / rect.height) - 0.5) * 18; // up-down angle
+
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.classList.add("tilt-reset");
+        card.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)";
+
+        setTimeout(() => card.classList.remove("tilt-reset"), 350);
+      });
+
+
+      /* -----------------------------
+           GYROSCOPE TILT (PHONES)
+      ------------------------------*/
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener("deviceorientation", e => {
+
+          // Android/iOS tilt sensitivity
+          const tiltX = e.beta / 12;   // front-back tilt
+          const tiltY = e.gamma / 12;  // left-right tilt
+
+          // Apply only on phones in portrait
+          if (window.innerWidth < 900) {
+            allowTilt = false;
+
+            card.style.transform =
+              `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+          }
+        });
+      }
+
+
+      /* -----------------------------
+           PARALLAX ON SCROLL
+      ------------------------------*/
+      window.addEventListener("scroll", () => {
+        const speed = 0.12; // adjust parallax speed here
+        const offset = window.scrollY * speed;
+
+        card.style.transform += ` translateY(${offset}px)`;
+      });
+
+    });
+  </script>
+
+</html>

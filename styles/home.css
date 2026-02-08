@@ -1,0 +1,717 @@
+/*============================
+   GLOBAL COLOR SYSTEM
+=============================*/
+:root {
+  --primary: #6C5CE7;
+  --primary-dark: #4834D4;
+  --accent: #2ECC71;
+
+  --background: #F5F7FA;
+  --text-dark: #1B1B1B;
+  --text-light: #FFFFFF;
+
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+/*============================
+   GLOBAL RESET & TYPOGRAPHY
+=============================*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+  background: var(--background);
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+/*============================
+   ANIMATIONS
+=============================*/
+.fade-up {
+  opacity: 0;
+  transform: translateY(25px);
+  animation: fadeUp 0.7s ease forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glow-text {
+  background: linear-gradient(90deg, #6C5CE7, #2ECC71, #6C5CE7);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: glowMove 4s infinite ease-in-out;
+}
+
+@keyframes glowMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Hover scale */
+.scale-hover {
+  transition: 0.25s ease;
+}
+
+.scale-hover:hover {
+  transform: scale(1.05);
+}
+
+/*============================
+   ENHANCED WATER EFFECTS
+=============================*/
+.fx-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  /* behind everything */
+  pointer-events: none;
+  /* allows clicks through */
+  background: radial-gradient(circle at center, rgba(108, 92, 231, 0.05), transparent 70%);
+}
+
+.fx-container span {
+  position: absolute;
+  display: block;
+  width: 10px;
+  height: 10px;
+  background: rgba(108, 92, 231, 0.6);
+  border-radius: 50%;
+  bottom: 100%;
+  animation: drop 5s linear infinite;
+  opacity: 0.7;
+}
+
+/* Alternate colors and sizes for more dynamic effect */
+.fx-container span:nth-child(odd) {
+  background: rgba(46, 204, 113, 0.6);
+  width: 8px;
+  height: 8px;
+}
+
+/* Random positions and delays */
+.fx-container span:nth-child(1) {
+  left: 5%;
+  animation-delay: 0s;
+  animation-duration: 4s;
+}
+
+.fx-container span:nth-child(2) {
+  left: 15%;
+  animation-delay: 0.5s;
+  animation-duration: 4.5s;
+}
+
+.fx-container span:nth-child(3) {
+  left: 25%;
+  animation-delay: 1s;
+  animation-duration: 5s;
+}
+
+.fx-container span:nth-child(4) {
+  left: 35%;
+  animation-delay: 1.5s;
+  animation-duration: 4.2s;
+}
+
+.fx-container span:nth-child(5) {
+  left: 45%;
+  animation-delay: 2s;
+  animation-duration: 5.5s;
+}
+
+.fx-container span:nth-child(6) {
+  left: 55%;
+  animation-delay: 2.5s;
+  animation-duration: 4.8s;
+}
+
+.fx-container span:nth-child(7) {
+  left: 65%;
+  animation-delay: 3s;
+  animation-duration: 5.2s;
+}
+
+.fx-container span:nth-child(8) {
+  left: 75%;
+  animation-delay: 3.5s;
+  animation-duration: 4.7s;
+}
+
+.fx-container span:nth-child(9) {
+  left: 85%;
+  animation-delay: 4s;
+  animation-duration: 5.1s;
+}
+
+.fx-container span:nth-child(10) {
+  left: 95%;
+  animation-delay: 4.5s;
+  animation-duration: 4.9s;
+}
+
+/* DROP ANIMATION */
+@keyframes drop {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  30% {
+    transform: translateY(30vh) scale(1.1);
+    opacity: 0.8;
+  }
+
+  60% {
+    transform: translateY(70vh) scale(0.9);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(110vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* BUBBLES / PARALLAX LAYER */
+.fx-container::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  animation: bubbleMove 12s linear infinite;
+  z-index: -1;
+}
+
+@keyframes bubbleMove {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 100px -100px;
+  }
+}
+/*============================
+   NAVBAR
+=============================*/
+#navbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 12px 12px;
+}
+
+#navbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#navbar .logo img {
+  width: 50px;
+  height: auto;
+}
+
+#navbar .home p {
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+/*============================
+   HERO SECTION
+=============================*/
+.box1 {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  margin: 3rem auto;
+  padding: 2rem;
+}
+
+.box1 h3 {
+  font-size: 2rem;
+  /* reduced size to prevent overlap */
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+  color: var(--primary-dark);
+}
+
+.hex {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  overflow: hidden;
+  clip-path: polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0 50%);
+}
+
+.hex img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*============================
+   SEO CONTENT
+=============================*/
+.seo-content {
+  text-align: center;
+  max-width: 800px;
+  margin: 3rem auto;
+}
+
+.seo-content h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.seo-content p {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/*============================
+   SUBJECT CARDS WITH UNIQUE BACKGROUNDS
+=============================*/
+.card-box {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 3rem auto;
+}
+
+.card-box .card {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 16px;
+  flex: 1 1 250px;
+  max-width: 300px;
+  text-align: center;
+  z-index: 5;
+  color: #fff;
+  /* default text color for readability */
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Overlay for readability */
+.card-box .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  /* dark overlay */
+  border-radius: 16px;
+  z-index: 1;
+}
+
+/* Ensure text appears above overlay */
+.card-box .card h1,
+.card-box .card p,
+.card-box .card a {
+  position: relative;
+  z-index: 2;
+}
+
+/* Text styling */
+.card h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.card a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+    /*============================
+     SUBJECT CARDS WITH UNIQUE BACKGROUNDS
+  =============================*/
+        /* CARD BACKGROUNDS BASED ON PAGE */
+        .card {
+          position: relative;
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          overflow: hidden;
+          border-radius: 16px;
+          color: #fff;
+          /* text readable */
+        }
+    
+        /* Overlay for readability */
+        .card::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.35);
+          border-radius: 16px;
+          z-index: 0;
+        }
+    
+        /* Text above overlay */
+        .card>* {
+          position: relative;
+          z-index: 1;
+        }
+    
+        /* Automatic background based on page */
+        body[data-page="home"] .card:nth-of-type(1) {
+          background-image: url('../assets/images/home1.jpg');
+        }
+    
+        body[data-page="home"] .card:nth-of-type(2) {
+          background-image: url('../assets/images/home2.jpg');
+        }
+    
+        body[data-page="home"] .card:nth-of-type(3) {
+          background-image: url('../assets/images/home3.jpg');
+        }
+    
+        body[data-page="biology"] .card:nth-of-type(1) {
+          background-image: url('../assets/images/biology.jpg');
+        }
+    
+        body[data-page="chemistry"] .card:nth-of-type(1) {
+          background-image: url('../assets/images/chemistry.jpg');
+        }
+    
+        body[data-page="mathematics"] .card:nth-of-type(1) {
+          background-image: url('../assets/images/mathematics.jpg');
+        }
+/*============================
+   INLINE SECTIONS
+=============================*/
+#inline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin: 3rem auto;
+}
+
+#inline #music,
+#inline #grind {
+  flex: 1 1 300px;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#inline img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+#inline p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+#inline a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/*============================
+   FOOTER
+=============================*/
+footer {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-dark);
+  margin-top: 4rem;
+}
+
+/* ============================================
+   HOME PAGE — PREMIUM CARD UI
+=============================================== */
+
+/* Smooth float animation */
+@keyframes cardFloat {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Hover effect animation */
+@keyframes shineSwipe {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 150%;
+  }
+}
+
+/* Base enhanced home card */
+.home-card {
+  width: 90%;
+  margin: 15px auto;
+  padding: 25px;
+  border-radius: 18px;
+
+  /* Background */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Card leveling */
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+
+  /* Smoothness */
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+
+  /* Idle floating movement */
+  animation: cardFloat 4s ease-in-out infinite;
+}
+
+/* Dark overlay for text readability */
+.home-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(1.5px);
+  z-index: 0;
+  transition: background 0.3s ease;
+}
+
+/* Shine effect on hover */
+.home-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  transform: skewX(-25deg);
+  background: rgba(255, 255, 255, 0.25);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+/* Text stays above overlays */
+.home-card * {
+  z-index: 2;
+  position: relative;
+}
+
+/* Hover upgrades */
+.home-card:hover {
+  transform: scale(1.045) translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Shine swipe effect */
+.home-card:hover::after {
+  opacity: 1;
+  animation: shineSwipe 0.9s ease forwards;
+}
+
+/* Slightly brighten overlay on hover */
+.home-card:hover::before {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* Titles inside cards */
+.home-card h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+
+/* Paragraph */
+.home-card p {
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Link button inside cards */
+.home-card a {
+  background: rgba(255, 255, 255, 0.28);
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+  backdrop-filter: blur(4px);
+  transition: background 0.25s ease;
+}
+
+.home-card a:hover {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+/* ============================================
+   HOME CARD — 3D TILT + PARALLAX
+=============================================== */
+.home-card {
+  transform-style: preserve-3d;
+  perspective: 900px;
+  will-change: transform;
+}
+
+/* Smooth transition back after movement */
+.home-card.tilt-reset {
+  transition: transform 0.35s ease;
+}
+
+/* SIDE MENU */
+#side-menu {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  /* hidden by default */
+  width: 280px;
+  height: 100vh;
+  background: rgba(40, 40, 60, 0.95);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25);
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  transition: 0.5s ease;
+  z-index: 999;
+  border-radius: 0 12px 12px 0;
+}
+
+/* Activate sidebar */
+#side-menu.active {
+  left: 0;
+}
+
+/* Menu links */
+#side-menu nav a {
+  text-decoration: none;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: 0.3s ease;
+}
+
+/* Hover effect on links */
+#side-menu nav a:hover {
+  background: var(--primary);
+  color: var(--text-light);
+  transform: scale(1.05);
+}
+
+/* Hamburger icon */
+.home p {
+  font-size: 2.2rem;
+  cursor: pointer;
+  user-select: none;
+  transition: 0.3s ease;
+}
+
+.home p:hover {
+  transform: rotate(90deg) scale(1.2);
+  color: var(--primary-dark);
+}
+
+/* Overlay background */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.4s ease;
+  z-index: 998;
+}
+
+/* Show overlay when menu is active */
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Responsive tweaks for smaller screens */
+@media (max-width: 768px) {
+  #side-menu {
+    width: 220px;
+    padding: 2.5rem 1.5rem;
+  }
+
+  #side-menu nav a {
+    font-size: 1.1rem;
+  }
+}
