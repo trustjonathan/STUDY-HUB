@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /assets/
+Disallow: /script/
+Disallow: /styles/
+Allow: /
+
+Sitemap: https://trustjonathan.github.io/STUDY-HUB/sitemap.xml
