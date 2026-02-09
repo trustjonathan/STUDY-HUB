@@ -466,3 +466,212 @@ body {
     font-size: 1.3rem;
   }
 }
+
+.video-bg-card {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  /* Adjust height as needed */
+  overflow: hidden;
+  border-radius: 12px;
+  /* optional for rounded corners */
+}
+
+.video-bg-card .video-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  /* slightly bigger to cover corners */
+  height: 120%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  /* makes it cover the entire area */
+  z-index: 1;
+  pointer-events: none;
+  /* so clicks go to buttons/text */
+}
+
+.video-bg-card .content-overlay {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  /* or any contrasting color */
+  text-align: center;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  backdrop-filter: brightness(0.6);
+  /* optional, darkens video slightly */
+}
+
+.video-bg-card .btn {
+  margin-top: 10px;
+  align-self: center;
+}
+
+
+
+
+
+
+/* SECTION STYLING */
+.resources-section {
+  padding: 40px 20px;
+  background-color: #f9f9f9;
+  text-align: center;
+}
+
+.resources-section h2 {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* LAYOUT GRID */
+.resources-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  /* side : main ratio */
+  gap: 20px;
+}
+
+/* SIDE BAR */
+.resources-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* MAIN CONTENT */
+.resources-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* COMMON CARD STYLING */
+.resource-card {
+  position: relative;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.resource-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.resource-card h3 {
+  margin: 15px 0 10px;
+  color: #222;
+}
+
+.resource-card p {
+  padding: 0 15px 15px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.resource-card .btn {
+  margin-bottom: 20px;
+}
+
+/* VIDEO BACKGROUND CARD */
+.video-bg-card {
+  height: 400px;
+  /* Adjust as needed */
+}
+
+.video-bg-card .video-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.video-bg-card .content-overlay {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  text-align: center;
+  backdrop-filter: brightness(0.6);
+  padding: 20px;
+}
+
+/* RESPONSIVE */
+@media screen and (max-width: 768px) {
+  .resources-layout {
+    grid-template-columns: 1fr;
+    /* stack side and main */
+  }
+
+  .resources-side {
+    order: 1;
+    /* side above main */
+  }
+
+  .resources-main {
+    order: 2;
+  }
+
+  .video-bg-card {
+    height: 250px;
+    /* smaller on mobile */
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* ==========================
+   SIDEBAR CARD GRADIENTS
+========================== */
+.resources-side .resource-card:nth-child(1) {
+  background: linear-gradient(145deg, #e0f2fe, #f0f9ff);
+  /* Light blue gradient */
+  border-image: linear-gradient(135deg, #3b82f6, #60a5fa) 1;
+  border-style: solid;
+}
+
+.resources-side .resource-card:nth-child(2) {
+  background: linear-gradient(145deg, #fef9e7, #fff7f0);
+  /* Soft peach gradient */
+  border-image: linear-gradient(135deg, #f59e0b, #fcd34d) 1;
+  border-style: solid;
+}
+
+/* Maintain hover effects */
+.resources-side .resource-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
