@@ -179,3 +179,290 @@ body {
 .hamburger.active span:nth-child(3) {
   transform: rotate(-45deg) translate(6px, -6px);
 }
+
+/* ==========================
+   Modern Resources Section
+========================== */
+.resources-section {
+  padding: 60px 20px;
+  background: linear-gradient(to bottom, #f0f4f8, #ffffff);
+  text-align: center;
+}
+
+.resources-section h2 {
+  font-size: 2.8rem;
+  margin-bottom: 50px;
+  color: #222;
+  font-family: 'Segoe UI', sans-serif;
+  position: relative;
+}
+
+.resources-section h2::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  background: #007BFF;
+  margin: 15px auto 0;
+  border-radius: 2px;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 35px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Single Card */
+.resource-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 25px 20px;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.6s forwards;
+}
+
+.resource-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.resource-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.resource-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Badge */
+.card-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #007BFF;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Image */
+.resource-card img {
+  width: 100%;
+  max-width: 160px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+/* Title and Text */
+.resource-card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  color: #111;
+}
+
+.resource-card p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Button */
+.resource-card .btn {
+  text-decoration: none;
+  background: #007BFF;
+  color: #fff;
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.resource-card .btn:hover {
+  background: #0056b3;
+  transform: translateY(-3px);
+}
+
+.resource-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive tweaks */
+@media screen and (max-width: 600px) {
+  .resources-section h2 {
+    font-size: 2rem;
+  }
+
+  .resource-card {
+    padding: 20px 15px;
+  }
+}
+/* ============================= */
+/* Expandable Content Styling v2 */
+/* ============================= */
+
+.resource-content {
+  display: none;
+  /* Hidden by default */
+  background: #f7f9fc;
+  /* Softer modern background */
+  padding: 25px 30px;
+  margin: 25px auto;
+  border-radius: 20px;
+  /* Rounded corners feel modern */
+  max-width: 1000px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  /* Deeper but soft shadow */
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Smooth expansion */
+  border: 1px solid #e0e6ed;
+  /* Subtle border adds depth */
+}
+
+.resource-content h3 {
+  font-size: 2rem;
+  /* Slightly larger for impact */
+  margin-bottom: 20px;
+  color: #0056d1;
+  /* Deep, elegant blue */
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  /* Slightly spaced letters for clarity */
+}
+
+.resource-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resource-content ul li {
+  margin-bottom: 15px;
+  padding-left: 10px;
+  position: relative;
+}
+
+.resource-content ul li::before {
+  content: '•';
+  /* Custom bullet */
+  color: #007BFF;
+  position: absolute;
+  left: 0;
+  font-size: 1.2rem;
+}
+
+.resource-content ul li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.resource-content ul li a::after {
+  content: '';
+  display: block;
+  width: 0%;
+  height: 2px;
+  background: #007BFF;
+  transition: width 0.3s ease;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+}
+
+.resource-content ul li a:hover {
+  color: #007BFF;
+}
+
+.resource-content ul li a:hover::after {
+  width: 100%;
+  /* Adds a smooth underline animation */
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .resource-content {
+    padding: 20px;
+    margin: 20px 15px;
+  }
+
+  .resource-content h3 {
+    font-size: 1.6rem;
+  }
+}
+
+/* Responsive Typing Cursor */
+.typing-text {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0056d1;
+  font-family: 'Courier New', Courier, monospace;
+  display: inline-block;
+  overflow: hidden;
+  border-right: 2px solid #007BFF;
+  /* Cursor */
+  word-wrap: break-word;
+  /* Allow line break on small screens */
+  white-space: normal;
+  /* Important: allow wrapping */
+}
+
+/* Cursor blink effect */
+.typing-text.blink {
+  animation: blink-caret 0.7s step-end infinite;
+}
+
+@keyframes blink-caret {
+
+  0%,
+  50%,
+  100% {
+    border-color: transparent;
+  }
+
+  25%,
+  75% {
+    border-color: #007BFF;
+  }
+}
+
+/* Optional responsive font size for smaller screens */
+@media (max-width: 768px) {
+  .typing-text {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .typing-text {
+    font-size: 1.3rem;
+  }
+}

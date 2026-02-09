@@ -112,17 +112,61 @@
     <div class="hex">
       <img src="../assets/images/study_pic.png" alt="hero image">
     </div>
-  </div>
+  </div><hr>
 
   <!-- SEO CONTENT -->
   <div class="seo-content">
-    <h1>Study Hub – Free Academic Notes and Learning Tools</h1>
+    <h1 class="typing-text"></h1>
+  </div>
+  
+  <script>
+    const text = "Study Hub – Free Academic Notes and Learning Tools";
+    const element = document.querySelector(".typing-text");
+    let i = 0;
+    let deleting = false;
+
+    function typeLoop() {
+      if (!deleting) {
+        element.innerHTML = text.substring(0, i + 1);
+        i++;
+
+        let delay = Math.floor(Math.random() * 100) + 50;
+
+        if (text.charAt(i - 1) === " " || text.charAt(i - 1) === "–" || text.charAt(i - 1) === ",") {
+          delay += 150;
+        }
+
+        if (i === text.length) {
+          deleting = true;
+          delay = 1000;
+        }
+
+        setTimeout(typeLoop, delay);
+      } else {
+        element.innerHTML = text.substring(0, i - 1);
+        i--;
+
+        let delay = Math.floor(Math.random() * 50) + 30;
+
+        if (i === 0) {
+          deleting = false;
+          delay = 500;
+        }
+
+        setTimeout(typeLoop, delay);
+      }
+    }
+
+    typeLoop();
+  </script>
+
+  <div class="seo-content">
     <p>
       Study Hub is a simple and accessible learning platform that provides free academic notes,
       mathematics explanations, biology and chemistry content, and useful study tools.
       It helps students access reliable study resources easily.
     </p>
-  </div>
+  </div><hr>
 
   <!-- SUBJECT CARDS -->
   <!-- SUBJECT CARDS -->
