@@ -1,12 +1,8 @@
 .seo-content {
-<<<<<<< Updated upstream
-  height: 25vh;
-=======
-  height: 15vh;
->>>>>>> Stashed changes
+  height: 20vh;
 }
 
-.main-box .h1 {
+.main-box .h1 {   
   color: #1cb5e0;
   margin-left: 5rem;
 }
