@@ -7,13 +7,22 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Add any other pages below this line -->
-  <!-- Example structure:  
   <url>
-    <loc>https://trustjonathan.github.io/STUDY-HUB/notes.html</loc>
+    <loc>https://trustjonathan.github.io/STUDY-HUB/mathematics.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  -->
+
+  <url>
+    <loc>https://trustjonathan.github.io/STUDY-HUB/chemistry.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://trustjonathan.github.io/STUDY-HUB/biology.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
 </urlset>
