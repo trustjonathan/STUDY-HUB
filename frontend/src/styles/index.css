@@ -1,5 +1,6 @@
 .seo-content {
 <<<<<<< Updated upstream:frontend/src/styles/index.css
+<<<<<<< Updated upstream:frontend/src/styles/index.css
   height: 25vh;
 }
 
@@ -51,6 +52,8 @@
   font-size: 16px;
   font-weight: 500;
 =======
+=======
+>>>>>>> Stashed changes:styles/index.css
   height: 15vh;
 }
 
@@ -97,5 +100,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+<<<<<<< Updated upstream:frontend/src/styles/index.css
+>>>>>>> Stashed changes:styles/index.css
+=======
 >>>>>>> Stashed changes:styles/index.css
 }
