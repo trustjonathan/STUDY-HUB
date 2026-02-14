@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Essential Meta -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Verification -->
+  <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
+
+  <!-- Title & Description -->
+  <title>Study Hub — Free Study Notes for Biology, Chemistry & Math</title>
+  <meta name="description"
+    content="Study Hub provides free academic notes and learning tools for Biology, Chemistry, and Mathematics. Simple, structured, and exam-friendly resources.">
+
+  <!-- Keywords -->
+  <meta name="keywords"
+    content="study notes, biology notes, chemistry notes, math notes, exam prep, revision materials, student resources, Jonathan Study Hub">
+
+  <meta name="author" content="Jonathan">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://trustjonathan.github.io/STUDY-HUB/">
+
+  <!-- Preload CSS -->
+  <link rel="preload" href="styles/themes.css" as="style">
+  <link rel="preload" href="styles/home.css" as="style">
+  <link rel="reload" href="styles/index.css" as="style"
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/themes.css">
+  <link rel="stylesheet" href="styles/home.css">
+  <link rel="stylesheet" href="styles/index.css">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Study Hub – Free Study Notes & Tools">
+  <meta property="og:description" content="Free academic notes for Biology, Chemistry, and Mathematics.">
+  <meta property="og:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
+  <meta property="og:url" content="https://trustjonathan.github.io/STUDY-HUB/">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Study Hub – Free Study Notes & Tools">
+  <meta name="twitter:description" content="Free notes for Biology, Chemistry, and Mathematics.">
+  <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
+
+  <!-- JSON-LD Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Study Hub",
+    "url": "https://trustjonathan.github.io/STUDY-HUB/",
+    "logo": "https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png",
+    "description": "Free study notes and learning tools for Biology, Chemistry, and Mathematics."
+  }
+  </script>
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/images/logo.png" type="image/png">
+
+  <!-- JS -->
+  <script src="script/home.js" defer></script>
+  <script src="script/sidebar.js" defer></script>
+</head>
+
+
+<body data-page="home">
+  <!-- FULL-PAGE WATER EFFECTS -->
+  <div class="fx-container">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- NAVBAR -->
+  <div id="navbar">
+    <div class="logo">
+      <img src="assets/images/logo.png" alt="Study Hub Logo">
+      <h7>STUDY HUB</h7>
+    </div>
+    <!-- Hamburger Button -->
+    <div class="home hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    
+    <!-- Advanced Sidebar Menu -->
+    <div id="side-menu">
+      <nav>
+        <a href="index.html">🏠 Home</a><br>
+        <a href="html/biology.html">🧬 Biology</a><br>
+        <a href="html/chemistry.html">⚗️ Chemistry</a><br>
+        <a href="html/mathematics.html">📐 Mathematics</a><br>
+        <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">🎵 Music</a><br>
+        <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">💪Motivacity</a>
+      </nav>
+    </div>
+    
+    <!-- Overlay for darkened background -->
+    <div id="overlay"></div>
+
+  </div>
+
+  <!-- HERO SECTION -->
+  <div class="box1">
+    <h3>YOUR STUDY <br>COMPANION</h3>
+    <div class="hex">
+      <img src="assets/images/study_pic.png" alt="hero image">
+    </div>
+  </div><hr>
+
+  <!-- SEO CONTENT -->
+  <div class="seo-content">
+    <h1 class="typing-text"></h1>
+  </div>
+  
+  <script>
+    const text = "Study Hub – Free Academic Notes and Learning Tools";
+    const element = document.querySelector(".typing-text");
+    let i = 0;
+    let deleting = false;
+
+    function typeLoop() {
+      if (!deleting) {
+        element.innerHTML = text.substring(0, i + 1);
+        i++;
+
+        let delay = Math.floor(Math.random() * 100) + 50;
+
+        if (text.charAt(i - 1) === " " || text.charAt(i - 1) === "–" || text.charAt(i - 1) === ",") {
+          delay += 150;
+        }
+
+        if (i === text.length) {
+          deleting = true;
+          delay = 1000;
+        }
+
+        setTimeout(typeLoop, delay);
+      } else {
+        element.innerHTML = text.substring(0, i - 1);
+        i--;
+
+        let delay = Math.floor(Math.random() * 50) + 30;
+
+        if (i === 0) {
+          deleting = false;
+          delay = 500;
+        }
+
+        setTimeout(typeLoop, delay);
+      }
+    }
+
+    typeLoop();
+  </script>
+
+  <div class="seo-content">
+    <p>
+      Study Hub is a simple and accessible learning platform that provides free academic notes,
+      mathematics explanations, biology and chemistry content, and useful study tools.
+      It helps students access reliable study resources easily.
+    </p>
+  </div><hr>
+
+  <!-- SUBJECT CARDS -->
+  <!-- SUBJECT CARDS -->
+  <div class="card-box">
+  
+    <!-- BIOLOGY -->
+    <div class="home-card biology-card">
+      <h1>BIOLOGY</h1>
+      <p>Understand life processes easily with simplified notes and diagrams.</p>
+      <a href="html/biology.html">click</a>
+    </div>
+  
+    <!-- CHEMISTRY -->
+    <div class="home-card chemistry-card">
+      <h1>CHEMISTRY</h1>
+      <p>Equations, calculations, and theory simplified for fast understanding and exam success</p>
+      <a href="html/chemistry.html">click</a>
+    </div>
+  
+    <!-- MATHEMATICS -->
+    <div class="home-card mathematics-card">
+      <h1>MATHEMATICS</h1>
+      <p>Master every topic with structured notes designed for clarity and precision.</p>
+      <a href="html/mathematics.html">click</a>
+    </div>
+
+    <!-- FOR YOU! -->
+    <div class="home-card For-You">
+      <h1>FOR YOU</h1>
+      <p>check_out these videos, they are tailored specifically for You.<br> As you prepare to get into Beast M😡de.<br> The right academic vibe needed for 2026!</p>
+
+      <div class="main-box">
+        <div class="h1">
+          <h1>BIOLOGY</h1>
+        </div>
+        <div class="biology">
+          <div class="iframe"><iframe width="100%" height="500px"
+              src="https://www.youtube.com/embed/X0kYzPW5aNI?si=iF9noelCnmUBPG31" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+      
+          <div class="iframe"><iframe width="100%" height="500px"
+              src="https://www.youtube.com/embed/SsOcSA1kdCQ?si=fAtzLvNIrByYlqHl" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          <div class="iframe"><iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"
+              allowfullscreen height="500px" width="100%"></iframe></div>
+        </div>
+      
+      
+        <div class="h1">
+          <h1>CHEMISTRY</h1>
+        </div>
+        <div class="chemistry">
+      
+          <div class="iframe">
+            <iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5" allowfullscreen
+              height="500px" width="100%"></iframe>
+          </div>
+          <div class="iframe"><iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"
+              allowfullscreen height="500px" width="100%"></iframe></div>
+          <div class="iframe"><iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"
+              allowfullscreen height="500px" width="100%"></iframe></div>
+      
+        </div>
+      
+      
+        <div class="h1">
+          <h1>MATHEMATICS</h1>
+        </div>
+        <div class="mathematics">
+          <div class="iframe">
+            <iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5" allowfullscreen
+              height="500px" width="100%"></iframe>
+          </div>
+          <div class="iframe"><iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"
+              allowfullscreen height="500px" width="100%"></iframe></div>
+          <div class="iframe"><iframe src="https://www.youtube.com/embed/videoseries?list=PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"
+              allowfullscreen height="500px" width="100%"></iframe></div>
+        </div>
+      </div>
+    </div> 
+  
+  </div>
+
+
+  <!-- INLINE SECTIONS -->
+  <div id="inline">
+    <div id="music">
+      <img src="assets/images/music.png" alt="music">
+      <div>
+        <p>Are you exhausted?<br>Make music your second companion in this struggle.
+          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">get in</a> 🎧
+        </p>
+      </div>
+    </div>
+    <div id="grind">
+      <img src="assets/images/grit.jpg" alt="grind">
+      <p>Find the right academic motivation<br>Here on STUDY HUB
+        <a
+          href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">check_out</a>🔥
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    🔗 AUTHOR: <a href="mailto:trusteth777@gmail.com"> [talk to me]</a><br>
+    &copy; All rights reserved // STUDY HUB // 2026+
+  </footer>
+</body>
+
+  <script>
+    document.querySelectorAll(".home-card").forEach(card => {
+
+      let allowTilt = true; // PC & mobile tilt control
+
+      /* -----------------------------
+           3D TILT (MOUSE – PC)
+      ------------------------------*/
+      card.addEventListener("mousemove", e => {
+        if (!allowTilt) return;
+
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = ((x / rect.width) - 0.5) * 18;   // left-right angle
+        const rotateX = -((y / rect.height) - 0.5) * 18; // up-down angle
+
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.classList.add("tilt-reset");
+        card.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)";
+
+        setTimeout(() => card.classList.remove("tilt-reset"), 350);
+      });
+
+
+      /* -----------------------------
+           GYROSCOPE TILT (PHONES)
+      ------------------------------*/
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener("deviceorientation", e => {
+
+          // Android/iOS tilt sensitivity
+          const tiltX = e.beta / 12;   // front-back tilt
+          const tiltY = e.gamma / 12;  // left-right tilt
+
+          // Apply only on phones in portrait
+          if (window.innerWidth < 900) {
+            allowTilt = false;
+
+            card.style.transform =
+              `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+          }
+        });
+      }
+
+
+      /* -----------------------------
+           PARALLAX ON SCROLL
+      ------------------------------*/
+      window.addEventListener("scroll", () => {
+        const speed = 0.12; // adjust parallax speed here
+        const offset = window.scrollY * speed;
+
+        card.style.transform += ` translateY(${offset}px)`;
+      });
+
+    });
+  </script>
+
+</html>

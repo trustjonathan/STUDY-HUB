@@ -1,4 +1,5 @@
 .seo-content {
+<<<<<<< Updated upstream:frontend/src/styles/index.css
   height: 25vh;
 }
 
@@ -49,4 +50,52 @@
   margin-top: 8px;
   font-size: 16px;
   font-weight: 500;
+=======
+  height: 15vh;
+}
+
+.main-box .h1 {
+  color: #1cb5e0;
+  margin-left: 5rem;
+}
+
+.main-box {
+  display: flex;
+  flex-direction: column;
+  /* stack vertically on small screens */
+  gap: 5rem;
+  width: 100%;
+  gap: 10px;
+  height: auto;
+  margin-top: 5rem;
+}
+
+.main-box .iframe {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 2%;
+  height: 15vh;
+
+}
+
+.main-box .iframe {
+  padding: 10px;
+  background: #f4f4f4;
+  border-radius: 10px;
+  height: auto;
+}
+
+.biology,
+.chemistry,
+.mathematics {
+  padding: 5%;
+  margin-bottom: 5rem;
+  max-height: 70vh;
+  /* makes section scrollable */
+  overflow-y: auto;
+  /* enables vertical scrolling */
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+>>>>>>> Stashed changes:styles/index.css
 }
