@@ -1,0 +1,34 @@
+# ===== SYSTEM FILES =====
+.DS_Store
+Thumbs.db
+
+# ===== NODE MODULES (if you ever add npm) =====
+node_modules/
+
+# ===== LOG FILES =====
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== BUILD / TEMP FILES =====
+dist/
+build/
+.cache/
+.temp/
+tmp/
+
+# ===== EDITOR SETTINGS =====
+.vscode/
+.idea/
+*.swp
+
+# ===== BACKUP FILES =====
+*.bak
+*.backup
+
+# ===== FRONTEND ARTIFACTS =====
+*.map
+
+# ===== OPTIONAL: IGNORE MEDIA YOU DON'T WANT ON GIT =====
+public/uploads/
+public/temp/

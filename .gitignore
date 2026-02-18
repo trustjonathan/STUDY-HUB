@@ -1,0 +1,26 @@
+# Ignore OS junk
+.DS_Store
+Thumbs.db
+
+# Ignore global node_modules
+node_modules/
+
+# Ignore environment files
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Ignore backups and logs
+*.log
+*.bak
+*.backup
+
+# Ignore editor folders
+.vscode/
+.idea/
+
+# Ignore build outputs from any folder
+**/dist/
+**/build/
+**/.cache/
+**/tmp/

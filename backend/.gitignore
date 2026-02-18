@@ -1,0 +1,39 @@
+# ===== ENVIRONMENT VARIABLES =====
+.env
+.env.local
+.env.*.local
+
+# ===== NODE MODULES =====
+node_modules/
+
+# ===== LOG FILES =====
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# ===== SYSTEM FILES =====
+.DS_Store
+Thumbs.db
+
+# ===== BUILD / TEMP FILES =====
+dist/
+build/
+.tmp/
+temp/
+.cache/
+coverage/
+
+# ===== EDITOR SETTINGS =====
+.vscode/
+.idea/
+*.swp
+
+# ===== BACKUP FILES =====
+*.bak
+*.backup
+
+# ===== OPTIONAL: IGNORE UPLOADS IN DEV =====
+uploads/
