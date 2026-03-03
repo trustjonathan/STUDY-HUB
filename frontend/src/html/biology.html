@@ -267,33 +267,45 @@
   </footer>
 
   <script>
-    const API_KEY = AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU;
-    const PLAYLIST_ID = PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5; // Biology or Chemistry or Math playlist
+    const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
+    const PLAYLIST_ID = "PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"; // BIOLOGY
+
+    function showVideos() {
+      // Reveal the hidden section
+      document.getElementById("videos-content").style.display = "block";
+
+      // Load YouTube videos AFTER showing the div
+      loadVideos();
+    }
 
     function loadVideos() {
-      fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${PLAYLIST_ID}&key=${API_KEY}`)
-        .then(r => r.json())
+      const url =
+        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${PLAYLIST_ID}&key=${API_KEY}`;
+
+      fetch(url)
+        .then(response => response.json())
         .then(data => {
           let output = "";
 
           data.items.forEach(item => {
             const videoId = item.snippet.resourceId.videoId;
+
             output += `
                       <iframe 
                           width="100%" 
-                          height="260" 
+                          height="260"
                           src="https://www.youtube.com/embed/${videoId}" 
                           frameborder="0" 
                           allowfullscreen>
                       </iframe>
+                      <br/>
                   `;
           });
 
           document.getElementById("videos-content-container").innerHTML = output;
-        });
+        })
+        .catch(error => console.error("Error loading playlist:", error));
     }
-
-    loadVideos();
   </script>
 
 </body>
