@@ -210,12 +210,9 @@
     
       <div id="videos-content" class="resource-content">
         <h3>Video Tutorials</h3>
-        <ul>
-          <li><a href="#">Organic Biology Video</a></li>
-          <li><a href="#">Inorganic Biology Video</a></li>
-          <li><a href="#">Physical Biology Video</a></li>
-          <li><a href="#">Analytical Biology Video</a></li>
-        </ul>
+      
+        <!-- EMPTY container videos will be placed here -->
+        <div id="videos-content-container"></div>
       </div>
     
     </section>
@@ -268,6 +265,36 @@
   <footer>
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
+
+  <script>
+    const API_KEY = AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU;
+    const PLAYLIST_ID = PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5; // Biology or Chemistry or Math playlist
+
+    function loadVideos() {
+      fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${PLAYLIST_ID}&key=${API_KEY}`)
+        .then(r => r.json())
+        .then(data => {
+          let output = "";
+
+          data.items.forEach(item => {
+            const videoId = item.snippet.resourceId.videoId;
+            output += `
+                      <iframe 
+                          width="100%" 
+                          height="260" 
+                          src="https://www.youtube.com/embed/${videoId}" 
+                          frameborder="0" 
+                          allowfullscreen>
+                      </iframe>
+                  `;
+          });
+
+          document.getElementById("videos-content-container").innerHTML = output;
+        });
+    }
+
+    loadVideos();
+  </script>
 
 </body>
 
