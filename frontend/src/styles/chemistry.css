@@ -8,24 +8,26 @@
   overflow-y: auto;
   padding: 20px;
   box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
-  transition: right 0.4s ease;
+  transition: right 0.4s ease, opacity 0.3s ease;
   z-index: 9999;
+  opacity: 0;
 }
 
 .video-panel.open {
   right: 0;
+  opacity: 1;
 }
 
-/* Phone Mode */
+/* Full width on mobile */
 @media (max-width: 768px) {
   .video-panel {
     width: 100%;
   }
 }
 
+/* Back button - only visible on phone */
 .back-btn {
   display: none;
-  /* show only on phone */
   border: none;
   background: #222;
   color: #fff;
@@ -38,4 +40,8 @@
   .back-btn {
     display: block;
   }
+}
+
+#chem-video-list div {
+  margin-bottom: 20px;
 }

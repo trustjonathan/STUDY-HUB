@@ -182,8 +182,9 @@
             </div>
             
             <!-- HIDDEN PANEL FOR CHEM VIDEOS -->
+            <!-- CHEMISTRY HIDDEN VIDEO PANEL -->
             <div id="chem-videos" class="video-panel">
-              <button id="chem-back-btn" class="back-btn">✖</button>
+              <button id="chem-back-btn" class="back-btn">✖ Back</button>
               <h3>Chemistry Videos</h3>
               <div id="chem-video-list"></div>
             </div>
@@ -266,11 +267,8 @@
   </footer>
 
   <script>
-  
-  
-  // ==== CHEM PLAYLIST SETUP ====
     const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
-      const CHEMISTRY_PLAYLIST_ID = "PLszahHibLDAKjMwaEDXLpg2UZlMyNlnTp";
+    const CHEMISTRY_PLAYLIST_ID = "PLszahHibLDAKjMwaEDXLpg2UZlMyNlnTp";
 
     // Elements
     const chemBtn = document.querySelector(".chem-btn");
@@ -278,13 +276,18 @@
     const chemBackBtn = document.getElementById("chem-back-btn");
     const chemList = document.getElementById("chem-video-list");
 
+    let chemLoaded = false;
+
     // === OPEN PANEL ===
     chemBtn.addEventListener("click", () => {
       chemPanel.classList.add("open");
-      loadChemVideos();
+      if (!chemLoaded) {
+        loadChemVideos();
+        chemLoaded = true;
+      }
     });
 
-    // === PHONE: close with back button ===
+    // === PHONE: back button closes panel ===
     chemBackBtn.addEventListener("click", () => {
       chemPanel.classList.remove("open");
     });
@@ -299,27 +302,28 @@
       }
     });
 
-    // === Load Chemistry Videos ===
+    // === Load Chemistry Videos from YouTube ===
     function loadChemVideos() {
-      chemList.innerHTML = "<p>Loading...</p>";
+      chemList.innerHTML = "<p>Loading videos...</p>";
 
-      fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${chemPlaylistID}&key=${apiKey}`)
+      fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${CHEMISTRY_PLAYLIST_ID}&key=${API_KEY}`)
         .then(res => res.json())
         .then(data => {
           chemList.innerHTML = "";
 
           data.items.forEach(item => {
-            const vid = item.snippet.resourceId.videoId;
+            const videoId = item.snippet.resourceId.videoId;
 
             const card = document.createElement("div");
             card.innerHTML = `
-          <div style="margin-bottom:20px;">
             <iframe width="100%" height="220"
-              src="https://www.youtube.com/embed/${vid}"
-              frameborder="0" allowfullscreen></iframe>
+              src="https://www.youtube.com/embed/${videoId}"
+              frameborder="0"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowfullscreen>
+            </iframe>
             <h4>${item.snippet.title}</h4>
-          </div>
-        `;
+          `;
 
             chemList.appendChild(card);
           });
@@ -328,7 +332,7 @@
           chemList.innerHTML = "<p>Failed to load videos.</p>";
         });
     }
-</script>
+  </script>
 
 </body>
 
