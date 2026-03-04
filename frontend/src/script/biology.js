@@ -87,3 +87,120 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePanel(panel);
     });
 });
+
+// AI integration
+const AI_PANEL = document.getElementById("bio-ai-panel");
+const AI_CLOSE = document.getElementById("ai-close");
+const CHAT_WINDOW = document.getElementById("ai-chat-window");
+const USER_INPUT = document.getElementById("ai-user-input");
+const SEND_BTN = document.getElementById("ai-send-btn");
+
+// Bottom Nav AI Button
+const AI_BTN = document.querySelector('.bottom-nav a[href="#account"]');
+
+AI_BTN.addEventListener("click", () => AI_PANEL.classList.add("open"));
+AI_CLOSE.addEventListener("click", () => AI_PANEL.classList.remove("open"));
+
+// Client-side GPT call
+SEND_BTN.addEventListener("click", async () => {
+    const question = USER_INPUT.value.trim();
+    if (!question) return;
+
+    appendMessage("You", question);
+    USER_INPUT.value = "";
+
+    // Display "thinking" placeholder
+    appendMessage("BioGPT", "Typing...");
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer YOUR_API_KEY_HERE" // replace with safe key
+            },
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: [
+                    { role: "system", content: "You are a helpful biology tutor. Only answer UACE biology questions." },
+                    { role: "user", content: question }
+                ],
+                temperature: 0.5,
+                max_tokens: 400
+            })
+        });
+
+        const data = await response.json();
+        const answer = data.choices[0].message.content;
+
+        // Remove "Typing..." and show answer
+        CHAT_WINDOW.lastChild.innerHTML = `<strong>BioGPT:</strong> ${answer}`;
+        CHAT_WINDOW.scrollTop = CHAT_WINDOW.scrollHeight;
+
+    } catch (err) {
+        CHAT_WINDOW.lastChild.innerHTML = "<strong>BioGPT:</strong> Error fetching response.";
+    }
+});
+
+function appendMessage(sender, message) {
+    const div = document.createElement("div");
+    div.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    CHAT_WINDOW.appendChild(div);
+    CHAT_WINDOW.scrollTop = CHAT_WINDOW.scrollHeight;
+}
+
+//memory
+let chatHistory = [
+    { role: "system", content: "You are a helpful biology tutor. Only answer UACE biology questions." }
+];
+
+SEND_BTN.addEventListener("click", async () => {
+    const question = USER_INPUT.value.trim();
+    if (!question) return;
+
+    appendMessage("You", question);
+    USER_INPUT.value = "";
+
+    appendMessage("BioGPT", "Typing...");
+
+    // Add user message to history
+    chatHistory.push({ role: "user", content: question });
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer YOUR_API_KEY_HERE"
+            },
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: chatHistory,
+                temperature: 0.5,
+                max_tokens: 400
+            })
+        });
+
+        const data = await response.json();
+        const answer = data.choices[0].message.content;
+
+        // Replace "Typing..." with actual answer
+        CHAT_WINDOW.lastChild.innerHTML = `<strong>BioGPT:</strong> ${answer}`;
+        CHAT_WINDOW.scrollTop = CHAT_WINDOW.scrollHeight;
+
+        // Save AI answer to history
+        chatHistory.push({ role: "assistant", content: answer });
+
+    } catch (err) {
+        CHAT_WINDOW.lastChild.innerHTML = "<strong>BioGPT:</strong> Error fetching response.";
+    }
+});
+
+const suggestionButtons = document.querySelectorAll("#ai-suggestions button");
+
+suggestionButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        USER_INPUT.value = btn.textContent;
+        SEND_BTN.click();
+    });
+});
