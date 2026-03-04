@@ -165,21 +165,21 @@
     
         <!-- MAIN CONTENT (Right on PC, Bottom on Mobile) -->
         <div class="resources-main">
-          <!-- Video Tutorials -->
           <div class="resource-card video-bg-card">
-            <div class="video-bg-card">
-              <iframe class="video-bg"
-                src="https://www.youtube.com/embed/ng22Ucr33aw?autoplay=1&mute=1&loop=1&playlist=ng22Ucr33aw&controls=0&modestbranding=1&rel=0&showinfo=0"
-                title="Background Video" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen>
-              </iframe>
-            
-              <div class="content-overlay">
-                <h3>Video Tutorials</h3>
-                <p>Watch detailed tutorials and understand concepts easily.</p>
-                <button class="btn toggle-btn" data-target="videos-content">Watch Videos</button>
-              </div>
+        
+            <iframe class="video-bg"
+              src="https://www.youtube.com/embed/ng22Ucr33aw?autoplay=1&mute=1&loop=1&playlist=ng22Ucr33aw&controls=0"
+              frameborder="0">
+            </iframe>
+        
+            <div class="content-overlay">
+              <h3>Video Tutorials</h3>
+              <p>Watch detailed tutorials and understand concepts easily.</p>
+        
+              <!-- THIS MUST BE VISIBLE -->
+              <button class="btn toggle-btn" id="open-videos">Watch Videos</button>
             </div>
-
+        
           </div>
         </div>
     
@@ -206,13 +206,6 @@
           <li><a href="#">2024 Paper 1</a></li>
           <li><a href="#">2024 Paper 2</a></li>
         </ul>
-      </div>
-    
-      <div id="videos-content" class="resource-content">
-        <h3>Video Tutorials</h3>
-      
-        <!-- EMPTY container videos will be placed here -->
-        <div id="videos-content-container"></div>
       </div>
     
     </section>
@@ -266,46 +259,81 @@
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
 
+<!-- BIOLOGY HIDDEN VIDEO PANEL -->
+<div id="videos-content" class="video-panel">
+  <button id="bio-back-btn" class="back-btn">✖</button>
+
+  <h3>Biology Video Tutorials</h3>
+  <div id="videos-content-container"></div>
+</div>
+
   <script>
     const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
-    const PLAYLIST_ID = "PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5"; // BIOLOGY
+    const PLAYLIST_ID = "PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5";
 
-    function showVideos() {
-      // Reveal the hidden section
-      document.getElementById("videos-content").style.display = "block";
+    document.addEventListener("DOMContentLoaded", () => {
 
-      // Load YouTube videos AFTER showing the div
-      loadVideos();
-    }
+      const btn = document.getElementById("open-videos");
+      const panel = document.getElementById("videos-content");
+      const container = document.getElementById("videos-content-container");
+      const backBtn = document.getElementById("bio-back-btn");
 
-    function loadVideos() {
-      const url =
-        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${PLAYLIST_ID}&key=${API_KEY}`;
+      // Open Panel
+      btn.addEventListener("click", () => {
+        panel.classList.remove("hidden");
+        setTimeout(() => panel.classList.add("show"), 20);
+        loadPlaylistVideos();
+      });
 
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          let output = "";
+      // Close on back button (phones)
+      backBtn.addEventListener("click", () => {
+        closePanel();
+      });
 
-          data.items.forEach(item => {
-            const videoId = item.snippet.resourceId.videoId;
+      // Close when clicking outside (PC only)
+      document.addEventListener("click", (e) => {
+        if (window.innerWidth > 768) {
+          if (!panel.contains(e.target) && e.target !== btn) {
+            closePanel();
+          }
+        }
+      });
 
-            output += `
-                      <iframe 
-                          width="100%" 
-                          height="260"
-                          src="https://www.youtube.com/embed/${videoId}" 
-                          frameborder="0" 
-                          allowfullscreen>
-                      </iframe>
-                      <br/>
-                  `;
+      function closePanel() {
+        panel.classList.remove("show");
+        setTimeout(() => panel.classList.add("hidden"), 300);
+      }
+
+      function loadPlaylistVideos() {
+        container.innerHTML = "<p>Loading videos...</p>";
+
+        fetch(
+          `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${PLAYLIST_ID}&key=${API_KEY}`
+        )
+          .then(res => res.json())
+          .then(data => {
+            container.innerHTML = "";
+
+            data.items.forEach(item => {
+              const videoId = item.snippet.resourceId.videoId;
+
+              container.innerHTML += `
+            <div class="video-item">
+              <iframe
+                src="https://www.youtube.com/embed/${videoId}"
+                allowfullscreen>
+              </iframe>
+              <p>${item.snippet.title}</p>
+            </div>
+          `;
+            });
+          })
+          .catch(() => {
+            container.innerHTML = "<p>Error loading videos.</p>";
           });
+      }
 
-          document.getElementById("videos-content-container").innerHTML = output;
-        })
-        .catch(error => console.error("Error loading playlist:", error));
-    }
+    });
   </script>
 
 </body>

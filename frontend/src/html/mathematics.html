@@ -169,13 +169,20 @@
             </iframe>
           
             <div class="content-overlay">
-              <h3>Video Tutorials</h3>
-              <p>Watch detailed tutorials and understand concepts easily.</p>
-              <button class="btn toggle-btn" data-target="videos-content">Watch Videos</button>
+              <h3>Math Video Tutorials</h3>
+              <p>Step-by-step explanations for every topic.</p>
+              <button class="btn math-btn" data-target="math-videos">Watch Videos</button>
             </div>
-          </div>
-
-        </div>
+            </div>
+            </div>
+            </div>
+            
+            <!-- HIDDEN PANEL FOR MATH VIDEOS -->
+            <div id="math-videos" class="video-panel">
+              <button id="math-back-btn" class="back-btn">✖</button>
+              <h3>Mathematics Videos</h3>
+              <div id="math-video-list"></div>
+            </div>
     
       </div>
     </section>
@@ -261,6 +268,58 @@
   <footer>
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
+
+  <script>
+  // ==== MATH PLAYLIST SETUP ====
+  const mathPlaylistID = "PLszahHibLDAKZk-CoRBpeqWAnU5GwlxFi";
+  const apiKey = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
+  
+  // Elements
+  const mathBtn = document.querySelector(".math-btn");
+  const mathPanel = document.getElementById("math-videos");
+  const mathBackBtn = document.getElementById("math-back-btn");
+  const mathList = document.getElementById("math-video-list");
+  
+  // === OPEN PANEL ===
+  mathBtn.addEventListener("click", () => {
+  mathPanel.classList.add("open");
+  loadMathVideos();
+  });
+  
+  // === PHONE: close with back button ===
+  mathBackBtn.addEventListener("click", () => {
+  mathPanel.classList.remove("open");
+  });
+  
+  // === PC: close by clicking outside ===
+  document.addEventListener("click", (e) => {
+  const clickedInside = mathPanel.contains(e.target) || mathBtn.contains(e.target);
+  const isPhone = window.innerWidth <= 768; if (!clickedInside && !isPhone) { mathPanel.classList.remove("open"); } });
+    //===Load Math Videos===function loadMathVideos() { mathList.innerHTML="<p>Loading...</p>" ;
+    fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${mathPlaylistID}&key=${apiKey}`)
+    .then(res=> res.json())
+    .then(data => {
+    mathList.innerHTML = "";
+  
+    data.items.forEach(item => {
+    const vid = item.snippet.resourceId.videoId;
+  
+    const card = document.createElement("div");
+    card.innerHTML = `
+    <div style="margin-bottom:20px;">
+      <iframe width="100%" height="220" src="https://www.youtube.com/embed/${vid}" frameborder="0"
+        allowfullscreen></iframe>
+      <h4>${item.snippet.title}</h4>
+    </div>
+    `;
+  
+    mathList.appendChild(card);
+    });
+    })
+    .catch(() => {
+    mathList.innerHTML = "<p>Failed to load videos.</p>";
+    });
+    </script>
 
 </body>
 

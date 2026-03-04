@@ -13,10 +13,6 @@
   <title>Chemistry Notes – Free Study Hub | Jonathan GitHub Pages</title>
   <link rel="icon" href="../assets/images/logo.png" type="image/png">
 
-  <!-- Canonical (Only ONE allowed) 
-  <link rel="canonical" href="https://trustjonathan.github.io/STUDY-HUB/chemistry.html">
--->
-
 
   <!-- Meta SEO -->
   <meta name="description"
@@ -179,9 +175,18 @@
             <div class="content-overlay">
               <h3>Video Tutorials</h3>
               <p>Watch detailed tutorials and understand concepts easily.</p>
-              <button class="btn toggle-btn" data-target="videos-content">Watch Videos</button>
+              <button class="btn chem-btn" data-target="chem-videos">Watch Videos</button>
             </div>
-          </div>
+            </div>
+            </div>
+            </div>
+            
+            <!-- HIDDEN PANEL FOR CHEM VIDEOS -->
+            <div id="chem-videos" class="video-panel">
+              <button id="chem-back-btn" class="back-btn">✖</button>
+              <h3>Chemistry Videos</h3>
+              <div id="chem-video-list"></div>
+            </div>
         </div>
     
       </div>
@@ -209,15 +214,8 @@
         </ul>
       </div>
     
-      <div id="videos-content" class="resource-content">
-        <h3>Video Tutorials</h3>
-        <ul>
-          <li><a href="#">Organic Chemistry Video</a></li>
-          <li><a href="#">Inorganic Chemistry Video</a></li>
-          <li><a href="#">Physical Chemistry Video</a></li>
-          <li><a href="#">Analytical Chemistry Video</a></li>
-        </ul>
-      </div>
+      
+      
     
     </section>
     
@@ -266,6 +264,71 @@
   <footer>
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
+
+  <script>
+  
+  
+  // ==== CHEM PLAYLIST SETUP ====
+    const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
+      const CHEMISTRY_PLAYLIST_ID = "PLszahHibLDAKjMwaEDXLpg2UZlMyNlnTp";
+
+    // Elements
+    const chemBtn = document.querySelector(".chem-btn");
+    const chemPanel = document.getElementById("chem-videos");
+    const chemBackBtn = document.getElementById("chem-back-btn");
+    const chemList = document.getElementById("chem-video-list");
+
+    // === OPEN PANEL ===
+    chemBtn.addEventListener("click", () => {
+      chemPanel.classList.add("open");
+      loadChemVideos();
+    });
+
+    // === PHONE: close with back button ===
+    chemBackBtn.addEventListener("click", () => {
+      chemPanel.classList.remove("open");
+    });
+
+    // === PC: close by clicking outside ===
+    document.addEventListener("click", (e) => {
+      const clickedInside = chemPanel.contains(e.target) || chemBtn.contains(e.target);
+      const isPhone = window.innerWidth <= 768;
+
+      if (!clickedInside && !isPhone) {
+        chemPanel.classList.remove("open");
+      }
+    });
+
+    // === Load Chemistry Videos ===
+    function loadChemVideos() {
+      chemList.innerHTML = "<p>Loading...</p>";
+
+      fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${chemPlaylistID}&key=${apiKey}`)
+        .then(res => res.json())
+        .then(data => {
+          chemList.innerHTML = "";
+
+          data.items.forEach(item => {
+            const vid = item.snippet.resourceId.videoId;
+
+            const card = document.createElement("div");
+            card.innerHTML = `
+          <div style="margin-bottom:20px;">
+            <iframe width="100%" height="220"
+              src="https://www.youtube.com/embed/${vid}"
+              frameborder="0" allowfullscreen></iframe>
+            <h4>${item.snippet.title}</h4>
+          </div>
+        `;
+
+            chemList.appendChild(card);
+          });
+        })
+        .catch(() => {
+          chemList.innerHTML = "<p>Failed to load videos.</p>";
+        });
+    }
+</script>
 
 </body>
 

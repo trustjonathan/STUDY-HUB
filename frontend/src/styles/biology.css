@@ -72,3 +72,83 @@
     font-size: 1.5rem;
   }
 }
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.video-grid iframe {
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+html {
+  scroll-behavior: smooth;
+}
+
+.video-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: #fff;
+  overflow-y: auto;
+  padding: 20px;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease-out;
+  transform: translateX(100%);
+  z-index: 9999;
+}
+
+.video-panel.show {
+  transform: translateX(0);
+}
+
+.video-panel.hidden {
+  display: none;
+}
+
+/* Phones → Fullscreen */
+@media (max-width: 768px) {
+  .video-panel {
+    width: 100%;
+  }
+}
+
+.video-item {
+  margin-bottom: 15px;
+}
+
+.video-item iframe {
+  width: 100%;
+  height: 220px;
+  border-radius: 8px;
+}
+
+/* Back Button - Phone Only */
+.back-btn {
+  display: none;
+  position: sticky;
+  top: 0;
+  background: #2563eb;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  cursor: pointer;
+  z-index: 10000;
+}
+
+/* Show back button on phones */
+@media (max-width: 768px) {
+  .back-btn {
+    display: block;
+  }
+}
