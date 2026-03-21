@@ -83,7 +83,7 @@
       <div class="home">
         <p>&#9776;</p>
       </div>
-      
+
       <!-- Advanced Sidebar Menu -->
       <div id="side-menu">
         <nav>
@@ -92,7 +92,8 @@
           <a href="chemistry.html">⚗️ Chemistry</a><br>
           <a href="mathematics.html">📐 Mathematics</a><br>
           <a href="yourtube_.html">🎵 Music</a><br>
-          <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">💪Motivacity</a>
+          <a
+            href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">💪Motivacity</a>
         </nav>
       </div>
       <div class="display" style="display: none;">
@@ -143,9 +144,9 @@
             ==========================-->
     <section class="resources-section">
       <h2>Explore Study Resources</h2>
-    
+
       <div class="resources-layout">
-    
+
         <!-- SIDE BAR (Left on PC, Top on Mobile) -->
         <div class="resources-side">
           <!-- Biology Notes -->
@@ -154,7 +155,7 @@
             <p>Clear explanations and worked examples for all topics.</p>
             <button class="btn toggle-btn" data-target="notes-content">View Notes</button>
           </div>
-    
+
           <!-- Biology Past Papers -->
           <div class="resource-card">
             <h3>Past Papers</h3>
@@ -162,30 +163,30 @@
             <button class="btn toggle-btn" data-target="papers-content">View Papers</button>
           </div>
         </div>
-    
+
         <!-- MAIN CONTENT (Right on PC, Bottom on Mobile) -->
         <div class="resources-main">
           <div class="resource-card video-bg-card">
-        
+
             <iframe class="video-bg"
               src="https://www.youtube.com/embed/ng22Ucr33aw?autoplay=1&mute=1&loop=1&playlist=ng22Ucr33aw&controls=0"
               frameborder="0">
             </iframe>
-        
+
             <div class="content-overlay">
               <h3>Video Tutorials</h3>
               <p>Watch detailed tutorials and understand concepts easily.</p>
-        
+
               <!-- THIS MUST BE VISIBLE -->
               <button class="btn toggle-btn" id="open-videos">Watch Videos</button>
             </div>
-        
+
           </div>
         </div>
-    
+
       </div>
     </section>
-    
+
     <section>
       <!-- Expandable Content Containers -->
       <div id="notes-content" class="resource-content">
@@ -197,7 +198,7 @@
           <li><a href="#">Analytical Biology Notes</a></li>
         </ul>
       </div>
-    
+
       <div id="papers-content" class="resource-content">
         <h3>Past Papers</h3>
         <ul>
@@ -207,37 +208,38 @@
           <li><a href="#">2024 Paper 2</a></li>
         </ul>
       </div>
-    
+
     </section>
 
 
 
-      <hr>
-    </div>
-    <div id="inline">
-      <div id="music">
-        <img src="../assets/images/music.png" alt="music">
-        <div>
-          <p>
-            Are you Exhausted?<br>
-            Make music your second companion <br>in this struggle.
-            <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">get in</a> 🎧
-          </p>
-        </div>
-      </div>
-
-      <div id="grind">
-        <img src="../assets/images/grit.jpg" alt="grind">
+    <hr>
+  </div>
+  <div id="inline">
+    <div id="music">
+      <img src="../assets/images/music.png" alt="music">
+      <div>
         <p>
-          Find the right academic motivation<br>
-          Here on STUDY HUB
-          <a
-            href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">check_out</a>🔥
+          Are you Exhausted?<br>
+          Make music your second companion <br>in this struggle.
+          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">get in</a>
+          🎧
         </p>
       </div>
     </div>
 
-    <br><br>
+    <div id="grind">
+      <img src="../assets/images/grit.jpg" alt="grind">
+      <p>
+        Find the right academic motivation<br>
+        Here on STUDY HUB
+        <a
+          href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">check_out</a>🔥
+      </p>
+    </div>
+  </div>
+
+  <br><br>
   </div>
 
   <br>
@@ -254,18 +256,13 @@
     <a href="#account">AI</a>
   </div>
   <!-- AI Panel -->
+  <!-- BIO GPT PANEL -->
   <div id="bio-ai-panel" class="ai-panel">
-    <button id="ai-close" class="back-btn">✖</button>
-    <div id="ai-chat-window" class="chat-window"></div>
-    <div class="ai-input">
-      <input type="text" id="ai-user-input" placeholder="Ask a biology question...">
-      <button id="ai-send-btn">Send</button>
-    </div>
-    <div id="ai-suggestions" class="ai-suggestions">
-      <button>Explain Photosynthesis</button>
-      <button>What is Mitosis?</button>
-      <button>UACE Past Paper Question</button>
-    </div>
+    <button id="bio-ai-close" class="back-btn">✖</button>
+    <h3>BioGPT Tutor</h3>
+    <div id="bio-ai-messages" class="messages"></div>
+    <textarea id="bio-ai-input" placeholder="Ask a biology question..."></textarea>
+    <button id="bio-ai-send">Send</button>
   </div>
 
 
@@ -273,13 +270,13 @@
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
 
-<!-- BIOLOGY HIDDEN VIDEO PANEL -->
-<div id="videos-content" class="video-panel">
-  <button id="bio-back-btn" class="back-btn">✖</button>
+  <!-- BIOLOGY HIDDEN VIDEO PANEL -->
+  <div id="videos-content" class="video-panel">
+    <button id="bio-back-btn" class="back-btn">✖</button>
 
-  <h3>Biology Video Tutorials</h3>
-  <div id="videos-content-container"></div>
-</div>
+    <h3>Biology Video Tutorials</h3>
+    <div id="videos-content-container"></div>
+  </div>
 
   <script>
     const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
