@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Essential Meta -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Verification -->
+  <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
+
+  <meta name="google-site-verification" content="ekOqLM1fntpBVAn7Ey_2SjgOF9qNX4SDnwGkUzMoYAw" />
+  <!-- Title & Description -->
+  <title>ABOUT</title>
+  <meta name="description"
+    content="Study Hub provides free academic notes and learning tools for Biology, Chemistry, and Mathematics. Simple, structured, and exam-friendly resources.">
+
+  <!-- Keywords -->
+  <meta name="keywords"
+    content="study notes, biology notes, chemistry notes, math notes, exam prep, revision materials, student resources, Jonathan Study Hub">
+
+  <meta name="author" content="Jonathan">
+
+  <!-- carnonical -->
+
+  <!-- Preload CSS -->
+  <link rel="preload" href="../styles/themes.css" as="style">
+  <link rel="preload" href="../styles/home.css" as="style">
+  <link rel="reload" href="../styles/index.css" as="style">
+
+  <!--CSS-->
+  <link rel="stylesheet" href="../styles/themes.css">
+  <link rel="stylesheet" href="../styles/home.css">
+  <link rel="stylesheet" href="../styles/index.css">
+  <link rel="stylesheet" href="../styles/about.css"
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Study Hub – Free Study Notes & Tools">
+  <meta property="og:description" content="Free academic notes for Biology, Chemistry, and Mathematics.">
+  <meta property="og:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
+  <meta property="og:url" content="https://trustjonathan.github.io/STUDY-HUB/">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Study Hub – Free Study Notes & Tools">
+  <meta name="twitter:description" content="Free notes for Biology, Chemistry, and Mathematics.">
+  <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
+
+  <!-- JSON-LD Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Study Hub",
+    "url": "https://trustjonathan.github.io/STUDY-HUB/",
+    "logo": "https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png",
+    "description": "Free study notes and learning tools for Biology, Chemistry, and Mathematics."
+  }
+  </script>
+
+  <!-- Favicon -->
+  <link rel="icon" href="../assets/images/logo.png" type="image/png">
+
+  <!-- JS -->
+  <script src="../script/home.js" defer></script>
+  <script src="../script/sidebar.js" defer></script>
+</head>
+
+
+<body data-page="home">
+  <!-- FULL-PAGE WATER EFFECTS -->
+  <div class="fx-container">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- NAVBAR -->
+  <div id="navbar">
+    <div class="logo">
+      <img src="../assets/images/logo.png" alt="Study Hub Logo">
+      <h7>STUDY HUB</h7>
+    </div>
+    <!-- Hamburger Button -->
+    <div class="home hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+
+    <!-- Advanced Sidebar Menu -->
+    <div id="side-menu">
+      <nav>
+        <a href="../../../index.html">🏠 Home</a><br>
+        <a href="biology.html">🧬 Biology</a><br>
+        <a href="chemistry.html">⚗️ Chemistry</a><br>
+        <a href="mathematics.html">📐 Mathematics</a><br>
+        <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">🎵
+          Music</a><br>
+        <a
+          href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">💪Motivacity</a>
+      </nav>
+    </div>
+
+    <!-- Overlay for darkened background -->
+    <div id="overlay"></div>
+
+  </div>
+
+  <!-- HERO SECTION -->
+  <div class="box1">
+    <h3>YOUR STUDY <br>COMPANION</h3>
+    <div class="hex">
+      <img src="../assets/images/ABA2.jpg" alt="hero image">
+    </div>
+  </div>
+  <hr>
+
+  <!-- SEO CONTENT -->
+  <div class="seo-content">
+    <h1 class="typing-text"></h1>
+  </div>
+
+  <script>
+    const text = "Study Hub – Free Academic Notes and Learning Tools";
+    const element = document.querySelector(".typing-text");
+    let i = 0;
+    let deleting = false;
+
+    function typeLoop() {
+      if (!deleting) {
+        element.innerHTML = text.substring(0, i + 1);
+        i++;
+
+        let delay = Math.floor(Math.random() * 100) + 50;
+
+        if (text.charAt(i - 1) === " " || text.charAt(i - 1) === "–" || text.charAt(i - 1) === ",") {
+          delay += 150;
+        }
+
+        if (i === text.length) {
+          deleting = true;
+          delay = 1000;
+        }
+
+        setTimeout(typeLoop, delay);
+      } else {
+        element.innerHTML = text.substring(0, i - 1);
+        i--;
+
+        let delay = Math.floor(Math.random() * 50) + 30;
+
+        if (i === 0) {
+          deleting = false;
+          delay = 500;
+        }
+
+        setTimeout(typeLoop, delay);
+      }
+    }
+
+    typeLoop();
+  </script>
+
+  <div class="seo-content">
+    <p>
+      Study Hub is a simple and accessible learning platform that provides free academic notes,
+      mathematics explanations, biology and chemistry content, and useful study tools.
+      It helps students access reliable study resources easily.
+    </p>
+  </div>
+  <hr>
+
+  <div class="about-content">
+      <div class="container">
+        <h1>About the Author</h1>
+      
+        <div class="quote">
+          “From struggle to 19 points — not by luck, but by understanding the system.”
+        </div>
+      
+        <h2>My Journey</h2>
+        <p>
+          Like many students, A-Level was not easy for me. Studying Biology, Chemistry, and Mathematics (BCM) came with
+          pressure, confusion, and moments of doubt. There were times when balancing all three felt overwhelming, especially
+          when results did not reflect the effort I was putting in.
+        </p>
+      
+        <p>
+          I realized that the problem was not just about working hard — it was about <span class="highlight">how</span> I
+          was working. I needed a smarter approach.
+        </p>
+      
+        <h2>The Turning Point</h2>
+        <p>
+          Everything changed when I started focusing on:
+        </p>
+      
+        <ul>
+          <li>Understanding concepts instead of cramming</li>
+          <li>Practicing consistently with purpose</li>
+          <li>Targeting high-yield topics in each subject</li>
+          <li>Learning how exam questions are set and answered</li>
+        </ul>
+      
+        <p>
+          This shift in strategy made a huge difference in my confidence and performance.
+        </p>
+      
+        <h2>The Result</h2>
+        <p>
+          Through discipline and the right methods, I was able to achieve
+          <span class="highlight">19 points in UACE (BCM)</span>.
+        </p>
+      
+        <p>
+          I am currently pursuing a path in <span class="highlight">Medicine and Surgery</span>, and at the same time, I
+          teach Biology, Chemistry, and Mathematics to help other students reach their goals.
+        </p>
+      
+        <h2>Why This Platform Exists</h2>
+        <p>
+          I created this platform to give students what I wish I had earlier:
+        </p>
+      
+        <ul>
+          <li>Clear explanations</li>
+          <li>Focused learning strategies</li>
+          <li>Exam-oriented guidance</li>
+        </ul>
+      
+        <p>
+          This is not just a website — it is a system designed to help you improve efficiently and perform at your best.
+        </p>
+      
+        <div class="quote">
+          “Success is not about being the smartest — it is about using the right strategy consistently.”
+        </div>
+      
+        <div class="footer">
+          — Jonathan
+        </div>
+      </div>
+  </div>
+
+  <hr>
+
+  <!-- INLINE SECTIONS -->
+  <div id="inline">
+    <div id="music">
+      <img src="../assets/images/music.png" alt="music">
+      <div>
+        <p>Are you exhausted?<br>Make music your second companion in this struggle.
+          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">get in</a>
+          🎧
+        </p>
+      </div>
+    </div>
+    <div id="grind">
+      <img src="../assets/images/grit.jpg" alt="grind">
+      <p>Find the right academic motivation<br>Here on STUDY HUB
+        <a
+          href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">check_out</a>🔥
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    🔗 AUTHOR: <a href="mailto:trusteth777@gmail.com"> [talk to me]</a><br>
+    &copy; All rights reserved // STUDY HUB // 2026+
+  </footer>
+
+  <script>
+    document.querySelectorAll(".home-card").forEach(card => {
+
+      let allowTilt = true; // PC & mobile tilt control
+
+      /* -----------------------------
+           3D TILT (MOUSE – PC)
+      ------------------------------*/
+      card.addEventListener("mousemove", e => {
+        if (!allowTilt) return;
+
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = ((x / rect.width) - 0.5) * 18;   // left-right angle
+        const rotateX = -((y / rect.height) - 0.5) * 18; // up-down angle
+
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.classList.add("tilt-reset");
+        card.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)";
+
+        setTimeout(() => card.classList.remove("tilt-reset"), 350);
+      });
+
+
+      /* -----------------------------
+           GYROSCOPE TILT (PHONES)
+      ------------------------------*/
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener("deviceorientation", e => {
+
+          // Android/iOS tilt sensitivity
+          const tiltX = e.beta / 12;   // front-back tilt
+          const tiltY = e.gamma / 12;  // left-right tilt
+
+          // Apply only on phones in portrait
+          if (window.innerWidth < 900) {
+            allowTilt = false;
+
+            card.style.transform =
+              `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+          }
+        });
+      }
+
+
+      /* -----------------------------
+           PARALLAX ON SCROLL
+      ------------------------------*/
+      window.addEventListener("scroll", () => {
+        const speed = 0.12; // adjust parallax speed here
+        const offset = window.scrollY * speed;
+
+        card.style.transform += ` translateY(${offset}px)`;
+      });
+
+    });
+  </script>
+
+
+  <!-- POPUP PLAYER -->
+  <div id="player-popup" class="popup">
+    <div class="popup-content">
+      <span id="close-btn">&times;</span>
+      <iframe id="yt-player" src="" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <style>
+    /* ===== PLAYLIST GRID STYLES ===== */
+    .playlist-section {
+      margin: 40px 0;
+    }
+
+    .playlist-section h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      border-left: 6px solid #ff0000;
+      padding-left: 10px;
+    }
+
+    .playlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .video-card {
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.25s;
+    }
+
+    .video-card:hover {
+      transform: scale(1.04);
+    }
+
+    .video-card img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 2px 6px;
+      font-size: 13px;
+      border-radius: 3px;
+    }
+
+    .video-title {
+      margin-top: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: left;
+    }
+
+    /* ===== POPUP PLAYER STYLES ===== */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .popup-content {
+      position: relative;
+      width: 80%;
+      max-width: 900px;
+    }
+
+    #yt-player {
+      width: 100%;
+      height: 500px;
+      border-radius: 10px;
+    }
+
+    #close-btn {
+      position: absolute;
+      top: -40px;
+      right: -10px;
+      font-size: 40px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    // ===== POPUP PLAYER FUNCTIONALITY =====
+    const cards = document.querySelectorAll(".video-card");
+    const popup = document.getElementById("player-popup");
+    const closeBtn = document.getElementById("close-btn");
+    const ytPlayer = document.getElementById("yt-player");
+
+    cards.forEach(card => {
+      card.addEventListener("click", () => {
+        let vid = card.getAttribute("data-video-id");
+        ytPlayer.src = `https://www.youtube.com/embed/${vid}?autoplay=1`;
+        popup.style.display = "flex";
+      });
+    });
+
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none";
+      ytPlayer.src = "";
+    });
+
+    popup.addEventListener("click", (e) => {
+      if (e.target === popup) {
+        popup.style.display = "none";
+        ytPlayer.src = "";
+      }
+    });
+  </script>
+
+</body>
+
+</html>
