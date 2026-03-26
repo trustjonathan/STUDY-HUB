@@ -302,35 +302,48 @@
       }
     });
 
-    // === Load Chemistry Videos from YouTube ===
-    function loadChemVideos() {
-      chemList.innerHTML = "<p>Loading videos...</p>";
+    // === Load ALL Chemistry Videos with nextPageToken ===
+    async function loadChemVideos(pageToken = "") {
+      if (!pageToken) {
+        chemList.innerHTML = "<p>Loading videos...</p>";
+      }
 
-      fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=20&playlistId=${CHEMISTRY_PLAYLIST_ID}&key=${API_KEY}`)
-        .then(res => res.json())
-        .then(data => {
-          chemList.innerHTML = "";
+      try {
+        const url =
+          `https://www.googleapis.com/youtube/v3/playlistItems?` +
+          `part=snippet&maxResults=50&playlistId=${CHEMISTRY_PLAYLIST_ID}&key=${API_KEY}` +
+          (pageToken ? `&pageToken=${pageToken}` : "");
 
-          data.items.forEach(item => {
-            const videoId = item.snippet.resourceId.videoId;
+        const res = await fetch(url);
+        const data = await res.json();
 
-            const card = document.createElement("div");
-            card.innerHTML = `
+        if (!pageToken) chemList.innerHTML = ""; // Clear only on first request
+
+        data.items.forEach(item => {
+          const videoId = item.snippet.resourceId.videoId;
+
+          const card = document.createElement("div");
+          card.innerHTML = `
             <iframe width="100%" height="220"
               src="https://www.youtube.com/embed/${videoId}"
               frameborder="0"
               allow="autoplay; encrypted-media; picture-in-picture"
-              allowfullscreen>
-            </iframe>
+              allowfullscreen></iframe>
+  
             <h4>${item.snippet.title}</h4>
           `;
 
-            chemList.appendChild(card);
-          });
-        })
-        .catch(() => {
-          chemList.innerHTML = "<p>Failed to load videos.</p>";
+          chemList.appendChild(card);
         });
+
+        // ▶️ Continue fetching if more pages exist
+        if (data.nextPageToken) {
+          await loadChemVideos(data.nextPageToken);
+        }
+
+      } catch (err) {
+        chemList.innerHTML = "<p>Failed to load videos.</p>";
+      }
     }
   </script>
 
