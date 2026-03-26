@@ -58,68 +58,43 @@
   <script src="../../script/sidebar.js" defer></script>
   <script src="../../script/chemistry.js" defer></script>
   <style>
-    body {
-      margin: 0;
+      .inside {
       font-family: Arial, sans-serif;
       line-height: 1.6;
-      background: #f4f6f7;
-      color: #222;
-    }
   
-    header {
-      background: #0a3d62;
-      color: white;
-      padding: 25px;
-      text-align: center;
-    }
-  
-    header h1 {
-      margin: 0;
-      font-size: 1.9rem;
-    }
-  
-    .container {
-      width: 92%;
-      margin: auto;
       max-width: 900px;
-      padding: 20px 0;
+      margin: auto;
     }
-  
-    details {
-      background: #ffffff;
-      margin-bottom: 15px;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      color: #003366;
     }
-  
-    summary {
-      font-size: 1.2rem;
-      font-weight: bold;
-      cursor: pointer;
-      color: #0a3d62;
+
+    ul,
+    ol {
+      margin-left: 20px;
     }
-  
-    summary:hover {
-      opacity: 0.8;
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
     }
-  
-    h3 {
-      color: #3c6382;
-      margin-top: 20px;
-    }
-  
-    code {
-      background: #f0f0f0;
-      padding: 3px 5px;
-      border-radius: 5px;
-    }
-  
-    footer {
+
+    th,
+    td {
+      border: 1px solid #333;
+      padding: 8px;
       text-align: center;
-      padding: 20px;
-      color: #666;
-      margin-top: 20px;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 4px;
+      font-family: monospace;
     }
   </style>
 </head>
@@ -207,401 +182,204 @@
         <h1>A-Level Electrochemistry – Complete Mastery Textbook</h1>
       </header>
       
-      <div class="container">
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 1 -->
-        <!-- ========================================================= -->
-        <details open>
-          <summary>1. Foundations of Redox Chemistry</summary>
-      
-          <h3>1.1 Oxidation–Reduction Rules</h3>
-      
-          <p>Electrochemistry is entirely driven by electron transfer. Deep mastery requires understanding oxidation
-            numbers, electron flow, and how redox reactions balance in different media.</p>
-      
-          <h4>OIL RIG Logic</h4>
-          <ul>
-            <li><strong>Oxidation Is Loss</strong> of electrons</li>
-            <li><strong>Reduction Is Gain</strong> of electrons</li>
-          </ul>
-      
-          <h4>Rules for Assigning Oxidation Numbers</h4>
-          <ul>
-            <li>Elements in their free, uncombined state = 0 (e.g., Na(s), O₂(g))</li>
-            <li>Monatomic ions = charge on ion (Fe²⁺ = +2)</li>
-            <li>Oxygen = -2 (exceptions: peroxides -1, OF₂ = +2)</li>
-            <li>Hydrogen = +1 (metal hydrides = -1)</li>
-            <li>Fluorine = -1 always</li>
-            <li>Alkali metals = +1; alkaline earth metals = +2</li>
-          </ul>
-      
-          <h4>Identifying Redox Pairs</h4>
-          <p>Redox pairs show oxidation and reduction half-reactions. Example:</p>
-          <code>Fe²⁺ / Fe³⁺</code> is an oxidation pair.
-          <code>Cl₂ / Cl⁻</code> is a reduction pair.
-      
-          <h4>Balancing Redox Equations</h4>
-      
-          <p><strong>Acidic Medium</strong></p>
-          <ol>
-            <li>Write half-equations</li>
-            <li>Balance atoms except O and H</li>
-            <li>Add H₂O to balance O</li>
-            <li>Add H⁺ to balance H</li>
-            <li>Add e⁻ to balance charge</li>
-            <li>Combine and cancel</li>
-          </ol>
-      
-          <p><strong>Alkaline Medium</strong></p>
-          <p>Same as above, then add OH⁻ to eliminate H⁺.</p>
-      
-          <p><strong>Neutral Medium</strong></p>
-          <p>Balance similarly but avoid excess H⁺ or OH⁻.</p>
-      
-          <h3>1.2 Reducing & Oxidizing Agents</h3>
-          <ul>
-            <li>A reducing agent donates electrons (is oxidized).</li>
-            <li>An oxidizing agent accepts electrons (is reduced).</li>
-          </ul>
-      
-          <h4>Strength Using Electrochemical Series</h4>
-          <p>More negative E° = stronger reducing agent.
-            More positive E° = stronger oxidizing agent.</p>
-      
-          <h4>Predicting Displacement Reactions</h4>
-          <p>Metals with lower (more negative) E° displace those above.</p>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 2 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>2. Half-Cells & Electrode Potentials</summary>
-      
-          <h3>2.1 Standard Hydrogen Electrode (SHE)</h3>
-      
-          <p>The reference electrode with E° = 0.00 V used to measure all other electrode potentials.</p>
-      
-          <h4>Why Platinum?</h4>
-          <ul>
-            <li>Inert and does not react</li>
-            <li>Conducts electricity</li>
-            <li>Provides a surface for H₂ gas adsorption</li>
-          </ul>
-      
-          <h4>Why H<sub>2</sub> Gas?</h4>
-          <p>Hydrogen ion/electron exchange defines the standard reference.</p>
-      
-          <h4>E° = 0.00 V Because:</h4>
-          <p>It is arbitrarily chosen as reference zero.</p>
-      
-          <h4>Limitations of SHE</h4>
-          <ul>
-            <li>Hard to maintain 1 atm pressure</li>
-            <li>H₂ gas handling difficulty</li>
-            <li>Electrode poisoning</li>
-            <li>Temperature sensitivity</li>
-          </ul>
-      
-          <h3>2.2 Standard Electrode Potential (E°)</h3>
-      
-          <h4>How Potentials Arise</h4>
-          <p>Created by electron tendency at the electrode-electrolyte interface.</p>
-      
-          <h4>Measuring E°</h4>
-          <p>Half-cell connected to SHE via a salt bridge → voltmeter measures emf.</p>
-      
-          <h4>Conventions</h4>
-          <ul>
-            <li>Reduction always written on the right</li>
-            <li>Oxidation always left</li>
-          </ul>
-      
-          <h4>Effect of Concentration</h4>
-          <p>Increasing ion concentration shifts equilibrium → changes E according to Nernst equation.</p>
-      
-          <h3>2.3 Using Electrode Potentials</h3>
-      
-          <h4>Predicting Feasibility</h4>
-          <p>A reaction is feasible if E°cell > 0.</p>
-      
-          <h4>Selecting Cathode & Anode</h4>
-          <ul>
-            <li>Cathode = more positive E°</li>
-            <li>Anode = more negative E°</li>
-          </ul>
-      
-          <h4>Ranking Oxidizers/Reducers</h4>
-          <p>Order by E° values.</p>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 3 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>3. Building Electrochemical Cells</summary>
-      
-          <h3>3.1 Simple Cells</h3>
-          <ul>
-            <li>Metal–metal ion (Zn/Zn²⁺)</li>
-            <li>Gas electrodes (H₂/H⁺)</li>
-            <li>Inert electrodes (Pt, C)</li>
-          </ul>
-      
-          <h3>3.2 Cell Notation</h3>
-          <p>Example:</p>
-          <code>Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)</code>
-      
-          <p>You must understand:</p>
-          <ul>
-            <li>Phase boundaries are denoted by |</li>
-            <li>Salt bridge is ||</li>
-            <li>Anode on left, cathode on right</li>
-          </ul>
-      
-          <h3>3.3 Electron Flow Logic</h3>
-          <ul>
-            <li>More negative E° → More positive E°</li>
-            <li>Anode → Cathode</li>
-            <li>Reducing agent → Oxidizing agent</li>
-          </ul>
-      
-          <h3>3.4 Calculating EMF</h3>
-      
-          <p><code>E°cell = E°cathode – E°anode</code></p>
-      
-          <p>Master:</p>
-          <ul>
-            <li>Spontaneity (E° > 0)</li>
-            <li>Reversing reactions flips sign</li>
-            <li>Multi-step redox systems</li>
-          </ul>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 4 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>4. Nernst Equation (Advanced Mastery)</summary>
-      
-          <p><code>E = E° – (0.059/n) log([Products]/[Reactants])</code></p>
-      
-          <h3>Deep Understanding</h3>
-          <ul>
-            <li>Concentration affects emf</li>
-            <li>pH affects H⁺ dependent systems</li>
-            <li>E varies due to non-standard conditions</li>
-          </ul>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 5 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>5. Electrolysis (Core + Advanced)</summary>
-      
-          <h3>5.1 Molten Electrolysis</h3>
-          <p>Cation is reduced → metal.
-            Anion is oxidized → non-metal.</p>
-      
-          <h3>5.2 Aqueous Electrolysis</h3>
-      
-          <h4>Competition at Electrodes</h4>
-      
-          <p><strong>Cathode:</strong></p>
-          <ul>
-            <li>H⁺ vs metal ion</li>
-          </ul>
-      
-          <p><strong>Anode:</strong></p>
-          <ul>
-            <li>OH⁻ vs halides vs other anions</li>
-          </ul>
-      
-          <h4>Concentration Effects</h4>
-          <ul>
-            <li>Dilute halides → OH⁻ discharged</li>
-            <li>Concentrated halides → halide preferentially discharged</li>
-          </ul>
-      
-          <h4>Electrode Materials</h4>
-          <ul>
-            <li>Inert (Pt, C)</li>
-            <li>Reactive (Cu, Ni)</li>
-          </ul>
-      
-          <h3>5.3 Practical Electrolysis</h3>
-          <ul>
-            <li>Copper purification</li>
-            <li>Electroplating</li>
-            <li>Chlor-alkali industry</li>
-            <li>Aluminium extraction</li>
-          </ul>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 6 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>6. Faraday’s Laws of Electrolysis</summary>
-      
-          <h3>6.1 First Law</h3>
-          <p><code>m = (Q × M) / (F × z)</code></p>
-      
-          <h3>6.2 Second Law</h3>
-          <p>Mass deposited ∝ molar mass.</p>
-      
-          <h4>You must master:</h4>
-          <ul>
-            <li>Q = It</li>
-            <li>Moles of electrons = Q/F</li>
-            <li>Multiple electrodes</li>
-          </ul>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 7 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>7. Conductivity & Electrolytes</summary>
-      
-          <h3>Strong vs Weak Electrolytes</h3>
-          <ul>
-            <li>Strong = complete dissociation</li>
-            <li>Weak = partial dissociation</li>
-          </ul>
-      
-          <h3>Molar Conductivity</h3>
-          <p>Depends on ion mobility + concentration.</p>
-      
-          <h3>Conductivity During Electrolysis</h3>
-          <p>Decreases as ions are consumed.</p>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 8 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>8. Electrochemical Series (ECS)</summary>
-      
-          <h3>Uses</h3>
-          <ul>
-            <li>Predict displacement</li>
-            <li>Predict feasibility</li>
-            <li>Predict electrolysis products</li>
-            <li>Rank oxidizers/reducers</li>
-          </ul>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 9 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>9. Galvanic vs Electrolytic Cells</summary>
-      
-          <table border="1" cellpadding="8">
-            <tr>
-              <th>Feature</th>
-              <th>Galvanic</th>
-              <th>Electrolytic</th>
-            </tr>
-            <tr>
-              <td>Electron flow</td>
-              <td>Anode → Cathode</td>
-              <td>Cathode → Anode</td>
-            </tr>
-            <tr>
-              <td>Reaction type</td>
-              <td>Spontaneous</td>
-              <td>Non-spontaneous</td>
-            </tr>
-            <tr>
-              <td>Signs</td>
-              <td>Anode (-), Cathode (+)</td>
-              <td>Anode (+), Cathode (-)</td>
-            </tr>
-            <tr>
-              <td>Purpose</td>
-              <td>Generate electricity</td>
-              <td>Use electricity</td>
-            </tr>
-          </table>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 10 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>10. Applications of Electrochemistry</summary>
-      
-          <h3>Industrial</h3>
-          <ul>
-            <li>Chlor-alkali</li>
-            <li>Hall-Héroult process</li>
-            <li>Downs cell</li>
-          </ul>
-      
-          <h3>Energy Devices</h3>
-          <ul>
-            <li>Fuel cells</li>
-            <li>Lead-acid batteries</li>
-            <li>Lithium-ion batteries</li>
-          </ul>
-      
-          <h3>Analytical Methods</h3>
-          <ul>
-            <li>Electrogravimetry</li>
-            <li>Coulometry</li>
-          </ul>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 11 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>11. Advanced Redox Calculations</summary>
-      
-          <h3>Multi-step Redox</h3>
-          <p>Combine multiple half-equations.</p>
-      
-          <h3>Competing Electrode Reactions</h3>
-          <p>When species have similar E° values.</p>
-      
-          <h3>Mixed Electrolytes</h3>
-          <p>Predict strongest discharge.</p>
-      
-        </details>
-      
-        <!-- ========================================================= -->
-        <!-- CHAPTER 12 -->
-        <!-- ========================================================= -->
-        <details>
-          <summary>12. Common Exam Traps</summary>
-      
-          <ul>
-            <li>Mixing up anode/cathode signs</li>
-            <li>Forgetting to reverse E°</li>
-            <li>Wrong discharge prediction</li>
-            <li>Unbalanced electrons</li>
-            <li>Wrong cell notation</li>
-            <li>Using moles instead of moles of electrons</li>
-            <li>Missing physical states</li>
-          </ul>
-      
-        </details>
-    </div>
+      <body class="inside">
+      
+        <h1>Electrochemistry — A Level (NCDC Aligned)</h1>
+      
+        <h2>1. Fundamentals of Redox Chemistry</h2>
+        <p>Electrochemistry is the study of processes in which electrons are transferred between chemical species. Central to
+          this section are oxidation and reduction.</p>
+      
+        <h3>Oxidation and Reduction</h3>
+        <ul>
+          <li>Oxidation is the loss of electrons.</li>
+          <li>Reduction is the gain of electrons.</li>
+        </ul>
+      
+        <h4>Oxidation Numbers</h4>
+        <ul>
+          <li>Free elements: 0</li>
+          <li>Monatomic ions: ion charge</li>
+          <li>Oxygen in most compounds: –2 (exceptions exist)</li>
+          <li>Hydrogen in most compounds: +1 (metal hydrides: –1)</li>
+          <li>Fluorine: –1 always</li>
+          <li>Group I: +1; Group II: +2</li>
+        </ul>
+      
+        <h3>Redox Pairs</h3>
+        <p>A redox pair consists of the oxidized and reduced forms of a species. Example:</p>
+        <ul>
+          <li>Fe²⁺ → Fe³⁺ (oxidation)</li>
+          <li>Cl₂ → 2Cl⁻ (reduction)</li>
+        </ul>
+      
+        <h3>Balancing Redox Equations</h3>
+        <p>In acidic medium:</p>
+        <ol>
+          <li>Write oxidation and reduction half-equations.</li>
+          <li>Balance atoms except O and H.</li>
+          <li>Add H₂O to balance O.</li>
+          <li>Add H⁺ to balance H.</li>
+          <li>Add electrons to balance charge.</li>
+          <li>Combine and cancel.</li>
+        </ol>
+        <p>For alkaline medium, add OH⁻ to remove H⁺. For neutral solutions, balance without external H⁺ or OH⁻.</p>
+      
+        <h3>Reducing and Oxidizing Agents</h3>
+        <ul>
+          <li>Reducing agent donates electrons and is oxidized.</li>
+          <li>Oxidizing agent accepts electrons and is reduced.</li>
+        </ul>
+        <p>Comparison using standard electrode potentials:</p>
+        <ul>
+          <li>More negative E° → stronger reducing agent</li>
+          <li>More positive E° → stronger oxidizing agent</li>
+        </ul>
+        <p>In displacement reactions, a metal with more negative E° displaces one with less negative (or more positive) E°.
+        </p>
+      
+        <h2>2. Half-Cells and Electrode Potentials</h2>
+      
+        <h3>Standard Hydrogen Electrode (SHE)</h3>
+        <p>The SHE is the reference electrode with E° = 0.00 V. It consists of hydrogen gas at 1 atm, H⁺ ions (1 mol dm⁻³),
+          and an inert platinum electrode. Platinum is non-reactive, conducts electrons, and provides a surface for hydrogen
+          adsorption.</p>
+      
+        <h3>Standard Electrode Potential (E°)</h3>
+        <p>Electrode potential arises from electron tendency at the electrode-electrolyte interface. Measured against SHE
+          using a salt bridge and voltmeter. Reduction potentials are tabulated; oxidation potentials reversed in sign. Ion
+          concentration affects potential according to the Nernst equation.</p>
+      
+        <h3>Using Electrode Potentials</h3>
+        <p>A reaction is spontaneous if <code>E°cell &gt; 0</code>.</p>
+        <p>Calculation:</p>
+        <pre><code>E°cell = E°cathode − E°anode</code></pre>
+        <p>The higher E° acts as cathode (reduction), the lower as anode (oxidation). E° values rank oxidizing/reducing
+          agents.</p>
+      
+        <h2>3. Electrochemical Cells</h2>
+        <p>Electrochemical cells convert chemical energy into electrical energy.</p>
+      
+        <h3>Types of Half-Cells</h3>
+        <ul>
+          <li>Metal/metal-ion electrodes (e.g., Zn/Zn²⁺)</li>
+          <li>Gas/ion electrodes (e.g., H₂/H⁺)</li>
+          <li>Inert electrodes (Pt, C) when no metal can conduct electrons</li>
+        </ul>
+      
+        <h3>Cell Notation</h3>
+        <p>Written as:</p>
+        <pre><code>Anode | Anode ion || Cathode ion | Cathode</code></pre>
+        <p>| = phase boundary, || = salt bridge</p>
+      
+        <h3>Electron Flow</h3>
+        <p>Electrons flow externally from anode to cathode; ions move internally through the salt bridge.</p>
+      
+        <h2>4. The Nernst Equation</h2>
+        <p><code>E = E° − (0.059/n) log([Products]/[Reactants])</code></p>
+        <p>Shows concentration and temperature affect the cell potential.</p>
+      
+        <h2>5. Electrolysis</h2>
+        <h3>Molten Compounds</h3>
+        <ul>
+          <li>Cations migrate to cathode and are reduced to elements</li>
+          <li>Anions migrate to anode and are oxidized</li>
+        </ul>
+      
+        <h3>Aqueous Electrolysis</h3>
+        <ul>
+          <li>Cathode: H⁺ may compete with metal ions</li>
+          <li>Anode: OH⁻ often discharges over other anions, halides may discharge preferentially at high concentration</li>
+        </ul>
+        <p>Concentration, ion type, and electrode material influence products.</p>
+      
+        <h3>Practical Examples</h3>
+        <ul>
+          <li>Copper purification</li>
+          <li>Electroplating</li>
+          <li>Chlor-alkali production (Cl₂, NaOH)</li>
+          <li>Aluminium extraction from cryolite-Al₂O₃</li>
+        </ul>
+      
+        <h2>6. Faraday’s Laws of Electrolysis</h2>
+        <h3>First Law</h3>
+        <p><code>m = (Q × M) / (F × z)</code></p>
+        <p>Where m = mass deposited, Q = charge, M = molar mass, F = Faraday’s constant, z = electrons per ion.</p>
+      
+        <h3>Second Law</h3>
+        <p>Masses produced are proportional to molar masses. Q = I × t relates current and time.</p>
+      
+        <h2>7. Conductivity and Electrolytes</h2>
+        <ul>
+          <li>Strong electrolytes: complete dissociation</li>
+          <li>Weak electrolytes: partial dissociation</li>
+        </ul>
+        <p>Molar conductivity depends on ion mobility and concentration. Conductivity decreases as ions are consumed.</p>
+      
+        <h2>8. Electrochemical Series</h2>
+        <p>Ranks species by reduction potential; used to:</p>
+        <ul>
+          <li>Predict displacement reactions</li>
+          <li>Assess reaction feasibility</li>
+          <li>Predict electrolysis products</li>
+          <li>Compare oxidizing/reducing strengths</li>
+        </ul>
+      
+        <h2>9. Galvanic vs Electrolytic Cells</h2>
+        <table>
+          <tr>
+            <th>Feature</th>
+            <th>Galvanic</th>
+            <th>Electrolytic</th>
+          </tr>
+          <tr>
+            <td>Energy conversion</td>
+            <td>Chemical → electrical</td>
+            <td>Electrical → chemical</td>
+          </tr>
+          <tr>
+            <td>Spontaneity</td>
+            <td>Spontaneous</td>
+            <td>Non-spontaneous</td>
+          </tr>
+          <tr>
+            <td>Electrode signs</td>
+            <td>Anode (–), Cathode (+)</td>
+            <td>Anode (+), Cathode (–)</td>
+          </tr>
+          <tr>
+            <td>Purpose</td>
+            <td>Generates current</td>
+            <td>Uses current</td>
+          </tr>
+        </table>
+        <p>Oxidation always occurs at anode; reduction at cathode.</p>
+      
+        <h2>10. Applications</h2>
+        <ul>
+          <li>Chlor-alkali process</li>
+          <li>Hall–Héroult and Downs cells</li>
+          <li>Fuel cells</li>
+          <li>Batteries (lead-acid, lithium-ion)</li>
+          <li>Electrogravimetry and coulometry</li>
+        </ul>
+      
+        <h2>11. Advanced Redox Calculations</h2>
+        <p>Combine half-equations to solve complex stoichiometry. Predict dominant electrode reactions when species have
+          similar E°.</p>
+      
+        <h2>12. Common Exam Challenges</h2>
+        <ul>
+          <li>Misassigning anode/cathode signs</li>
+          <li>Incorrect reversal of E° values</li>
+          <li>Wrong discharge prediction</li>
+          <li>Unbalanced electrons in half-equations</li>
+          <li>Ignoring physical states</li>
+        </ul>
+      </body>
 
+  <hr>
+  <p>Look into <a href="electro.html">this detailed guide on electrochemistry for more insights</a></p>
   <hr>
 
   <div id="inline">
