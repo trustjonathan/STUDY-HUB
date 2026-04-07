@@ -250,6 +250,97 @@
         font-size: 15px;
       }
     }
+    /*chem of life*/
+    <style>
+  /* --- 1. YOUR ORIGINAL CSS (Kept as is) --- */
+  .chem-life-card {
+    border: 1px solid #d0def5;
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    max-width: 250px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin: 20px auto; /* Added some margin for centering */
+  }
+
+  .chem-life-thumbnail-wrapper {
+    width: 100%;
+    height: 100px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Modified Original CSS: Adds the cursor and interaction trigger */
+  .chem-life-thumbnail-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: zoom-in; /* Indicates the image can be expanded */
+    transition: transform 0.2s ease; /* Subtle hover effect */
+  }
+
+  .chem-life-thumbnail-wrapper img:hover {
+    transform: scale(1.05); /* Scales slightly on hover to tempt the click */
+  }
+
+  .chem-life-card-title {
+    color: #153e75;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin: 5px 0;
+  }
+
+  /* --- 2. THE NEW CSS FOR FULL SCREEN (Add this) --- */
+
+  /* The background dark overlay */
+  .expanded-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.9); /* Pure black slightly transparent */
+    z-index: 9999; /* Higher than any existing element on your site */
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Prevent scrolling within the overlay */
+    opacity: 0;
+    transition: opacity 0.3s ease; /* Fade-in effect */
+  }
+
+  /* Class applied by JS when the image is active */
+  .expanded-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* The actual image when inside the overlay */
+  .expanded-overlay img {
+    max-width: 90vw; /* Up to 90% width of screen */
+    max-height: 90vh; /* Up to 90% height of screen */
+    object-fit: contain; /* Do not crop the image */
+    border: 3px solid white;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    cursor: zoom-out; /* Indicates the next click closes it */
+  }
+
+  /* Optional: Close "X" button */
+  .close-x {
+    position: absolute;
+    top: 20px; right: 30px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* CSS helper class to lock site scrolling when image is open */
+  body.scroll-lock {
+    overflow: hidden;
+  }
+</style>
   </style>
 </head>
 
@@ -299,40 +390,240 @@
         </p>
       </div>
     </div><br>
-    <div class="box1">
-      <h3>YOUR STUDY <br>COMPANION</h3>
-      <div class="hex">
-        <img src="../../assets/images/study_pic.png" alt="image in a hexagon">
+    
+      <div id="intro-hero">
+        <img src="../../assets/images/easter.jpeg" alt="easter update">
+      
+        <style>
+          /* HERO CONTAINER */
+          #intro-hero {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0a0a0a, #000);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+      
+            /* Cinematic entry animation (start state) */
+            opacity: 0;
+            transform: scale(1.12) translateY(30px);
+            transition:
+              opacity 1.4s ease-out,
+              transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+      
+          /* END state after loading */
+          #intro-hero.show {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+      
+          /* IMAGE SCALE (no cropping!) */
+          #intro-hero img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            /* <— THIS FIXES YOUR ISSUE */
+            filter: drop-shadow(0 0 25px #00f2ff50);
+          }
+        </style>
+      
+        <script>
+          window.addEventListener("load", () => {
+            const hero = document.getElementById("intro-hero");
+            setTimeout(() => {
+              hero.classList.add("show");
+            }, 150);  // slight delay for smoothness
+          });
+        </script>
       </div>
-    </div>
+      
     <hr>
     <!--............................
        essential for google relevance
       .............................-->
     <div class="seo-content">
-      <h1 class="typing-text">Study Hub – Free Academic Notes and Learning Tools</h1>
-      <p>
-        Study Hub is a simple and accessible learning platform that provides free academic notes,
-        mathematics explanations, biology and chemistry content, and useful study tools.
-        It helps students access reliable study resources easily.
-      </p>
+      <div class="box1">
+        <img src="../../assets/images/logo-2.jpeg" alt="logo-2">
+      </div>
+      
+      <style>
+        .box1 {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px;
+        }
+      
+        .box1 img {
+          width: 240px;
+          /* medium size */
+          height: auto;
+          /* keeps proportions */
+        }
+      </style>
     </div>
 
     <br>
     <hr><br>
     <!--.card-box contains all subjects-->
     <div class="card-box">
-      <div class="card">
-        <h1>BIOLOGY</h1>
-        <P>&<br>LIFE</P>
-      </div>
+      <div class="cardd">
+    <div class="video-box">
+      <iframe
+        src="https://www.youtube.com/embed/URUJD5NEXC8?autoplay=1&mute=1&loop=1&playlist=URUJD5NEXC8&controls=0&modestbranding=1&rel=0&showinfo=0"
+        frameborder="0" allow="autoplay; encrypted-media;" allowfullscreen
+        style="width:100%; height:100%; pointer-events:none;">
+      </iframe>
+    </div>
+    
+    <style>
+      .video-box {
+        width: 500px;
+        height: 280px;
+        overflow: hidden;
+      }
+    </style>
     </div>
 
     <br>
     <hr>
 
     <div>
-      | Dear user bio updates are still loading ...
+      <!--this easter-->
+      <div class="container" style="margin-top: 10px; border: 1px solid #d0def5;">
+        <h2 style="text-align: center; font-size: 1.4em;">🐣 Easter Package: Biology Recap</h2>
+        <p style="text-align: center; color: #555; font-style: italic;">
+          "The more you explain, the more you understand."
+        </p>
+        <hr style="border: 0; border-top: 1px solid #d0def5; margin: 15px 0;">
+      
+        <p>We’ve officially wrapped up our 4-day {6th | April | 2026} intensive session! 
+          Here is what we covered:</p>
+      
+        <br>
+        <hr><br>
+        <hr><br>
+          <summary>🧪 The Fundamentals</summary>
+          <ul>
+            <li><strong  class="chem-life-card-title">Chemicals of Life:</strong> Exploring molecular building blocks.</li>
+            <div class="chem-life-card">
+              <div class="chem-life-thumbnail-wrapper">
+                <img src="../../assets/images/chem_of_life.png" alt="Biomolecules" id="expandableImg">
+              </div>
+            </div>
+            
+            
+            
+            <div class="expanded-overlay" id="imgOverlay">
+              <span class="close-x">&times;</span>
+              <img src="../../assets/images/chem_of_life.png" alt="Biomolecules Full">
+            </div>
+            <style>
+              /* Styles the card container */
+              .chem-life-card {
+                border: 1px solid #d0def5;
+                background: #fff;
+                border-radius: 8px;
+                padding: 10px;
+                max-width: 250px;
+                /* Restricts the overall width */
+                text-align: center;
+                /* Centers everything */
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+              }
+            
+              /* Defines the size of the thumbnail container */
+              .chem-life-thumbnail-wrapper {
+                width: 100%;
+                height: 100px;
+                /* Restricts the height */
+                overflow: hidden;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #eee;
+              }
+            
+              /* Styles the actual image */
+              .chem-life-thumbnail-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                /* Fits the whole image in the 100px box */
+              }
+            
+              .chem-life-card-title {
+                color: #153e75;
+                font-weight: bold;
+                font-size: 1.1em;
+                margin: 5px 0;
+              }
+            </style>
+            
+      
+              <li><strong class="chem-life-card-title">Cell Biology & Histology:</strong> Structures and specialized tissues.</li>
+              </ul>
+              <p class="chem-life-card-title">Histology: Human Tissues</p>
+              <p style="font-size: 0.9em; color: #666; margin: 0;">An overview of epithelial, connective, muscle, and nervous
+                tissues.</p>
+              <div class="chem-life-card">
+                <div class="chem-life-thumbnail-wrapper">
+                  <img src="../../assets/images/tissues.png" alt="Overview of Human Tissues" id="expandableTissues">
+                </div>
+              
+              </div>
+              
+              <div class="expanded-overlay" id="tissuesOverlay">
+                <span class="close-x">&times;</span>
+                <img src="../../assets/images/tissues.png" alt="Human Tissues Full">
+              </div>
+              
+
+              <br><hr><br><hr><br>
+              <summary>🧬 Continuity & Genetics</summary>
+              <ul>
+                <li><strong class="chem-life-card-title">Cell Cycle & Divisions:</strong> Mitosis and Meiosis replication.</li>
+                <li><strong class="chem-life-card-title">Genetics & Evolution:</strong> Inheritance and adaptation mechanisms.</li>
+              </ul>
+              
+              <div class="chem-life-card">
+                <div class="chem-life-thumbnail-wrapper">
+                  <img src="../../assets/images/genetics.png" alt="Genetics and Continuity Infographic" id="expandableGenetics">
+                </div>
+                <p class="chem-life-card-title">Genetics & Continuity</p>
+                <p style="font-size: 0.9em; color: #666; margin: 0;">The story of DNA, inheritance pathways, and population genetics
+                  over generations.</p>
+              </div>
+              
+              <div class="expanded-overlay" id="geneticsOverlay">
+                <span class="close-x">&times;</span>
+                <img src="../../assets/images/genetics.png" alt="Genetics and Continuity Full">
+              </div>
+
+              <br>
+              <hr><br>
+              <hr><br>
+
+              <summary>🔋 Energy & Survival</summary>
+              <ul>
+                <li><strong class="chem-life-card-title">Transport & Exchange:</strong> Gaseous exchange and substance movement.</li>
+                <li><strong class="chem-life-card-title">Respiration & Photosynthesis:</strong> The engines of life and energy.</li>
+              </ul>
+              <hr>
+            </div>
+            
+        
+
+        
+      
+        
+          
+      
+        <p style="font-weight: bold; color: #153e75; text-align: center; margin-top: 20px;">
+          🚀 Stay tuned for expanded notes soon!
+        </p>
+      </div>
     </div>
     <hr>
     <div id="inline">
@@ -466,6 +757,115 @@
       }
 
     });
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Find the required elements
+      const thumbnailImg = document.getElementById("expandableImg");
+      const overlay = document.getElementById("imgOverlay");
+      const fullImg = overlay.querySelector("img");
+      const closeX = overlay.querySelector(".close-x");
+      const body = document.body;
+
+      // --- FUNCTION: Open Full Screen ---
+      thumbnailImg.addEventListener("click", () => {
+        // a. Apply the active class (the fade-in)
+        overlay.classList.add("active");
+        // b. Apply scroll lock to background site
+        body.classList.add("scroll-lock");
+      });
+
+      // --- FUNCTION: Close Full Screen ---
+      const closeFullscreen = () => {
+        // a. Start the fade-out
+        overlay.classList.remove("active");
+        // b. Release scroll lock
+        body.classList.remove("scroll-lock");
+      };
+
+      // Close when clicking the 'X' button
+      closeX.addEventListener("click", closeFullscreen);
+
+      // Close when clicking the image itself
+      fullImg.addEventListener("click", closeFullscreen);
+
+      // Close when clicking the black background overlay area
+      overlay.addEventListener("click", (e) => {
+        // (Check that they didn't click the image itself again)
+        if (e.target === overlay) {
+          closeFullscreen();
+        }
+      });
+
+      // Advanced: Close on 'Esc' key press
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("active")) {
+          closeFullscreen();
+        }
+      });
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+        // Helper function to handle expansion
+        const setupExpansion = (imgId, overlayId) => {
+          const img = document.getElementById(imgId);
+          const overlay = document.getElementById(overlayId);
+          if (!img || !overlay) return;
+
+          const closeBtn = overlay.querySelector(".close-x");
+          const fullImg = overlay.querySelector("img");
+
+          const open = () => {
+            overlay.classList.add("active");
+            document.body.classList.add("scroll-lock");
+          };
+
+          const close = () => {
+            overlay.classList.remove("active");
+            document.body.classList.remove("scroll-lock");
+          };
+
+          img.addEventListener("click", open);
+          closeBtn.addEventListener("click", close);
+          fullImg.addEventListener("click", close);
+          overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+        };
+
+        // Initialize both images
+        setupExpansion("expandableImg", "imgOverlay"); // Chemicals of Life
+        setupExpansion("expandableTissues", "tissuesOverlay"); // Tissues
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+          // Helper function to handle expansion
+          const setupExpansion = (imgId, overlayId) => {
+            const img = document.getElementById(imgId);
+            const overlay = document.getElementById(overlayId);
+            if (!img || !overlay) return;
+
+            const closeBtn = overlay.querySelector(".close-x");
+            const fullImg = overlay.querySelector("img");
+
+            const open = () => {
+              overlay.classList.add("active");
+              document.body.classList.add("scroll-lock");
+            };
+
+            const close = () => {
+              overlay.classList.remove("active");
+              document.body.classList.remove("scroll-lock");
+            };
+
+            img.addEventListener("click", open);
+            closeBtn.addEventListener("click", close);
+            fullImg.addEventListener("click", close);
+            overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+          };
+
+          // Initialize all three current images
+          setupExpansion("expandableImg", "imgOverlay");        // Chemicals of Life
+          setupExpansion("expandableTissues", "tissuesOverlay"); // Tissues
+          setupExpansion("expandableGenetics", "geneticsOverlay"); // Genetics
+        });
   </script>
 
 </body>
