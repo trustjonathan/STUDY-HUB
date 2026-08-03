@@ -188,8 +188,66 @@
               <h3>Chemistry Videos</h3>
               <div id="chem-video-list"></div>
             </div>
+            <!-- Study Hub Pomodoro Timer -->
+            <div id="pomodoro-container"
+              style="background: #ffffff; border: 2px solid #2e7d32; border-radius: 12px; padding: 20px; max-width: 350px; text-align: center; font-family: sans-serif; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 20px auto;">
+              <h3 id="timer-label" style="color: #2e7d32; margin-top: 0;">🧠 Focus Session (25m)</h3>
+              <div id="timer-display" style="font-size: 48px; font-weight: bold; color: #333; margin: 15px 0;">25:00</div>
+              <div>
+                <button onclick="startTimer()"
+                  style="background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 5px;">Start</button>
+                <button onclick="pauseTimer()"
+                  style="background: #f57c00; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 5px;">Pause</button>
+                <button onclick="resetTimer()"
+                  style="background: #757575; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Reset</button>
+              </div>
+            </div>
+            
+            <script>
+              let timeLeft = 25 * 60;
+              let timerInterval = null;
+              let isWorkMode = true;
+
+              function updateDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer-display').textContent =
+                  `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              }
+
+              function startTimer() {
+                if (timerInterval !== null) return;
+                timerInterval = setInterval(() => {
+                  if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                  } else {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    isWorkMode = !isWorkMode;
+                    timeLeft = isWorkMode ? 25 * 60 : 5 * 60;
+                    document.getElementById('timer-label').textContent = isWorkMode ? '🧠 Focus Session (25m)' : '☕ Short Break (5m)';
+                    alert(isWorkMode ? 'Break over! Time to get into Beast Mode!' : 'Great job! Take a 5-minute break.');
+                    updateDisplay();
+                  }
+                }, 1000);
+              }
+
+              function pauseTimer() {
+                clearInterval(timerInterval);
+                timerInterval = null;
+              }
+
+              function resetTimer() {
+                pauseTimer();
+                isWorkMode = true;
+                timeLeft = 25 * 60;
+                document.getElementById('timer-label').textContent = '🧠 Focus Session (25m)';
+                updateDisplay();
+              }
+            </script>
+
         </div>
-    
       </div>
     </section>
     <p>Stay updated with the latest chemistry <a href="chem-notes-html/chem-updates.html">resources.</a></p>
