@@ -19,6 +19,14 @@ node_modules/
 .vscode/
 .idea/
 
+# ===== STUDY MATERIAL MOVED TO SUPABASE (2026-09-19) =====
+# All 408 resource files now live in Supabase Storage:
+#   bucket: study-hub-resources   prefix: documents/
+# Regenerate the frontend index with:
+#   cd backend && node scripts/build-resources-manifest.mjs
+# The folder is kept OUT of git so the repository stays light.
+/resources/
+
 # Ignore build outputs from any folder
 **/dist/
 **/build/

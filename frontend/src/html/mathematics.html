@@ -60,6 +60,10 @@
   <script src="../script/home.js" defer></script>
   <script src="../script/sidebar.js" defer></script>
   <script src="../script/mathematics.js" defer></script>
+<!-- Resource library (files are served from Supabase Storage) -->
+  <link rel="stylesheet" href="../styles/resources.css">
+  <script src="../data/resources.js" defer></script>
+  <script src="../script/resources.js" defer></script>
 </head>
 
 <body data-page="mathematics">
@@ -259,16 +263,18 @@
 
   <section>
     <!-- Expandable Content Containers -->
-    <div id="notes-content" class="resource-content">
-      <h3>Mathematics Notes</h3>
-      <ul>
-          <li><a href="https://trustjonathan.github.io/MATHEMATICS/#view-notes">Mathematics Notes</a></li>
-        </ul>
+          <div id="notes-content" class="resource-content">
+        <h3>Mathematics Notes</h3>
+        <p class="resource-status" data-resource-status="mathematics|notes"></p>
+        <div data-resources data-subject="mathematics" data-category="notes" data-limit="12"></div>
+        <p>Also see the <a href="https://trustjonathan.github.io/MATHEMATICS/#view-notes" rel="noopener">legacy Mathematics notes</a>.</p>
       </div>
-    
+
       <div id="papers-content" class="resource-content">
-        <h3>Past Papers</h3>
-        <li><a href="https://trustjonathan.github.io/MATHEMATICS/#view-papers">Mathematics Past Papers</a></li>
+        <h3>Mathematics Past Papers</h3>
+        <p class="resource-status" data-resource-status="mathematics|papers"></p>
+        <div data-resources data-subject="mathematics" data-category="papers" data-limit="20"></div>
+        <p>Mathematics papers have not been moved to Supabase yet - use the <a href="https://trustjonathan.github.io/MATHEMATICS/#view-papers" rel="noopener">legacy library</a> in the meantime.</p>
       </div>
     
       <div id="videos-content" class="resource-content">

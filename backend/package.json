@@ -6,13 +6,23 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:link": "supabase link --project-ref ttuxelhyoctyshgvjykj",
+    "db:status": "supabase migration list --linked",
+    "db:dry-run": "supabase db push --linked --include-all --dry-run",
+    "db:push": "supabase db push --linked --include-all",
+    "db:query": "supabase db query --linked",
+    "resources:plan": "node scripts/upload-resources.js --dry-run",
+    "resources:upload": "node scripts/upload-resources.js",
+    "resources:upload:dedupe": "node scripts/upload-resources.js --dedupe",
+    "resources:help": "node scripts/upload-resources.js --help"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",

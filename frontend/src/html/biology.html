@@ -59,6 +59,10 @@
   <script src="../script/home.js" defer></script>
   <script src="../script/sidebar.js" defer></script>
   <script src="../script/biology.js" defer></script>
+<!-- Resource library (files are served from Supabase Storage) -->
+  <link rel="stylesheet" href="../styles/resources.css">
+  <script src="../data/resources.js" defer></script>
+  <script src="../script/resources.js" defer></script>
 </head>
 
 
@@ -250,18 +254,20 @@
 
     <section>
       <!-- Expandable Content Containers -->
-      <div id="notes-content" class="resource-content">
+            <div id="notes-content" class="resource-content">
         <h3>Biology Notes</h3>
-        <ul>
-          <li><a href="https://trustjonathan.github.io/BIOLOGY/#view-notes"">View all notes</a></li>
-          <li>
-            
+        <p class="resource-status" data-resource-status="biology|notes"></p>
+        <div data-resources data-subject="biology" data-category="notes" data-limit="12"></div>
+      </div>
 
-      <div id="papers-content" class="resource-content"></div>
-          <h3>PAPERS</h3>
-          <ul>
-            <li><a href="https://trustjonathan.github.io/BIOLOGY/#view-papers">View all papers</a></li>
-          </ul>
+      <div id="papers-content" class="resource-content">
+        <h3>Biology Past Papers</h3>
+        <div class="resource-toolbar">
+          <input type="search" data-resource-search="biology|papers" placeholder="Search past papers by name or year...">
+          <select data-resource-filter="biology|papers" aria-label="Filter by level"></select>
+        </div>
+        <p class="resource-status" data-resource-status="biology|papers"></p>
+        <div data-resources data-subject="biology" data-category="papers" data-limit="20"></div>
       </div>
 
     </section>

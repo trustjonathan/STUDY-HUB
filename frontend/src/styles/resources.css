@@ -1,0 +1,93 @@
+/* frontend/src/styles/resources.css
+   Styling for the Supabase-backed resource library
+   (frontend/src/script/resources.js). Scoped to .resource-* classes so it
+   cannot disturb the existing subject-page layouts. */
+
+.resource-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.resource-toolbar input,
+.resource-toolbar select {
+  padding: 8px 10px;
+  border: 1px solid #d7dbe0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  min-width: 160px;
+  background: #ffffff;
+}
+
+.resource-toolbar input:focus,
+.resource-toolbar select:focus {
+  outline: 2px solid #2e7d32;
+  outline-offset: 1px;
+}
+
+.resource-status {
+  font-size: 0.85rem;
+  color: #5c6670;
+  margin: 4px 0 10px;
+}
+
+ul[data-resources] {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+li.resource-item,
+div.resource-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #eceff1;
+}
+
+li.resource-item:hover,
+div.resource-item:hover {
+  background: #f6faf6;
+}
+
+.resource-link {
+  font-weight: 600;
+  color: #1b5e20;
+  text-decoration: none;
+}
+
+.resource-link:hover,
+.resource-link:focus {
+  text-decoration: underline;
+}
+
+.resource-meta {
+  font-size: 0.8rem;
+  color: #6b7680;
+}
+
+li.resource-empty,
+div.resource-empty {
+  padding: 10px 12px;
+  color: #6b7680;
+  font-style: italic;
+}
+
+button.resource-more {
+  margin: 12px 0;
+}
+
+@media screen and (max-width: 600px) {
+  li.resource-item {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .resource-toolbar input,
+  .resource-toolbar select {
+    flex: 1 1 100%;
+  }
+}

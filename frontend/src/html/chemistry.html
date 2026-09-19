@@ -57,6 +57,10 @@
   <script src="../script/home.js" defer></script>
   <script src="../script/sidebar.js" defer></script>
   <script src="../script/chemistry.js" defer></script>
+<!-- Resource library (files are served from Supabase Storage) -->
+  <link rel="stylesheet" href="../styles/resources.css">
+  <script src="../data/resources.js" defer></script>
+  <script src="../script/resources.js" defer></script>
 </head>
 
 
@@ -253,22 +257,21 @@
     <p>Stay updated with the latest chemistry <a href="chem-notes-html/chem-updates.html">resources.</a></p>
     <section>
       <!-- Expandable Content Containers -->
-      <div id="notes-content" class="resource-content">
+            <div id="notes-content" class="resource-content">
         <h3>Chemistry Notes</h3>
-        <ul>
-          <li><a href="chem-notes-html/Electrochemistry.html">Electrochemistry Notes</a></li>
-
-          <li><a href="https://trustjonathan.github.io/CHEMISTRY/#view-notes">Chemistry Notes</a></li>
-
-        </ul>
+        <p class="resource-status" data-resource-status="chemistry|notes"></p>
+        <div data-resources data-subject="chemistry" data-category="notes" data-limit="12"></div>
+        <p><a href="chem-notes-html/Electrochemistry.html">Electrochemistry Notes</a></p>
       </div>
-    
+
       <div id="papers-content" class="resource-content">
-        <h3>Past Papers</h3>
-          
-        <ul>
-            <li><a href="https://trustjonathan.github.io/CHEMISTRTY/#view-papers">View Past Papers </a></li>
-        </ul>
+        <h3>Chemistry Past Papers</h3>
+        <div class="resource-toolbar">
+          <input type="search" data-resource-search="chemistry|papers" placeholder="Search past papers by name or year...">
+          <select data-resource-filter="chemistry|papers" aria-label="Filter by level"></select>
+        </div>
+        <p class="resource-status" data-resource-status="chemistry|papers"></p>
+        <div data-resources data-subject="chemistry" data-category="papers" data-limit="20"></div>
       </div>
     </section>
     
