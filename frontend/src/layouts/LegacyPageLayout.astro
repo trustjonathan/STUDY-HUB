@@ -36,6 +36,14 @@ const home = base.replace(/\/$/, '');
         <a href={`${base}frontend/src/html/biology.html`} aria-current={dataPage === 'biology' ? 'page' : undefined}>Biology</a>
         <a href={`${base}frontend/src/html/chemistry.html`} aria-current={dataPage === 'chemistry' ? 'page' : undefined}>Chemistry</a>
         <a href={`${base}frontend/src/html/mathematics.html`} aria-current={dataPage === 'mathematics' ? 'page' : undefined}>Mathematics</a>
+        <details class="archive-nav">
+          <summary>Archives</summary>
+          <div class="archive-nav-menu">
+            <a href="https://trustjonathan.github.io/BIOLOGY/">Biology archive</a>
+            <a href={`${base}frontend/src/html/chemistry.html#chemistry-library`}>Chemistry archive</a>
+            <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+          </div>
+        </details>
         <a href={`${base}frontend/src/html/about.html`} aria-current={dataPage === 'about' ? 'page' : undefined}>About</a>
       </nav>
     </header>
@@ -53,6 +61,7 @@ const home = base.replace(/\/$/, '');
         <nav class="legacy-footer-links" aria-label="Footer navigation">
           <h2>Explore</h2>
           <a href={`${base}frontend/src/html/biology.html`}>Biology</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/">Biology archive</a>
           <a href={`${base}frontend/src/html/chemistry.html`}>Chemistry</a>
           <a href={`${base}frontend/src/html/mathematics.html`}>Mathematics</a>
           <a href={`${base}frontend/src/html/about.html`}>About Study Hub</a>

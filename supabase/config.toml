@@ -7,6 +7,9 @@ project_id = "STUDY-HUB"
 [functions.submit-math-resource]
 verify_jwt = false
 
+[functions.submit-biology-resource]
+verify_jwt = false
+
 [api]
 enabled = true
 # Port to use for the API URL.
