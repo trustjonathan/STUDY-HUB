@@ -15,21 +15,21 @@ const subjects = [
     theme: 'chemistry',
     focus: 'Matter & reactions',
     description: 'Connect chemical principles to reactions, equations, and experiments.',
-    href: `${base}frontend/src/html/chemistry.html`
+    href: 'https://trustjonathan.github.io/CHEMISTRY/'
   },
   {
     name: 'Mathematics',
     theme: 'mathematics',
     focus: 'Methods & practice',
     description: 'Build confidence through worked examples and exam preparation.',
-    href: `${base}frontend/src/html/mathematics.html`
+    href: 'https://trustjonathan.github.io/MATHEMATICS/archive.html'
   }
 ];
 ---
 
 <SiteLayout>
   <main>
-    <section class="hero-section">
+    <section class="hero-section" id="overview">
       <div class="hero-copy">
         <p class="eyebrow">Study resources, in one place</p>
         <h1>Make your next study session count.</h1>
@@ -56,6 +56,21 @@ const subjects = [
         </ol>
         <p class="brief-foot">A focused path from understanding to practice.</p>
       </aside>
+    </section>
+
+    <section class="normal-pages-strip" id="normal-pages" aria-labelledby="normal-pages-title">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="eyebrow">Back to the main site</p>
+          <h2 id="normal-pages-title">Normal pages</h2>
+        </div>
+      </div>
+      <div class="page-link-grid">
+        <a href="https://trustjonathan.github.io/STUDY-HUB/">Study Hub home</a>
+        <a href="https://trustjonathan.github.io/BIOLOGY/">Biology</a>
+        <a href="https://trustjonathan.github.io/CHEMISTRY/">Chemistry</a>
+        <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+      </div>
     </section>
 
     <section class="subjects-section" id="subjects">

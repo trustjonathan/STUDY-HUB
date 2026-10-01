@@ -26,35 +26,87 @@ const home = base.replace(/\/$/, '');
     <title>{title}</title>
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href={home} aria-label="Study Hub home">
-        <img src={logo.src} width="40" height="40" alt="" />
-        <span>Study Hub</span>
-      </a>
-      <nav aria-label="Main navigation">
-        <a href={`${base}frontend/src/html/biology.html`}>Biology</a>
-        <a href={`${base}frontend/src/html/chemistry.html`}>Chemistry</a>
-        <a href={`${base}frontend/src/html/mathematics.html`}>Mathematics</a>
-        <details class="archive-nav">
-          <summary>Archives</summary>
-          <div class="archive-nav-menu">
-            <a href="https://trustjonathan.github.io/BIOLOGY/">Biology archive</a>
-            <a href={`${base}frontend/src/html/chemistry.html#chemistry-library`}>Chemistry archive</a>
-            <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
-          </div>
-        </details>
-        <a href={`${home}#practice`}>Exam practice</a>
-        <a href={`${base}frontend/src/html/about.html`}>About</a>
+    <header class="site-header" id="top">
+      <div class="utility-bar">
+        <div class="utility-inner">
+          <nav class="utility-links" aria-label="Utility navigation">
+            <a href={`${home}/frontend/src/html/about.html`}>About</a>
+            <a href="mailto:trusteth777@gmail.com">Contact</a>
+          </nav>
+          <span class="utility-note">Made for Ugandan learners</span>
+        </div>
+      </div>
+      <div class="header-main">
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href={home}>Home</a>
+          <a href={`${home}#overview`}>Overview</a>
+          <a href={`${home}#subjects`}>Subjects</a>
+        </nav>
+        <a class="brand" href={home} aria-label="Study Hub home">
+          <img src={logo.src} width="40" height="40" alt="" />
+          <span>Study Hub</span>
+        </a>
+        <nav class="header-actions" aria-label="Quick actions">
+          <a href={`${home}#subjects`}>Explore subjects</a>
+          <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">Request resource</a>
+        </nav>
+      </div>
+      <nav class="mega-nav" aria-label="Study Hub sections">
+        <section class="mega-nav-group">
+          <h2>Study Hub</h2>
+          <a href={home}>Home</a>
+          <a href={`${home}/frontend/src/html/about.html`}>About</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Biology</h2>
+          <a href="https://trustjonathan.github.io/BIOLOGY/">Biology study hub</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Chemistry</h2>
+          <a href="https://trustjonathan.github.io/CHEMISTRY/">Chemistry study hub</a>
+          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Mathematics</h2>
+          <a href="https://trustjonathan.github.io/MATHEMATICS/">Mathematics study hub</a>
+          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Resources</h2>
+          <a href={`${home}#subjects`}>Browse subjects</a>
+          <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">Request a resource</a>
+        </section>
       </nav>
     </header>
     <slot />
-    <footer class="site-footer">
-      <a class="brand" href={home}>
-        <img src={logo.src} width="32" height="32" alt="" />
-        <span>Study Hub</span>
-      </a>
-      <p>Free study resources for focused, confident revision.</p>
-      <span>Made for Ugandan learners</span>
+    <footer class="site-footer" id="footer-links">
+      <div class="footer-group">
+        <h3>Study Hub</h3>
+        <a href={home}>Home</a>
+        <a href={`${home}#overview`}>Overview</a>
+        <a href={`${home}#normal-pages`}>Normal pages</a>
+      </div>
+      <div class="footer-group">
+        <h3>Subjects</h3>
+        <a href="https://trustjonathan.github.io/BIOLOGY/">Biology</a>
+        <a href="https://trustjonathan.github.io/CHEMISTRY/">Chemistry</a>
+        <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics</a>
+      </div>
+      <div class="footer-group">
+        <h3>Archives</h3>
+        <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+        <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+        <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+      </div>
+      <div class="footer-brand">
+        <a class="brand" href={home}>
+          <img src={logo.src} width="32" height="32" alt="" />
+          <span>Study Hub</span>
+        </a>
+        <p>Free study resources for focused, confident revision.</p>
+        <a class="back-to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+      </div>
     </footer>
   </body>
 </html>

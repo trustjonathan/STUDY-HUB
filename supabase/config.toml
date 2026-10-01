@@ -10,6 +10,9 @@ verify_jwt = false
 [functions.submit-biology-resource]
 verify_jwt = false
 
+[functions.submit-chemistry-resource]
+verify_jwt = false
+
 [api]
 enabled = true
 # Port to use for the API URL.

@@ -28,23 +28,56 @@ const home = base.replace(/\/$/, '');
   </head>
   <body data-page={dataPage} class={bodyClass}>
     <header class="site-header" id="top">
-      <a class="brand" href={home} aria-label="Study Hub home">
-        <img src={logo.src} width="40" height="40" alt="" />
-        <span>Study Hub</span>
-      </a>
-      <nav aria-label="Main navigation">
-        <a href={`${base}frontend/src/html/biology.html`} aria-current={dataPage === 'biology' ? 'page' : undefined}>Biology</a>
-        <a href={`${base}frontend/src/html/chemistry.html`} aria-current={dataPage === 'chemistry' ? 'page' : undefined}>Chemistry</a>
-        <a href={`${base}frontend/src/html/mathematics.html`} aria-current={dataPage === 'mathematics' ? 'page' : undefined}>Mathematics</a>
-        <details class="archive-nav">
-          <summary>Archives</summary>
-          <div class="archive-nav-menu">
-            <a href="https://trustjonathan.github.io/BIOLOGY/">Biology archive</a>
-            <a href={`${base}frontend/src/html/chemistry.html#chemistry-library`}>Chemistry archive</a>
-            <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
-          </div>
-        </details>
-        <a href={`${base}frontend/src/html/about.html`} aria-current={dataPage === 'about' ? 'page' : undefined}>About</a>
+      <div class="utility-bar">
+        <div class="utility-inner">
+          <nav class="utility-links" aria-label="Utility navigation">
+            <a href={`${home}/frontend/src/html/about.html`}>About</a>
+            <a href="mailto:trusteth777@gmail.com">Contact</a>
+          </nav>
+          <span class="utility-note">Made for Ugandan learners</span>
+        </div>
+      </div>
+      <div class="header-main">
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href={home}>Home</a>
+          <a href={`${home}#normal-pages`}>Subjects</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Archives</a>
+        </nav>
+        <a class="brand" href={home} aria-label="Study Hub home">
+          <img src={logo.src} width="40" height="40" alt="" />
+          <span>Study Hub</span>
+        </a>
+        <nav class="header-actions" aria-label="Quick actions">
+          <a href="mailto:trusteth777@gmail.com">Contact Study Hub</a>
+          <a href="https://trustjonathan.github.io/STUDY-HUB/">Back to home</a>
+        </nav>
+      </div>
+      <nav class="mega-nav" aria-label="Study Hub sections">
+        <section class="mega-nav-group">
+          <h2>Study Hub</h2>
+          <a href={home}>Home</a>
+          <a href={`${home}/frontend/src/html/about.html`}>About</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Biology</h2>
+          <a href={`${home}/frontend/src/html/biology.html`}>Biology study hub</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Chemistry</h2>
+          <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry study hub</a>
+          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Mathematics</h2>
+          <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics study hub</a>
+          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+        </section>
+        <section class="mega-nav-group">
+          <h2>Contact</h2>
+          <a href="mailto:trusteth777@gmail.com">Email Study Hub</a>
+          <a href="https://wa.me/+256701810497">WhatsApp</a>
+        </section>
       </nav>
     </header>
     <slot />
@@ -60,11 +93,13 @@ const home = base.replace(/\/$/, '');
         </div>
         <nav class="legacy-footer-links" aria-label="Footer navigation">
           <h2>Explore</h2>
-          <a href={`${base}frontend/src/html/biology.html`}>Biology</a>
-          <a href="https://trustjonathan.github.io/BIOLOGY/">Biology archive</a>
-          <a href={`${base}frontend/src/html/chemistry.html`}>Chemistry</a>
-          <a href={`${base}frontend/src/html/mathematics.html`}>Mathematics</a>
-          <a href={`${base}frontend/src/html/about.html`}>About Study Hub</a>
+          <a href={home}>Home</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/">Biology</a>
+          <a href="https://trustjonathan.github.io/CHEMISTRY/">Chemistry</a>
+          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
         </nav>
         <div class="legacy-footer-contact">
           <h2>Get in touch</h2>
