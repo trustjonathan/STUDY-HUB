@@ -16,6 +16,73 @@
   'use strict';
 
   const MANIFEST = window.STUDY_HUB_RESOURCES || null;
+  const SUPABASE_CONFIG = {
+    url: document.querySelector('meta[name="study-hub-supabase-url"]')?.content || '',
+    anonKey: document.querySelector('meta[name="study-hub-supabase-anon-key"]')?.content || ''
+  };
+  const SUPABASE_TABLE = 'study_hub_resources';
+  const PAGE_SIZE = 1000;
+
+  function publicStorageUrl(bucket, storagePath) {
+    const encodedPath = String(storagePath)
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    return `${SUPABASE_CONFIG.url.replace(/\/+$/, '')}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
+  }
+
+  async function loadMathematicsResources(category) {
+    const supabaseUrl = String(SUPABASE_CONFIG.url || '').replace(/\/+$/, '');
+    const anonKey = SUPABASE_CONFIG.anonKey || '';
+
+    if (!supabaseUrl || !anonKey) {
+      throw new Error('The public Supabase URL or anon key is not configured.');
+    }
+
+    const resources = [];
+    let offset = 0;
+
+    for (;;) {
+      const endpoint = new URL(`${supabaseUrl}/rest/v1/${SUPABASE_TABLE}`);
+      endpoint.searchParams.set(
+        'select',
+        'subject,category,storage_bucket,storage_path,original_filename,title,size_bytes,level,year,resource_type'
+      );
+      endpoint.searchParams.set('subject', 'eq.mathematics');
+      endpoint.searchParams.set('category', `eq.${category}`);
+      endpoint.searchParams.set('order', 'title.asc,original_filename.asc');
+      endpoint.searchParams.set('limit', String(PAGE_SIZE));
+      endpoint.searchParams.set('offset', String(offset));
+
+      const headers = { apikey: anonKey };
+      if (anonKey.startsWith('eyJ')) headers.Authorization = `Bearer ${anonKey}`;
+
+      const response = await fetch(endpoint, {
+        headers
+      });
+
+      if (!response.ok) {
+        throw new Error(`Supabase returned HTTP ${response.status}.`);
+      }
+
+      const page = await response.json();
+      if (!Array.isArray(page)) throw new Error('Supabase returned an invalid resource list.');
+
+      resources.push(...page);
+      if (page.length < PAGE_SIZE) break;
+      offset += PAGE_SIZE;
+    }
+
+    return resources.map((item) => ({
+      title: item.title,
+      originalFilename: item.original_filename,
+      sizeBytes: item.size_bytes,
+      level: item.level,
+      year: item.year,
+      resourceType: item.resource_type,
+      publicUrl: publicStorageUrl(item.storage_bucket, item.storage_path)
+    }));
+  }
 
   function formatBytes(bytes) {
     const value = Number(bytes) || 0;
@@ -77,49 +144,23 @@
     const searchEl = document.querySelector(`[data-resource-search="${key}"]`);
     const filterEl = document.querySelector(`[data-resource-filter="${key}"]`);
     const statusEl = document.querySelector(`[data-resource-status="${key}"]`);
-
-    if (!MANIFEST || !Array.isArray(MANIFEST.items)) {
-      listEl.innerHTML = '<div class="resource-empty">Resource index unavailable.</div>';
-      return;
-    }
-
-    const all = MANIFEST.items.filter(
-      (item) => item.subject === subject && item.category === category
-    );
-
-    if (!all.length) {
-      listEl.innerHTML =
-        '<div class="resource-empty">No files uploaded for this subject yet.</div>';
-      if (statusEl) statusEl.textContent = '';
-      return;
-    }
-
-    // Level filter options, built from the data itself.
-    if (filterEl && !filterEl.dataset.ready) {
-      const levels = Array.from(new Set(all.map((item) => item.level).filter(Boolean))).sort();
-      filterEl.innerHTML = '<option value="">All levels</option>';
-      for (const level of levels) {
-        const option = document.createElement('option');
-        option.value = level;
-        option.textContent = level;
-        filterEl.appendChild(option);
-      }
-      filterEl.dataset.ready = 'true';
-    }
-
+    let all = [];
     let visible = pageSize;
-    let moreButton = null;
+    let loading = subject === 'mathematics';
 
     function draw() {
+      if (loading) return;
       const query = searchEl ? searchEl.value.trim().toLowerCase() : '';
       const level = filterEl ? filterEl.value : '';
       const filtered = all.filter((item) => matches(item, query, level));
 
       listEl.innerHTML = '';
-      moreButton = null;
 
       if (!filtered.length) {
-        listEl.innerHTML = '<div class="resource-empty">No matching resources.</div>';
+        const message = all.length
+          ? 'No matching resources.'
+          : 'No files uploaded for this subject yet.';
+        listEl.innerHTML = `<div class="resource-empty">${message}</div>`;
         if (statusEl) statusEl.textContent = '';
         return;
       }
@@ -129,7 +170,7 @@
       }
 
       if (filtered.length > visible) {
-        moreButton = document.createElement('button');
+        const moreButton = document.createElement('button');
         moreButton.type = 'button';
         moreButton.className = 'btn resource-more';
         moreButton.textContent = `Load ${Math.min(pageSize, filtered.length - visible)} more`;
@@ -145,8 +186,82 @@
       }
     }
 
+    function renderError() {
+      loading = false;
+      listEl.innerHTML = '';
+      const message = document.createElement('div');
+      message.className = 'resource-empty';
+      message.setAttribute('role', 'alert');
+      message.textContent = 'Mathematics resources could not be loaded.';
+
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'btn resource-retry';
+      retry.textContent = 'Retry';
+      retry.addEventListener('click', loadFromApi);
+      listEl.append(message, retry);
+
+      if (statusEl) statusEl.textContent = 'Check the connection and public Supabase configuration, then retry.';
+    }
+
+    async function loadFromApi() {
+      loading = true;
+      listEl.innerHTML = '<div class="resource-empty" role="status">Loading Mathematics resources...</div>';
+      if (statusEl) statusEl.textContent = 'Loading Mathematics resources...';
+
+      try {
+        all = await loadMathematicsResources(category);
+        loading = false;
+
+        if (filterEl) filterEl.dataset.ready = '';
+        visible = pageSize;
+        if (filterEl) {
+          const levels = Array.from(new Set(all.map((item) => item.level).filter(Boolean))).sort();
+          filterEl.innerHTML = '<option value="">All levels</option>';
+          for (const level of levels) {
+            const option = document.createElement('option');
+            option.value = level;
+            option.textContent = level;
+            filterEl.appendChild(option);
+          }
+          filterEl.dataset.ready = 'true';
+        }
+        draw();
+      } catch (error) {
+        console.error('Unable to load Mathematics resources:', error);
+        renderError();
+      }
+    }
+
     if (searchEl) searchEl.addEventListener('input', () => { visible = pageSize; draw(); });
     if (filterEl) filterEl.addEventListener('change', () => { visible = pageSize; draw(); });
+
+    if (subject === 'mathematics') {
+      void loadFromApi();
+      return;
+    }
+
+    if (!MANIFEST || !Array.isArray(MANIFEST.items)) {
+      loading = false;
+      listEl.innerHTML = '<div class="resource-empty">Resource index unavailable.</div>';
+      if (statusEl) statusEl.textContent = '';
+      return;
+    }
+
+    all = MANIFEST.items.filter(
+      (item) => item.subject === subject && item.category === category
+    );
+
+    if (filterEl && all.length) {
+      const levels = Array.from(new Set(all.map((item) => item.level).filter(Boolean))).sort();
+      filterEl.innerHTML = '<option value="">All levels</option>';
+      for (const level of levels) {
+        const option = document.createElement('option');
+        option.value = level;
+        option.textContent = level;
+        filterEl.appendChild(option);
+      }
+    }
 
     draw();
   }

@@ -1,5 +1,8 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 ---
 
 <LegacyPageLayout title="Mathematics Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Mathematics notes covering all topics with clear explanations, worked examples, and study tips for fast understanding." dataPage="mathematics">
@@ -15,6 +18,8 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
   <!-- Title + Favicon -->
   
   <link rel="icon" href="../assets/images/logo.png" type="image/png">
+  <meta name="study-hub-supabase-url" content={supabaseUrl}>
+  <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
 
   <!-- Canonical 
   <link rel="canonical" href="https://trustjonathan.github.io/STUDY-HUB/mathematics.html">
@@ -117,7 +122,7 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
         <div class="subject-copy">
           <p class="subject-badge">Mathematics study hub</p>
           <h1>Work through each problem with a method.</h1>
-          <p>Find topic notes, practice past questions, and follow guided exam preparation. The current Mathematics library remains available through its legacy collection.</p>
+          <p>Browse Mathematics notes and past papers from the shared Study Hub library, with guided video support for exam practice.</p>
           <div class="subject-actions">
             <button class="subject-btn primary toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
             <button class="subject-btn secondary toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Find past papers</button>
@@ -130,7 +135,7 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
       <div class="library-heading">
         <p class="subject-badge">Study library</p>
         <h2>Choose a resource type</h2>
-        <p>Open a collection to see what is available. Supabase migration is still pending for Mathematics, so the legacy library links remain active.</p>
+        <p>Browse shared Mathematics notes and papers. Search by topic or filter the collection by study level.</p>
       </div>
     
       <div class="resources-layout">
@@ -252,7 +257,7 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
           <input type="search" data-resource-search="mathematics|notes" placeholder="Search notes by topic or title..." aria-label="Search Mathematics notes">
           <select data-resource-filter="mathematics|notes" aria-label="Filter Mathematics notes by level"></select>
         </div>
-        <p class="resource-status" data-resource-status="mathematics|notes"></p>
+        <p class="resource-status" data-resource-status="mathematics|notes" aria-live="polite"></p>
         <div data-resources data-subject="mathematics" data-category="notes" data-limit="12"></div>
         <p>Also see the <a href="https://trustjonathan.github.io/MATHEMATICS/#view-notes" rel="noopener">legacy Mathematics notes</a>.</p>
       </div>
@@ -263,9 +268,9 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
           <input type="search" data-resource-search="mathematics|papers" placeholder="Search past papers by name or year..." aria-label="Search Mathematics past papers">
           <select data-resource-filter="mathematics|papers" aria-label="Filter Mathematics past papers by level"></select>
         </div>
-        <p class="resource-status" data-resource-status="mathematics|papers"></p>
+        <p class="resource-status" data-resource-status="mathematics|papers" aria-live="polite"></p>
         <div data-resources data-subject="mathematics" data-category="papers" data-limit="20"></div>
-        <p>Mathematics papers have not been moved to Supabase yet - use the <a href="https://trustjonathan.github.io/MATHEMATICS/#view-papers" rel="noopener">legacy library</a> in the meantime.</p>
+        <p>Looking for more practice? Browse the <a href="https://trustjonathan.github.io/MATHEMATICS/#view-papers" rel="noopener">standalone Mathematics library</a>.</p>
       </div>
     
     </section>

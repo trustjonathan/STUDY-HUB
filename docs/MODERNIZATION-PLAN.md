@@ -83,13 +83,21 @@ Method: `git rm -r --cached resources` + `/resources/` in `.gitignore`, then **B
 
 ### 0.4 Page rewiring (Supabase-backed library)
 
-The 6 stale external links (`trustjonathan.github.io/BIOLOGY|CHEMISTRY|CHEMISTRTY|MATHEMATICS/#view-notes|#view-papers`) in `biology.html`, `chemistry.html`, `mathematics.html` were replaced with `data-resources` containers fed by the generated manifest. Chemistry's working internal `chem-notes-html/Electrochemistry.html` link was preserved. Mathematics retains its legacy links **as a labelled fallback** because no mathematics files were migrated.
+The 6 stale external links (`trustjonathan.github.io/BIOLOGY|CHEMISTRY|CHEMISTRTY|MATHEMATICS/#view-notes|#view-papers`) in `biology.html`, `chemistry.html`, `mathematics.html` were replaced with `data-resources` containers fed by the generated manifest. Chemistry's working internal `chem-notes-html/Electrochemistry.html` link was preserved. Mathematics is now indexed in the shared catalog and its Study Hub page reads Mathematics notes and papers directly from Supabase; the separate Mathematics app remains independently styled.
 
 ### 0.5 Supabase migration pipeline
 
 Verified healthy: local and remote history both at `20260919090000`; `supabase db push --linked --dry-run` reports **"Remote database is up to date."**
 
 Removed as part of cleanup: a 0-byte `20260919_remote_schema.sql` (malformed timestamp prefix — would break `db push`), a duplicate non-recursive `backend/upload.mjs`, and an empty `backend/database/schema/` directory.
+
+### 0.6 Mathematics resource sharing
+
+The standalone `MATHEMATICS` app uploads files to `study-hub-resources` under `documents/math/notes` and `documents/math/papers`. `study_hub_resources` is the shared catalog; its existing public SELECT RLS policy permits public Mathematics listings, and the bucket is public, so only approved public materials belong there.
+
+The Math uploader upserts catalog metadata after each successful file upload using `(storage_bucket, storage_path)` as the idempotent key. The trusted uploader/indexer uses `SUPABASE_SERVICE_ROLE_KEY`; browser clients must use only `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`. The Study Hub Mathematics route reads `subject=mathematics` and `category=notes|papers` from the Supabase REST API, then builds object URLs from the public bucket and storage path. Biology and Chemistry continue using the generated manifest.
+
+The 2026-10-01 Storage scan found 115 Mathematics objects (20 notes, 94 papers, 1 uncategorized); the categorized resources were indexed into the shared table. The local Supabase anon key returned `Invalid API key` during validation, so replace it and set the GitHub Actions repository variables `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` before relying on deployed browser reads. Never configure a service-role key as a frontend or Actions build variable.
 
 ---
 

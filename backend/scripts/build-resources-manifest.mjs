@@ -10,6 +10,7 @@
 //   node scripts/build-resources-manifest.mjs              # write manifest files
 //   node scripts/build-resources-manifest.mjs --index-db   # also upsert catalog rows
 //   node scripts/build-resources-manifest.mjs --check      # report only, write nothing
+//   node scripts/build-resources-manifest.mjs --index-db-only --subject=mathematics
 
 import fs from 'fs';
 import path from 'path';
@@ -52,7 +53,12 @@ const PREFIX = (process.env.SUPABASE_RESOURCES_PREFIX || 'documents').replace(/^
 const TABLE = process.env.SUPABASE_RESOURCES_TABLE || 'study_hub_resources';
 
 const FLAGS = new Set(process.argv.slice(2).filter((arg) => arg.startsWith('--')));
-const INDEX_DB = FLAGS.has('--index-db');
+const SUBJECT_FILTER = process.argv
+  .find((arg) => arg.startsWith('--subject='))
+  ?.slice('--subject='.length)
+  .toLowerCase() || null;
+const INDEX_DB_ONLY = FLAGS.has('--index-db-only');
+const INDEX_DB = FLAGS.has('--index-db') || INDEX_DB_ONLY;
 const CHECK_ONLY = FLAGS.has('--check');
 
 const KEY = SERVICE_KEY || ANON_KEY;
@@ -209,9 +215,9 @@ async function main() {
 
   const files = await walk(PREFIX);
   files.sort((a, b) => a.key.localeCompare(b.key));
-  console.log(`Objects : ${files.length}`);
+  console.log(`Objects scanned: ${files.length}`);
 
-  const items = files.map((file) => {
+  const discoveredItems = files.map((file) => {
     const info = classifyKey(file.key);
 
     return {
@@ -232,6 +238,11 @@ async function main() {
       publicUrl: publicUrlFor(file.key)
     };
   });
+  const items = SUBJECT_FILTER
+    ? discoveredItems.filter((item) => item.subject === SUBJECT_FILTER)
+    : discoveredItems;
+
+  console.log(`Resources selected: ${items.length}`);
 
   const manifest = {
     generatedAt: new Date().toISOString(),
@@ -258,22 +269,24 @@ async function main() {
     return;
   }
 
-  fs.mkdirSync(path.dirname(OUT_JSON), { recursive: true });
-  fs.writeFileSync(OUT_JSON, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
-  fs.writeFileSync(
-    OUT_JS,
-    [
-      '// GENERATED FILE - do not edit by hand.',
-      '// Source: Supabase Storage bucket "study-hub-resources" (prefix: documents/).',
-      '// Regenerate with: cd backend && node scripts/build-resources-manifest.mjs',
-      `window.STUDY_HUB_RESOURCES = ${JSON.stringify(manifest)};`,
-      ''
-    ].join('\n'),
-    'utf8'
-  );
+  if (!INDEX_DB_ONLY) {
+    fs.mkdirSync(path.dirname(OUT_JSON), { recursive: true });
+    fs.writeFileSync(OUT_JSON, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+    fs.writeFileSync(
+      OUT_JS,
+      [
+        '// GENERATED FILE - do not edit by hand.',
+        '// Source: Supabase Storage bucket "study-hub-resources" (prefix: documents/).',
+        '// Regenerate with: cd backend && node scripts/build-resources-manifest.mjs',
+        `window.STUDY_HUB_RESOURCES = ${JSON.stringify(manifest)};`,
+        ''
+      ].join('\n'),
+      'utf8'
+    );
 
-  console.log(`\nWrote ${path.relative(REPO_ROOT, OUT_JSON)}`);
-  console.log(`Wrote ${path.relative(REPO_ROOT, OUT_JS)}`);
+    console.log(`\nWrote ${path.relative(REPO_ROOT, OUT_JSON)}`);
+    console.log(`Wrote ${path.relative(REPO_ROOT, OUT_JS)}`);
+  }
 
   if (INDEX_DB) {
     console.log(`\nIndexing into ${TABLE}...`);
