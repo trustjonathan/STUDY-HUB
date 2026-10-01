@@ -31,7 +31,6 @@ const home = base.replace(/\/$/, '');
         <div class="utility-inner">
           <nav class="utility-links" aria-label="Utility navigation">
             <a href={`${home}/frontend/src/html/about.html`}>About</a>
-            <a href="mailto:trusteth777@gmail.com">Contact</a>
           </nav>
           <span class="utility-note">Made for Ugandan learners</span>
         </div>
@@ -48,7 +47,6 @@ const home = base.replace(/\/$/, '');
         </a>
         <nav class="header-actions" aria-label="Quick actions">
           <a href={`${home}#subjects`}>Explore subjects</a>
-          <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">Request resource</a>
         </nav>
       </div>
       <nav class="mega-nav" aria-label="Study Hub sections">
@@ -59,23 +57,19 @@ const home = base.replace(/\/$/, '');
         </section>
         <section class="mega-nav-group">
           <h2>Biology</h2>
-          <a href="https://trustjonathan.github.io/BIOLOGY/">Biology study hub</a>
-          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+          <a href={`${home}/frontend/src/html/biology.html`}>Biology study hub</a>
         </section>
         <section class="mega-nav-group">
           <h2>Chemistry</h2>
-          <a href="https://trustjonathan.github.io/CHEMISTRY/">Chemistry study hub</a>
-          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+          <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry study hub</a>
         </section>
         <section class="mega-nav-group">
           <h2>Mathematics</h2>
-          <a href="https://trustjonathan.github.io/MATHEMATICS/">Mathematics study hub</a>
-          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+          <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics study hub</a>
         </section>
         <section class="mega-nav-group">
           <h2>Resources</h2>
           <a href={`${home}#subjects`}>Browse subjects</a>
-          <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">Request a resource</a>
         </section>
       </nav>
     </header>
@@ -86,12 +80,14 @@ const home = base.replace(/\/$/, '');
         <a href={home}>Home</a>
         <a href={`${home}#overview`}>Overview</a>
         <a href={`${home}#normal-pages`}>Normal pages</a>
+        <a href="mailto:trusteth777@gmail.com">Contact</a>
+        <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">Request a resource</a>
       </div>
       <div class="footer-group">
         <h3>Subjects</h3>
-        <a href="https://trustjonathan.github.io/BIOLOGY/">Biology</a>
-        <a href="https://trustjonathan.github.io/CHEMISTRY/">Chemistry</a>
-        <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics</a>
+        <a href={`${home}/frontend/src/html/biology.html`}>Biology</a>
+        <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry</a>
+        <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics</a>
       </div>
       <div class="footer-group">
         <h3>Archives</h3>
