@@ -12,6 +12,7 @@ const {
   description = 'Study notes, exam resources, and learning tools for Biology, Chemistry, and Mathematics.'
 } = Astro.props;
 const base = `${import.meta.env.BASE_URL}/`;
+const home = base.replace(/\/$/, '');
 ---
 
 <!doctype html>
@@ -26,19 +27,21 @@ const base = `${import.meta.env.BASE_URL}/`;
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href={base} aria-label="Study Hub home">
+      <a class="brand" href={home} aria-label="Study Hub home">
         <img src={logo.src} width="40" height="40" alt="" />
         <span>Study Hub</span>
       </a>
       <nav aria-label="Main navigation">
-        <a href={`${base}#subjects`}>Subjects</a>
-        <a href={`${base}#practice`}>Exam practice</a>
+        <a href={`${base}frontend/src/html/biology.html`}>Biology</a>
+        <a href={`${base}frontend/src/html/chemistry.html`}>Chemistry</a>
+        <a href={`${base}frontend/src/html/mathematics.html`}>Mathematics</a>
+        <a href={`${home}#practice`}>Exam practice</a>
         <a href={`${base}frontend/src/html/about.html`}>About</a>
       </nav>
     </header>
     <slot />
     <footer class="site-footer">
-      <a class="brand" href={base}>
+      <a class="brand" href={home}>
         <img src={logo.src} width="32" height="32" alt="" />
         <span>Study Hub</span>
       </a>
