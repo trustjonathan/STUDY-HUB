@@ -29,7 +29,7 @@ const subjects = [
 
 <SiteLayout>
   <main>
-    <section class="hero-section" id="overview">
+    <section class="hero-section" id="overview" data-scroll-reveal>
       <div class="hero-copy">
         <p class="eyebrow">Study resources, in one place</p>
         <h1>Make your next study session count.</h1>
@@ -58,7 +58,7 @@ const subjects = [
       </aside>
     </section>
 
-    <section class="subjects-section" id="subjects">
+    <section class="subjects-section" id="subjects" data-scroll-reveal>
       <div class="section-heading">
         <div>
           <p class="eyebrow">Choose your direction</p>
@@ -83,7 +83,7 @@ const subjects = [
       </div>
     </section>
 
-    <section class="practice-section" id="practice">
+    <section class="practice-section" id="practice" data-scroll-reveal>
       <div class="practice-copy">
         <p class="eyebrow">Prepare with purpose</p>
         <h2>Turn what you know into exam confidence.</h2>
@@ -95,3 +95,23 @@ const subjects = [
     </section>
   </main>
 </SiteLayout>
+
+<script>
+  const revealTargets = document.querySelectorAll<HTMLElement>('[data-scroll-reveal]');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!reducedMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' });
+
+    revealTargets.forEach((target) => {
+      target.classList.add('scroll-reveal');
+      revealObserver.observe(target);
+    });
+  }
+</script>
