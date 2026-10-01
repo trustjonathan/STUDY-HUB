@@ -1,8 +1,8 @@
 # Study Hub — Modernization & Supabase Migration Plan
 
-> **Status:** implementation in progress — incremental Astro + TypeScript migration
-> **Implemented:** §0 (resource migration), Astro foundation, and Astro routes for all current pages
-> **In progress:** replace preserved legacy page scripts/styles with typed Astro/React components and prepare deployment cutover
+> **Status:** Astro is the sole authored page source; GitHub Pages cutover is pending
+> **Implemented:** §0 (resource migration), Astro foundation, shared layout, all page routes, and removal of duplicate legacy HTML sources
+> **In progress:** typed Astro/React component extraction and production deployment settings
 > **Last updated:** 2026-10-01
 > **Owner:** Jonathan (trustjonathan)
 
@@ -10,13 +10,14 @@
 
 - Astro, TypeScript, and the React integration are configured in `frontend/`.
 - The Astro landing route is `frontend/src/pages/index.astro`, with shared page metadata and navigation in `frontend/src/layouts/SiteLayout.astro`.
-- All 11 existing HTML pages now have Astro route sources under `frontend/src/pages/frontend/src/html/` and render through `frontend/src/layouts/LegacyPageLayout.astro`. The shared layout owns the document shell; page metadata, assets, and body content are supplied by each Astro route. Current `.html` URL paths are retained by flattening Astro's `.html.html` build output.
+- All 11 former HTML pages have Astro route sources under `frontend/src/pages/frontend/src/html/` and render through `frontend/src/layouts/LegacyPageLayout.astro`. The root `index.html` and all duplicate `frontend/src/html/**/*.html` sources have been removed. Current `.html` public URLs are generated from Astro routes by flattening Astro's `.html.html` build output.
 - The static build uses the GitHub Pages base path `/STUDY-HUB/` and writes to `frontend/dist/`.
-- `npm run dev` and `npm run build` stage the existing styles, scripts, data, and images under Astro's public directory. Legacy HTML is no longer copied as public pages; Astro owns those routes.
+- `npm run dev` and `npm run build` stage shared styles, scripts, data, images, `robots.txt`, and `sitemap.xml` under Astro's public output. No legacy HTML pages are copied or served.
 - Existing page body markup, styles, and inline scripts are preserved as Astro route content for this migration pass. Typed React/Astro feature components and MDX conversion of authored notes remain future work.
-- Production preview verified all 12 routes return HTTP 200 with no runtime JavaScript errors. The Electro tutorial still references two diagram images that are absent from the repository.
-- The repository-root `index.html` and current legacy Pages deployment remain unchanged. Do not switch Pages to the Astro build until the remaining asset/content issues and production links have parity.
-- Next: componentize the migrated pages, repair the two missing Electro diagrams, then plan the deployment cutover.
+- Production preview verified all 12 Astro routes return HTTP 200 with no runtime JavaScript errors. The build now purges stale copied HTML from its public directory. The Electro tutorial still references two diagram images that are absent from the repository.
+- `.github/workflows/deploy-pages.yml` builds and deploys `frontend/dist/`. In GitHub repository Settings → Pages, the source must be set to **GitHub Actions**; the old branch-root deployment cannot work after removing its `index.html`.
+- Configure repository Actions variables `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` so deployed Mathematics resources can load. Only the public anon key belongs in the browser build; never use the service-role key there.
+- Next: confirm Pages is set to GitHub Actions and these variables exist, deploy, then componentize the page behavior and repair the two missing Electro diagrams.
 
 **Contents**
 
@@ -107,9 +108,9 @@ Every figure below was verified directly against the repository and the live Sup
 
 | Fact | Value | Consequence for this plan |
 |---|---|---|
-| **GitHub Pages deploy** | source branch `main`, source path `/`, build type **`legacy`**, status `built`, no CNAME | Pages publishes the repo root verbatim — this is why `index.html` links to `frontend/src/html/biology.html`. Any build system must either emit into the repo root, **or** Pages must be switched to GitHub Actions. |
-| Build tooling | Astro + TypeScript configured in `frontend/`; no `.github/` deployment workflow yet | The frontend has a working static build and local preview. GitHub Pages still serves the repository root in legacy mode. |
-| Authored pages | **11 HTML files** under `frontend/src/html/` (**178 KB**) + root `index.html` (**31 KB**) | Small enough to migrate by hand; large enough to need a real content model. |
+| **GitHub Pages deploy** | Astro workflow exists at `.github/workflows/deploy-pages.yml`; external Pages source setting must be GitHub Actions | The repo no longer has a root `index.html`; deployment must use `frontend/dist/` from the workflow. |
+| Build tooling | Astro + TypeScript configured in `frontend/`; `.github/workflows/deploy-pages.yml` builds and deploys the static output | The frontend has a working static build and local preview. GitHub Pages repository settings must select the Actions deployment source. |
+| Authored pages | 12 Astro routes (landing + 11 former HTML pages); no duplicate root/static HTML page sources | Routes retain current public URLs; MDX/content collections are still a future content-model refactor. |
 | Other frontend assets | **8 CSS** files, **5 JS** files, **18 images (13.33 MB)** | Preserved for route parity in the initial Astro pass; component/style modernization remains pending. |
 | Hardcoded absolute URLs | **71 occurrences across 13 files** (`trustjonathan.github.io/...`) in canonical, `og:image`, `og:url`, twitter-card and JSON-LD tags, plus `sitemap.xml` and `robots.txt` | **The single biggest migration hazard.** Every one breaks under a new base path unless made config-driven first. |
 | Uploaded documents | **408 files / 487.5 MB** in Supabase Storage | Already migrated. This is **not** markdown-able content. |

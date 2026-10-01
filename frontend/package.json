@@ -3,13 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node scripts/prepare-legacy.mjs",
+    "predev": "node scripts/prepare-site-assets.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/prepare-legacy.mjs",
+    "prebuild": "node scripts/prepare-site-assets.mjs",
     "build": "astro check && astro build && node scripts/flatten-html-routes.mjs",
-    "preview": "astro preview",
-    "migrate:pages": "node scripts/migrate-legacy-pages.mjs",
-    "migrate:astro-layout": "node scripts/wrap-pages-in-layout.mjs"
+    "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",

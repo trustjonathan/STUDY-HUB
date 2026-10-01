@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/about.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/biology.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/chemistry.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/mathematics.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/bio-notes-html/bio-updates.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/bio-notes-html/cell-division.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/bio-notes-html/story-of-genetics.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/chem-notes-html/chem-updates.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/chem-notes-html/electro.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/chem-notes-html/Electrochemistry.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/math-notes-html/math-updates.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>
