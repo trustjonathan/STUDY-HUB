@@ -1,10 +1,22 @@
 # Study Hub — Modernization & Supabase Migration Plan
 
-> **Status:** proposal — awaiting approval per phase
-> **Implemented:** §0 (completed and verified — see §0 for evidence)
-> **Proposed:** §1–§6 (nothing in these sections has been built yet)
-> **Last updated:** 2026-09-19
+> **Status:** implementation in progress — incremental Astro + TypeScript migration
+> **Implemented:** §0 (resource migration), Astro foundation, and Astro routes for all current pages
+> **In progress:** replace preserved legacy page scripts/styles with typed Astro/React components and prepare deployment cutover
+> **Last updated:** 2026-10-01
 > **Owner:** Jonathan (trustjonathan)
+
+### Current frontend migration checkpoint
+
+- Astro, TypeScript, and the React integration are configured in `frontend/`.
+- The Astro landing route is `frontend/src/pages/index.astro`, with shared page metadata and navigation in `frontend/src/layouts/SiteLayout.astro`.
+- All 11 existing HTML pages now have Astro route sources under `frontend/src/pages/frontend/src/html/` and render through `frontend/src/layouts/LegacyPageLayout.astro`. The shared layout owns the document shell; page metadata, assets, and body content are supplied by each Astro route. Current `.html` URL paths are retained by flattening Astro's `.html.html` build output.
+- The static build uses the GitHub Pages base path `/STUDY-HUB/` and writes to `frontend/dist/`.
+- `npm run dev` and `npm run build` stage the existing styles, scripts, data, and images under Astro's public directory. Legacy HTML is no longer copied as public pages; Astro owns those routes.
+- Existing page body markup, styles, and inline scripts are preserved as Astro route content for this migration pass. Typed React/Astro feature components and MDX conversion of authored notes remain future work.
+- Production preview verified all 12 routes return HTTP 200 with no runtime JavaScript errors. The Electro tutorial still references two diagram images that are absent from the repository.
+- The repository-root `index.html` and current legacy Pages deployment remain unchanged. Do not switch Pages to the Astro build until the remaining asset/content issues and production links have parity.
+- Next: componentize the migrated pages, repair the two missing Electro diagrams, then plan the deployment cutover.
 
 **Contents**
 
@@ -88,15 +100,15 @@ Every figure below was verified directly against the repository and the live Sup
 | Fact | Value | Consequence for this plan |
 |---|---|---|
 | **GitHub Pages deploy** | source branch `main`, source path `/`, build type **`legacy`**, status `built`, no CNAME | Pages publishes the repo root verbatim — this is why `index.html` links to `frontend/src/html/biology.html`. Any build system must either emit into the repo root, **or** Pages must be switched to GitHub Actions. |
-| Build tooling | **none** — no `frontend/package.json`, `astro.config.*`, `next.config.*`, `tailwind.config.*`, `vite.config.*`, `tsconfig.json`, and no `.github/` directory | The framework migration is **greenfield, not incremental**. There is no existing bundler, dev server, or CI to extend. |
+| Build tooling | Astro + TypeScript configured in `frontend/`; no `.github/` deployment workflow yet | The frontend has a working static build and local preview. GitHub Pages still serves the repository root in legacy mode. |
 | Authored pages | **11 HTML files** under `frontend/src/html/` (**178 KB**) + root `index.html` (**31 KB**) | Small enough to migrate by hand; large enough to need a real content model. |
-| Other frontend assets | **8 CSS** files, **5 JS** files, **18 images (13.33 MB)** | All 8 CSS files are replaced outright by a utility framework (Tailwind). |
+| Other frontend assets | **8 CSS** files, **5 JS** files, **18 images (13.33 MB)** | Preserved for route parity in the initial Astro pass; component/style modernization remains pending. |
 | Hardcoded absolute URLs | **71 occurrences across 13 files** (`trustjonathan.github.io/...`) in canonical, `og:image`, `og:url`, twitter-card and JSON-LD tags, plus `sitemap.xml` and `robots.txt` | **The single biggest migration hazard.** Every one breaks under a new base path unless made config-driven first. |
 | Uploaded documents | **408 files / 487.5 MB** in Supabase Storage | Already migrated. This is **not** markdown-able content. |
 | Repository size | **13.13 MiB** (was 528 MiB) | Done — see §0.2. |
 | Supabase project | `ttuxelhyoctyshgvjykj`, org "STUDY HUB RESOURCES" | Dedicated to Study Hub. Do not confuse with `jepsiuddbtboogcjiajh` (StudiFy). |
 | Tooling available | Node **v26.7.0**, npm, Java 21, Supabase CLI **v2.115.0** (linked) | Astro/Next need no new runtime prerequisites. |
-| Test tooling | None (backend `npm test` is a placeholder) | Phase 2 introduces the first real build/test step — budget time for it. |
+| Test tooling | Astro checker/build (`npm run build`); backend `npm test` remains a placeholder | Frontend build passes; production-preview route smoke test covers the 12 generated routes. |
 
 ---
 
@@ -138,3 +150,133 @@ Authoring the 408 scanned PDFs as MDX would be a category error: they are binary
 ### 2.4 Where the roadmap is right
 
 Section 1 (editorial/tone) is the highest-credibility-value, lowest-risk change and should happen first. Section 5 (offline, lazy loading, image formats) is genuinely needed for Ugandan mobile networks. Section 3's breadcrumbs and level-labelling directly improve exam-preparation usability.
+
+---
+
+## 3. Product development stages (ordered execution)
+
+The following stages should be implemented in order. Each stage builds on the previous one and should be treated as the required delivery sequence for scaling this e-library into a modern study platform.
+
+### Stage 1 — Landing page redesign and positioning
+
+Goal: transform the site from a static resource archive into a polished education brand.
+
+Deliverables:
+- Modern hero section with strong educational value proposition
+- Subject categories with visual hierarchy
+- Clear calls to action: Explore library, Start learning, Get AI tutor
+- Benefits section explaining why students should use the platform
+- Trust indicators, student outcomes, and learning value messaging
+- Mobile-first responsive layout and improved readability
+- Modern typography, spacing, cards, and CTA design
+
+Exit criteria:
+- The landing page clearly communicates the platform as a study ecosystem, not only a document archive
+- The page works smoothly on mobile and desktop
+- The primary conversion funnel is easy to understand in under 10 seconds
+
+### Stage 2 — Home dashboard and student workflow
+
+Goal: create a personalized study dashboard that makes the platform useful on return visits.
+
+Deliverables:
+- Today’s learning overview
+- Study streak and weekly progress indicators
+- Continue-learning panel for recent topics/resources
+- Quick actions for notes, flashcards, quizzes, and AI tutor
+- Recommended resources based on subject or learning gaps
+- Saved resources and recently viewed content
+- Short revision reminders or daily study goals
+
+Exit criteria:
+- Users can reach their learning tasks in 2–3 clicks
+- The homepage feels active, useful, and habit-forming
+- Students can continue learning without needing to browse the entire site
+
+### Stage 3 — Subject pages and resource experience upgrade
+
+Goal: replace static subject pages with usable learning hubs.
+
+Deliverables:
+- Subject landing hero banners and chapter structure
+- Topic-based resource cards and chapter filters
+- Revision summaries and quick learning paths
+- Past papers, notes, and supporting content grouped by topic
+- Better navigation, breadcrumbs, and exam-oriented labels
+- Subject-specific recommendations and curated views
+- Cleaner search and category filters across resources
+
+Exit criteria:
+- Each subject page becomes a study destination rather than a file list
+- Users can easily discover relevant learning materials by topic and level
+- Resource browsing feels structured, explanatory, and exam-focused
+
+### Stage 4 — Interactive learning features
+
+Goal: convert the library into an active study environment.
+
+Deliverables:
+- Flashcards with spaced repetition
+- Practice quizzes with instant feedback
+- Bookmarking and saved notes
+- Topic-based learning modules
+- Short summaries and step-by-step explanations
+- Progress tracking for topics and chapters
+- Downloadable or shareable revision packs
+
+Exit criteria:
+- Students can actively practise content, not only read resources
+- Topic mastery can be tracked over time
+- Learning becomes measurable and repeatable
+
+### Stage 5 — AI study assistant and personalization
+
+Goal: add the platform’s strongest differentiator.
+
+Deliverables:
+- AI tutor chat for explaining difficult concepts
+- Smart summarization of notes and chapters
+- Practice question generation by topic
+- Revision planning based on exam dates and weak areas
+- Personalized recommendations using learner activity
+- AI-powered explanations in simple, student-friendly language
+
+Exit criteria:
+- Students can ask for help with concepts and receive immediate guidance
+- Learning recommendations adapt to performance and interest
+- AI improves retention and reduces friction in self-study
+
+### Stage 6 — Growth, community and scale features
+
+Goal: turn the platform into a sustainable learning product that keeps users engaged.
+
+Deliverables:
+- User accounts and profiles
+- Achievement badges and learning streaks
+- Study groups and discussion features
+- Community Q&A, peer support, and shared notes
+- Analytics dashboard for engagement and performance
+- Mobile app / PWA support for offline study access
+- Premium or institutional content expansion
+
+Exit criteria:
+- Users return repeatedly because the product supports habit and accountability
+- The platform supports both individual and group learning
+- The foundation is ready for scale, expansion, and institutional adoption
+
+### Stage sequencing rule
+
+The sequence must be followed in strict order:
+
+1. Stage 1 — Landing page redesign
+2. Stage 2 — Home dashboard and student workflow
+3. Stage 3 — Subject pages and resource experience
+4. Stage 4 — Interactive learning features
+5. Stage 5 — AI study assistant and personalization
+6. Stage 6 — Growth, community and scale
+
+This order is intentional. The product must first become usable and modern, then more interactive, then intelligent, and finally community-driven and scalable.
+
+---
+
+This positions the platform as a modern learner-first product while preserving the existing Supabase-backed resource infrastructure already migrated and verified in Sections 0–2.

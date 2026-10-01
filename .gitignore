@@ -32,6 +32,8 @@ node_modules/
 **/build/
 **/.cache/
 **/tmp/
+**/.astro/
+frontend/public/frontend/src/
 
 # Local tooling artifacts (never commit these)
 *.err
