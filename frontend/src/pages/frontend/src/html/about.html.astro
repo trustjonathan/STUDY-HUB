@@ -2,7 +2,7 @@
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
 ---
 
-<LegacyPageLayout title="ABOUT — Study Hub" description="Study Hub provides structured, exam-friendly academic notes for Biology, Chemistry and Mathematics. Clean, simple and accessible." dataPage="home">
+<LegacyPageLayout title="ABOUT — Study Hub" description="Study Hub provides structured, exam-friendly academic notes for Biology, Chemistry and Mathematics. Clean, simple and accessible." dataPage="about">
   <Fragment slot="head">
 
   <!-- Essential Meta -->
@@ -248,40 +248,19 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
   </div>
 
   <!-- HERO -->
-  <div class="box1">
-    <h3>YOUR STUDY COMPANION</h3>
-    <div class="hex">
-      <img src="../assets/images/author.png" alt="hero image">
+  <div class="box1 about-hero">
+    <div class="about-hero-copy">
+      <p class="eyebrow">About Study Hub</p>
+      <h1>A practical study hub, shaped by a student's experience.</h1>
+      <p>Study Hub grew from my A-level Biology, Chemistry, and Mathematics journey. I built it to make clear notes and purposeful exam practice easier to reach.</p>
     </div>
+    <figure class="about-founder">
+      <img src="../assets/images/ABA2.jpg" alt="Jonathan, creator of Study Hub">
+      <figcaption>Jonathan · Study Hub creator</figcaption>
+    </figure>
   </div>
 
   <hr>
-
-  <!-- SEO -->
-  <div class="seo-content">
-    <h1 class="typing-text"></h1>
-  </div>
-
-  <script is:inline>
-    const text = "Study Hub — Free Academic Notes & Futuristic Learning Tools";
-    const element = document.querySelector(".typing-text");
-    let i = 0;
-    let deleting = false;
-
-    function typeLoop() {
-      if (!deleting) {
-        element.innerHTML = text.substring(0, i + 1);
-        i++;
-        if (i === text.length) { deleting = true; }
-      } else {
-        element.innerHTML = text.substring(0, i - 1);
-        i--;
-        if (i === 0) { deleting = false; }
-      }
-      setTimeout(typeLoop, 70);
-    }
-    typeLoop();
-  </script>
 
   <!-- ABOUT SECTION -->
   <div class="about-content">
