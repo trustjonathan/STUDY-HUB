@@ -278,11 +278,16 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .site-header .site-nav a[aria-current='page'] { color: var(--green); background: transparent; text-decoration: underline; text-underline-offset: 4px; }
 .site-header .header-actions a:last-child { color: var(--green-dark); font-weight: 700; }
 .mega-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; padding: 18px 32px 22px; border-top: 1px solid var(--line); }
-.mega-nav-group { display: grid; align-content: start; justify-items: start; gap: 6px; }
-.mega-nav-group h2 { margin: 0 0 3px; color: var(--ink); font-size: 0.9rem; }
+.mega-nav-group { position: relative; display: block; }
+.mega-nav-group > summary { display: flex; min-height: 32px; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink); font-size: 0.9rem; font-weight: 700; list-style: none; cursor: pointer; }
+.mega-nav-group > summary::-webkit-details-marker { display: none; }
+.mega-nav-group > summary::after { width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; content: ''; transform: rotate(45deg); transition: transform 150ms ease; }
+.mega-nav-group[open] > summary::after { transform: rotate(225deg); }
+.mega-nav-group > summary:focus-visible { outline: 3px solid rgba(36, 107, 73, 0.35); outline-offset: 3px; }
+.mega-nav-panel { position: absolute; z-index: 50; top: calc(100% + 12px); left: 0; display: grid; min-width: max(100%, 220px); justify-items: start; gap: 8px; padding: 14px 16px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 12px 28px rgba(18, 31, 23, 0.12); }
 .site-header .mega-nav a { font-size: 0.78rem; }
 
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .mega-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
@@ -293,6 +298,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   .site-header .site-nav,
   .site-header .header-actions { justify-content: center; flex-wrap: wrap; gap: 8px 16px; }
   .mega-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 22px; padding: 18px 20px 22px; }
+  .mega-nav-panel { position: static; min-width: 0; margin-top: 12px; padding: 12px; box-shadow: none; }
 }
 
 @media (max-width: 440px) {

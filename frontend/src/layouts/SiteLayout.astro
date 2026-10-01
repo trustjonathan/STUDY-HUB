@@ -50,30 +50,40 @@ const home = base.replace(/\/$/, '');
         </nav>
       </div>
       <nav class="mega-nav" aria-label="Study Hub sections">
-        <section class="mega-nav-group">
-          <h2>Study Hub</h2>
-          <a href={home}>Home</a>
-          <a href={`${home}/frontend/src/html/about.html`}>About</a>
-        </section>
-        <section class="mega-nav-group">
-          <h2>Biology</h2>
-          <a href={`${home}/frontend/src/html/biology.html`}>Biology study hub</a>
-          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
-        </section>
-        <section class="mega-nav-group">
-          <h2>Chemistry</h2>
-          <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry study hub</a>
-          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
-        </section>
-        <section class="mega-nav-group">
-          <h2>Mathematics</h2>
-          <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics study hub</a>
-          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
-        </section>
-        <section class="mega-nav-group">
-          <h2>Resources</h2>
-          <a href={`${home}#subjects`}>Browse subjects</a>
-        </section>
+        <details class="mega-nav-group">
+          <summary>Study Hub</summary>
+          <div class="mega-nav-panel">
+            <a href={home}>Home</a>
+            <a href={`${home}/frontend/src/html/about.html`}>About</a>
+          </div>
+        </details>
+        <details class="mega-nav-group">
+          <summary>Biology</summary>
+          <div class="mega-nav-panel">
+            <a href={`${home}/frontend/src/html/biology.html`}>Biology study hub</a>
+            <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+          </div>
+        </details>
+        <details class="mega-nav-group">
+          <summary>Chemistry</summary>
+          <div class="mega-nav-panel">
+            <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry study hub</a>
+            <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+          </div>
+        </details>
+        <details class="mega-nav-group">
+          <summary>Mathematics</summary>
+          <div class="mega-nav-panel">
+            <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics study hub</a>
+            <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+          </div>
+        </details>
+        <details class="mega-nav-group">
+          <summary>Resources</summary>
+          <div class="mega-nav-panel">
+            <a href={`${home}#subjects`}>Browse subjects</a>
+          </div>
+        </details>
       </nav>
     </header>
     <slot />
@@ -109,5 +119,25 @@ const home = base.replace(/\/$/, '');
         </div>
       </div>
     </footer>
+    <script>
+      const desktopHover = window.matchMedia('(hover: hover) and (min-width: 761px)');
+      document.querySelectorAll<HTMLDetailsElement>('.mega-nav-group').forEach((group) => {
+        group.addEventListener('pointerenter', () => {
+          if (desktopHover.matches) group.open = true;
+        });
+        group.addEventListener('pointerleave', () => {
+          if (desktopHover.matches && !group.contains(document.activeElement)) group.open = false;
+        });
+        group.addEventListener('focusin', () => {
+          if (desktopHover.matches) group.open = true;
+        });
+        group.addEventListener('focusout', (event) => {
+          const nextTarget = event.relatedTarget;
+          if (desktopHover.matches && !(nextTarget instanceof Node && group.contains(nextTarget)) && !group.matches(':hover')) {
+            group.open = false;
+          }
+        });
+      });
+    </script>
   </body>
 </html>
