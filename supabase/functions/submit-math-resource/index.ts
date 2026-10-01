@@ -75,7 +75,7 @@ Deno.serve(async (request) => {
   const origin = request.headers.get('Origin');
   const headers = corsHeaders(origin);
 
-  if (origin && !allowedOrigins.includes(origin)) return response({ error: 'Origin not allowed.' }, 403, headers);
+  if (!origin || !allowedOrigins.includes(origin)) return response({ error: 'Origin not allowed.' }, 403, headers);
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
   if (request.method !== 'POST') return response({ error: 'Method not allowed.' }, 405, headers);
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('multipart/form-data')) {
