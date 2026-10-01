@@ -156,6 +156,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .section-heading > p { max-width: 360px; margin: 0; color: var(--muted); font-size: 0.9rem; }
 .subject-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #d8ded5; background: var(--paper); }
 .subject-card { display: flex; min-height: 276px; flex-direction: column; justify-content: space-between; padding: 22px; border-right: 1px solid #d8ded5; }
+.subject-card:hover, .subject-card:focus-within { background: #f0f5ef; }
 .subject-card:last-child { border-right: 0; }
 .subject-index { color: #8c988e; font-size: 0.78rem; font-weight: 700; }
 .subject-card-body { max-width: 300px; }
