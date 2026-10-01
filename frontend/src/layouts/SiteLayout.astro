@@ -74,34 +74,36 @@ const home = base.replace(/\/$/, '');
       </nav>
     </header>
     <slot />
-    <footer class="site-footer" id="footer-links">
-      <div class="footer-group">
-        <h3>Study Hub</h3>
-        <a href={home}>Home</a>
-        <a href={`${home}#overview`}>Overview</a>
-        <a href={`${home}#normal-pages`}>Normal pages</a>
-        <a href="mailto:trusteth777@gmail.com">Contact</a>
-        <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">Request a resource</a>
-      </div>
-      <div class="footer-group">
-        <h3>Subjects</h3>
-        <a href={`${home}/frontend/src/html/biology.html`}>Biology</a>
-        <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry</a>
-        <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics</a>
-      </div>
-      <div class="footer-group">
-        <h3>Archives</h3>
-        <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
-        <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
-        <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
-      </div>
-      <div class="footer-brand">
-        <a class="brand" href={home}>
-          <img src={logo.src} width="32" height="32" alt="" />
-          <span>Study Hub</span>
-        </a>
-        <p>Free study resources for focused, confident revision.</p>
-        <a class="back-to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    <footer class="site-footer legacy-site-footer" id="footer-links">
+      <div class="legacy-footer-inner">
+        <div class="legacy-footer-brand">
+          <a class="brand" href={home} aria-label="Study Hub home">
+            <img src={logo.src} width="36" height="36" alt="" />
+            <span>Study Hub</span>
+          </a>
+          <p>Free study resources for focused, confident revision.</p>
+          <span class="legacy-footer-note">Made for Ugandan learners</span>
+        </div>
+        <nav class="legacy-footer-links" aria-label="Footer navigation">
+          <h2>Explore</h2>
+          <a href={home}>Home</a>
+          <a href={`${home}/frontend/src/html/biology.html`}>Biology</a>
+          <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry</a>
+          <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics</a>
+          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
+          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
+          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+        </nav>
+        <div class="legacy-footer-contact">
+          <h2>Get in touch</h2>
+          <p>Have a question or a resource request?</p>
+          <a href="mailto:trusteth777@gmail.com">Email Study Hub</a>
+          <a href="https://wa.me/+256701810497">WhatsApp</a>
+        </div>
+        <div class="legacy-footer-bottom">
+          <span>© {new Date().getFullYear()} Study Hub</span>
+          <a href="#top">Back to top <span aria-hidden="true">↑</span></a>
+        </div>
       </div>
     </footer>
   </body>
