@@ -1,16 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
+---
+import LegacyPageLayout from "../../../../../layouts/LegacyPageLayout.astro";
+---
 
-<head>
+<LegacyPageLayout title="Mathematics Challenge!!! – Free Study Hub | Jonathan GitHub Pages" description="Free Mathematics notes covering all topics with clear explanations, worked examples, and study tips for fast understanding." dataPage="mathematics">
+  <Fragment slot="head">
+
   <!-- Essential -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
 
   <!-- Google Verification -->
   <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
 
   <!-- Title + Favicon -->
-  <title>Mathematics Challenge!!! – Free Study Hub | Jonathan GitHub Pages</title>
+  
   <link rel="icon" href="../../assets/images/logo.png" type="image/png">
 
   <!-- Canonical 
@@ -18,8 +21,7 @@
 -->
 
   <!-- Meta SEO -->
-  <meta name="description"
-    content="Free Mathematics notes covering all topics with clear explanations, worked examples, and study tips for fast understanding.">
+  
   <meta name="keywords" content="mathematics notes, free study notes, algebra, geometry, calculus, UACE math">
   <meta name="author" content="Jonathan">
 
@@ -39,7 +41,7 @@
   <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
 
   <!-- JSON-LD -->
-  <script type="application/ld+json">
+  <script is:inline type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -57,12 +59,12 @@
   <link rel="stylesheet" href="../../styles/mathematics.css">
 
   <!-- Scripts -->
-  <script src="../../script/home.js" defer></script>
-  <script src="../../script/sidebar.js" defer></script>
-  <script src="../../script/mathematics.js" defer></script>
-</head>
+  
+  <script is:inline src="../../script/sidebar.js" defer></script>
+  <script is:inline src="../../script/mathematics.js" defer></script>
 
-<body data-page="mathematics">
+  </Fragment>
+
   <!-- ==========================
        FULL-PAGE WATER EFFECTS
   =========================== -->
@@ -192,7 +194,7 @@
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
 
-  <script>
+  <script is:inline>
     (() => {
     // ==== MATH PLAYLIST SETUP ====
     const mathPlaylistID = "PLszahHibLDAKZk-CoRBpeqWAnU5GwlxFi";
@@ -276,6 +278,5 @@
     })();
   </script>
 
-</body>
 
-</html>
+</LegacyPageLayout>

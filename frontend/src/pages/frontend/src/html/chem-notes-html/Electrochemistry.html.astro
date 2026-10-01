@@ -1,22 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
+---
+import LegacyPageLayout from "../../../../../layouts/LegacyPageLayout.astro";
+---
 
-<head>
+<LegacyPageLayout title="Electrochemistry:::Chemistry Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Chemistry notes with formulas, equations, and simplified explanations for fast learning and exam success." dataPage="chemistry">
+  <Fragment slot="head">
+
   <!-- Essential -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
 
   <!-- Google Verification -->
   <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
 
   <!-- Title + Favicon -->
-  <title>Electrochemistry:::Chemistry Notes – Free Study Hub | Jonathan GitHub Pages</title>
+  
   <link rel="icon" href="../../assets/images/logo.png" type="image/png">
 
 
   <!-- Meta SEO -->
-  <meta name="description"
-    content="Free Chemistry notes with formulas, equations, and simplified explanations for fast learning and exam success.">
+  
   <meta name="keywords" content="chemistry notes, free study notes, formulas, reactions, UACE chemistry">
   <meta name="author" content="Jonathan">
 
@@ -36,7 +38,7 @@
   <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
 
   <!-- JSON-LD -->
-  <script type="application/ld+json">
+  <script is:inline type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -54,10 +56,10 @@
   <link rel="stylesheet" href="../../styles/chemistry.css">
 
   <!-- Scripts -->
-  <script src="../../script/home.js" defer></script>
-  <script src="../../script/sidebar.js" defer></script>
-  <script src="../../script/chemistry.js" defer></script>
-  <style>
+  
+  <script is:inline src="../../script/sidebar.js" defer></script>
+  <script is:inline src="../../script/chemistry.js" defer></script>
+  <style is:global>
     h1,
     h2,
     h3,
@@ -89,10 +91,9 @@
       font-family: monospace;
     }
   </style>
-</head>
 
+  </Fragment>
 
-<body data-page="chemistry">
   <!-- ==========================
        FULL-PAGE WATER EFFECTS
   =========================== -->
@@ -174,7 +175,7 @@
         <h1>A-Level Electrochemistry – Complete Mastery Textbook</h1>
       </header>
       
-      <body class="inside">
+      <div class="inside">
       
         <h1>Electrochemistry — A Level (NCDC Aligned)</h1>
       
@@ -368,7 +369,7 @@
           <li>Unbalanced electrons in half-equations</li>
           <li>Ignoring physical states</li>
         </ul>
-      </body>
+      </div>
 
   <hr>
   <p>Look into <a href="electro.html">this detailed guide on electrochemistry for more insights</a></p>
@@ -419,7 +420,7 @@
     &copy; All rights reserved // STUDY HUB // 2026+
   </footer>
 
-  <script>
+  <script is:inline>
     (() => {
     const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
     const CHEMISTRY_PLAYLIST_ID = "PLszahHibLDAKjMwaEDXLpg2UZlMyNlnTp";
@@ -491,6 +492,5 @@
   </script>
 
   </div>
-</body>
 
-</html>
+</LegacyPageLayout>

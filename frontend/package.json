@@ -1,0 +1,27 @@
+{
+  "name": "study-hub-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/prepare-legacy.mjs",
+    "dev": "astro dev",
+    "prebuild": "node scripts/prepare-legacy.mjs",
+    "build": "astro check && astro build && node scripts/flatten-html-routes.mjs",
+    "preview": "astro preview",
+    "migrate:pages": "node scripts/migrate-legacy-pages.mjs",
+    "migrate:astro-layout": "node scripts/wrap-pages-in-layout.mjs"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/react": "^7.0.0",
+    "astro": "^7.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^6.0.3"
+  }
+}

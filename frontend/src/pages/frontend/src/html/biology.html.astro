@@ -1,18 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+---
+import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+---
 
-<head>
+<LegacyPageLayout title="Biology Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Biology notes for UACE – concise diagrams, explanations, and exam-focused study tools." dataPage="biology">
+  <Fragment slot="head">
+
   <!-- GOOGLE VERIFICATION (one copy only) -->
   <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
 
   <!-- BASIC META -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Biology Notes – Free Study Hub | Jonathan GitHub Pages</title>
+  
+  
+  
 
   <!-- DESCRIPTION + KEYWORDS -->
-  <meta name="description"
-    content="Free Biology notes for UACE – concise diagrams, explanations, and exam-focused study tools.">
+  
   <meta name="keywords" content="biology notes, free study notes, life sciences, diagrams, UACE biology">
   <meta name="author" content="Jonathan">
 
@@ -38,7 +40,7 @@
   <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
 
   <!-- JSON-LD STRUCTURED DATA -->
-  <script type="application/ld+json">
+  <script is:inline type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -56,17 +58,16 @@
   <link rel="stylesheet" href="../styles/biology.css">
 
   <!-- JS -->
-  <script src="../script/home.js" defer></script>
-  <script src="../script/sidebar.js" defer></script>
-  <script src="../script/biology.js" defer></script>
+  
+  <script is:inline src="../script/sidebar.js" defer></script>
+  <script is:inline src="../script/biology.js" defer></script>
 <!-- Resource library (files are served from Supabase Storage) -->
   <link rel="stylesheet" href="../styles/resources.css">
-  <script src="../data/resources.js" defer></script>
-  <script src="../script/resources.js" defer></script>
-</head>
+  <script is:inline src="../data/resources.js" defer></script>
+  <script is:inline src="../script/resources.js" defer></script>
 
+  </Fragment>
 
-<body data-page="biology">
   <!-- ==========================
        FULL-PAGE WATER EFFECTS
   =========================== -->
@@ -176,7 +177,7 @@
             </div>
           </div>
           
-          <script>
+          <script is:inline>
             let timeLeft = 25 * 60;
             let timerInterval = null;
             let isWorkMode = true;
@@ -545,7 +546,7 @@
     <div id="videos-content-container"></div>
   </div>
 
- <script>
+ <script is:inline>
   const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
   const PLAYLIST_ID = "PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5";
 
@@ -620,6 +621,5 @@
 
   });
 </script>
-</body>
 
-</html>
+</LegacyPageLayout>

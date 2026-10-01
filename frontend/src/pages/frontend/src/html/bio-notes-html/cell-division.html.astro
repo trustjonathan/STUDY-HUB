@@ -1,16 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+---
+import LegacyPageLayout from "../../../../../layouts/LegacyPageLayout.astro";
+---
 
-<head>
+<LegacyPageLayout title="Cell Division & Cell Cycle — Level A Biology Notes | Study Hub" description="Level A Biology notes for cell division & cell cycle: mitosis, meiosis, checkpoints, diagrams, and scenario questions." dataPage="biology">
+  <Fragment slot="head">
+
   <!-- GOOGLE VERIFICATION (one copy only) -->
   <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
 
   <!-- BASIC META -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cell Division & Cell Cycle — Level A Biology Notes | Study Hub</title>
-  <meta name="description"
-    content="Level A Biology notes for cell division & cell cycle: mitosis, meiosis, checkpoints, diagrams, and scenario questions.">
+  
+  
+  
+  
   <meta name="keywords" content="Cell division, mitosis, meiosis, A-Level biology, checkpoints, cyclins, CDKs, diagrams">
 
   <!-- CANONICAL -->
@@ -35,7 +37,7 @@
   <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png">
 
   <!-- JSON-LD STRUCTURED DATA -->
-  <script type="application/ld+json">
+  <script is:inline type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -53,10 +55,10 @@
   <link rel="stylesheet" href="../../styles/biology.css">
 
   <!-- JS -->
-  <script src="../../script/home.js" defer></script>
-  <script src="../../script/sidebar.js" defer></script>
-  <script src="../../script/biology.js" defer></script>
-  <style>
+  
+  <script is:inline src="../../script/sidebar.js" defer></script>
+  <script is:inline src="../../script/biology.js" defer></script>
+  <style is:global>
     body {
       font-family: Arial, sans-serif;
       background: #eef2f7;
@@ -242,10 +244,9 @@ summary {
   }
 }
   </style>
-</head>
 
+  </Fragment>
 
-<body data-page="biology">
   <!-- ==========================
        FULL-PAGE WATER EFFECTS
   =========================== -->
@@ -566,7 +567,7 @@ summary {
     <div id="videos-content-container"></div>
   </div>
 
-  <script>
+  <script is:inline>
     const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
     const PLAYLIST_ID = "PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5";
 
@@ -636,6 +637,5 @@ summary {
     });
   </script>
 
-</body>
 
-</html>
+</LegacyPageLayout>

@@ -1,0 +1,390 @@
+---
+import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+---
+
+<LegacyPageLayout title="ABOUT — Study Hub" description="Study Hub provides structured, exam-friendly academic notes for Biology, Chemistry and Mathematics. Clean, simple and accessible." dataPage="home">
+  <Fragment slot="head">
+
+  <!-- Essential Meta -->
+  
+  
+
+  <!-- Verification -->
+  <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
+  <meta name="google-site-verification" content="ekOqLM1fntpBVAn7Ey_2SjgOF9qNX4SDnwGkUzMoYAw" />
+
+  
+  
+  <meta name="author" content="Jonathan">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../styles/themes.css">
+  <link rel="stylesheet" href="../styles/home.css">
+  <link rel="stylesheet" href="../styles/index.css">
+  <link rel="stylesheet" href="../styles/about.css">
+
+  <!-- Futuristic Internal Theme -->
+  <style is:global>
+    /* GENERAL THEME */
+    :root {
+      --bg-dark: #0b0e12;
+      --bg-panel: #11151b;
+      --neon-blue: #00d9ff;
+      --neon-purple: #b400ff;
+      --neon-pink: #ff008c;
+      --text-light: #e9f1ff;
+      --subtext: #9aa5b8;
+      --glow-strong: 0 0 25px var(--neon-blue);
+      --glow-soft: 0 0 10px var(--neon-purple);
+      --glow-pink: 0 0 12px var(--neon-pink);
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-light);
+      font-family: "Segoe UI", sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      margin: 40px 0;
+    }
+
+    /* WATER EFFECT UPDATED */
+    .fx-container span {
+      background: linear-gradient(45deg, #0ff4, #00f2);
+      box-shadow: 0 0 8px #0ff4;
+    }
+
+    /* NAVBAR */
+    #navbar {
+      background: rgba(15, 18, 25, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #navbar .logo img {
+      width: 40px;
+      filter: drop-shadow(0 0 6px var(--neon-blue));
+    }
+
+    #navbar h7 {
+      color: var(--neon-blue);
+      font-size: 18px;
+      margin-left: 10px;
+      text-shadow: var(--glow-soft);
+    }
+
+    /* SIDEBAR */
+    #side-menu nav a {
+      color: var(--text-light);
+      font-size: 18px;
+      padding: 10px;
+      display: block;
+      text-decoration: none;
+      transition: 0.3s;
+      border-left: 2px solid transparent;
+    }
+
+    #side-menu nav a:hover {
+      color: var(--neon-blue);
+      border-left: 2px solid var(--neon-blue);
+      text-shadow: var(--glow-strong);
+    }
+
+    /* HERO */
+    .box1 {
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .box1 h3 {
+      font-size: 48px;
+      color: var(--neon-blue);
+      text-shadow: var(--glow-strong);
+    }
+
+    .hex img {
+      width: 180px;
+      filter: drop-shadow(0 0 20px var(--neon-purple));
+      border-radius: 15px;
+    }
+
+    /* ABOUT CONTENT */
+    .about-content .container {
+      background: var(--bg-panel);
+      padding: 40px 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #000;
+      width: 90%;
+      margin: auto;
+    }
+
+    .about-content h1 {
+      font-size: 36px;
+      color: var(--neon-purple);
+      text-shadow: var(--glow-soft);
+    }
+
+    .about-content h2 {
+      font-size: 26px;
+      margin-top: 25px;
+      color: var(--neon-blue);
+      text-shadow: var(--glow-soft);
+    }
+
+    .about-content p {
+      color: var(--subtext);
+      font-size: 17px;
+    }
+
+    .about-content ul li {
+      color: var(--text-light);
+      margin: 10px 0;
+    }
+
+    .quote {
+      background: rgba(255, 0, 170, 0.08);
+      padding: 18px;
+      border-left: 4px solid var(--neon-pink);
+      margin: 25px 0;
+      border-radius: 6px;
+      font-style: italic;
+      color: var(--neon-pink);
+      text-shadow: var(--glow-pink);
+    }
+
+    .footer {
+      text-align: right;
+      margin-top: 40px;
+      font-size: 18px;
+      color: var(--neon-blue);
+    }
+
+    /* INLINE SECTIONS */
+    #inline div {
+      background: var(--bg-panel);
+      padding: 20px;
+      margin: 20px;
+      border-radius: 12px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      transition: 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #inline div:hover {
+      transform: translateY(-6px);
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 20px var(--neon-purple);
+    }
+
+    #inline img {
+      width: 90px;
+      border-radius: 10px;
+      filter: drop-shadow(0 0 10px var(--neon-blue));
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 25px;
+      margin-top: 30px;
+      color: var(--subtext);
+      font-size: 15px;
+    }
+
+    footer a {
+      color: var(--neon-blue);
+      text-shadow: var(--glow-soft);
+    }
+  </style>
+
+  <!-- JS -->
+  
+  <script is:inline src="../script/sidebar.js" defer></script>
+
+
+  </Fragment>
+
+
+  <!-- FX BACKGROUND -->
+  <div class="fx-container">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- NAVBAR -->
+  <div id="navbar">
+    <div class="logo">
+      <img src="../assets/images/logo.png" alt="Study Hub Logo">
+      <h7>STUDY HUB</h7>
+    </div>
+
+    <div class="home hamburger">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div id="side-menu">
+      <nav>
+        <a href="../../../index.html">Home</a>
+        <a href="biology.html">Biology</a>
+        <a href="chemistry.html">Chemistry</a>
+        <a href="mathematics.html">Mathematics</a>
+        <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX">Music</a>
+        <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS">Motivacity</a>
+      </nav>
+    </div>
+
+    <div id="overlay"></div>
+  </div>
+
+  <!-- HERO -->
+  <div class="box1">
+    <h3>YOUR STUDY COMPANION</h3>
+    <div class="hex">
+      <img src="../assets/images/author.png" alt="hero image">
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- SEO -->
+  <div class="seo-content">
+    <h1 class="typing-text"></h1>
+  </div>
+
+  <script is:inline>
+    const text = "Study Hub — Free Academic Notes & Futuristic Learning Tools";
+    const element = document.querySelector(".typing-text");
+    let i = 0;
+    let deleting = false;
+
+    function typeLoop() {
+      if (!deleting) {
+        element.innerHTML = text.substring(0, i + 1);
+        i++;
+        if (i === text.length) { deleting = true; }
+      } else {
+        element.innerHTML = text.substring(0, i - 1);
+        i--;
+        if (i === 0) { deleting = false; }
+      }
+      setTimeout(typeLoop, 70);
+    }
+    typeLoop();
+  </script>
+
+  <!-- ABOUT SECTION -->
+  <div class="about-content">
+    <div class="container">
+      <h1>About the Author</h1>
+  
+      <div class="quote">
+        “From struggle to 19 points — not by luck, but by understanding the system.”
+      </div>
+  
+      <h2>My Journey</h2>
+      <p>
+        Like many students, A-Level was not easy for me. Studying Biology, Chemistry, and Mathematics (BCM) came with
+        pressure, confusion, and moments of doubt. There were times when balancing all three felt overwhelming, especially
+        when results did not reflect the effort I was putting in.
+      </p>
+  
+      <p>
+        I realized that the problem was not just about working hard — it was about <span class="highlight">how</span> I
+        was working. I needed a smarter approach.
+      </p>
+  
+      <h2>The Turning Point</h2>
+      <p>
+        Everything changed when I started focusing on:
+      </p>
+  
+      <ul>
+        <li>Understanding concepts instead of cramming</li>
+        <li>Practicing consistently with purpose</li>
+        <li>Targeting high-yield topics in each subject</li>
+        <li>Learning how exam questions are set and answered</li>
+      </ul>
+  
+      <p>
+        This shift in strategy made a huge difference in my confidence and performance.
+      </p>
+  
+      <h2>The Result</h2>
+      <p>
+        Through discipline and the right methods, I was able to achieve <span class="highlight">19 points in UACE
+          (BCM)</span>.
+      </p>
+  
+      <p>
+        I am currently pursuing a <span class="highlight">Bachelor of Science in Agriculture at Kabale University</span>,
+        applying my scientific foundation to real-world solutions. At the same time, I teach Biology, Chemistry, and
+        Mathematics to help other students unlock their potential and reach their academic goals.
+      </p>
+  
+      <h2>Why This Platform Exists</h2>
+      <p>
+        I created this platform to give students what I wish I had earlier:
+      </p>
+  
+      <ul>
+        <li>Clear explanations</li>
+        <li>Focused learning strategies</li>
+        <li>Exam-oriented guidance</li>
+      </ul>
+  
+      <p>
+        This is not just a website — it is a system designed to help you improve efficiently and perform at your best.
+      </p>
+  
+      <div class="quote">
+        “Success is not about being the smartest — it is about using the right strategy consistently.”
+      </div>
+  
+      <div class="footer">
+        — Jonathan
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- INLINE CARDS -->
+  <div id="inline">
+    <div id="music">
+      <img src="../assets/images/music.png" alt="music">
+      <div>
+        <p>Feeling overwhelmed?
+          <br>Let music fuel your mind.
+          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX">Open Playlist</a>
+        </p>
+      </div>
+    </div>
+
+    <div id="grind">
+      <img src="../assets/images/grit.jpg" alt="grind">
+      <p style="background-color: #2b2a2a; border-radius: 5px; padding: 10px; color: white;">Need motivation?
+        <br>Get energized on STUDY HUB.
+        <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS">Check It Out</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    🔗 AUTHOR: <a href="mailto:trusteth777@gmail.com">talk to me</a><br>
+    &copy; STUDY HUB // 2026+
+  </footer>
+
+
+</LegacyPageLayout>
