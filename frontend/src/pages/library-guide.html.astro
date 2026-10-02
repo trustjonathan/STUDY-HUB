@@ -1,0 +1,172 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import '../styles/library-guide.css';
+import biologyImage from '../assets/images/biology.jpg';
+import chemistryImage from '../assets/images/chemistry.jpg';
+import mathematicsImage from '../assets/images/mathematics.jpg';
+import studentsImage from '../assets/images/students_studying.jpeg';
+import studyImage from '../assets/images/study_pic.png';
+
+const home = import.meta.env.BASE_URL.replace(/\/$/, '');
+const subjects = [
+  {
+    name: 'Biology',
+    image: biologyImage,
+    hub: `${home}/frontend/src/html/biology.html`,
+    archive: 'https://trustjonathan.github.io/BIOLOGY/archive.html',
+    notes: 6,
+    papers: 67,
+    total: 73
+  },
+  {
+    name: 'Chemistry',
+    image: chemistryImage,
+    hub: `${home}/frontend/src/html/chemistry.html`,
+    archive: 'https://trustjonathan.github.io/CHEMISTRY/archive.html',
+    notes: 0,
+    papers: 335,
+    total: 335
+  },
+  {
+    name: 'Mathematics',
+    image: mathematicsImage,
+    hub: `${home}/frontend/src/html/mathematics.html`,
+    archive: 'https://trustjonathan.github.io/MATHEMATICS/archive.html',
+    notes: 20,
+    papers: 94,
+    total: 115
+  }
+];
+---
+
+<SiteLayout
+  title="Study Hub Library Guide"
+  description="A detailed guide to Study Hub subjects, resource counts, navigation, searching, and submitting study materials."
+>
+  <main class="library-guide">
+    <section class="guide-intro" id="guide-start" aria-labelledby="guide-title">
+      <div class="guide-intro-copy">
+        <p class="eyebrow">Study Hub reference</p>
+        <h1 id="guide-title">The library, explained.</h1>
+        <p class="guide-lede">Find the right subject page, browse the shared collection, and learn how contributed files are reviewed before they become public.</p>
+        <p class="guide-updated">Resource snapshot verified October 2, 2026</p>
+      </div>
+      <img class="guide-hero-image" src={studentsImage.src} alt="Learners studying together" />
+    </section>
+
+    <div class="guide-layout">
+      <aside class="guide-contents" aria-label="Guide contents">
+        <p class="guide-contents-title">On this page</p>
+        <nav>
+          <a href="#how-it-works">
+            <img src={studyImage.src} alt="" />
+            <span>How the library works</span>
+          </a>
+          <a href="#resource-counts">
+            <img src={mathematicsImage.src} alt="" />
+            <span>Resource counts</span>
+          </a>
+          <a href="#find-resources">
+            <img src={biologyImage.src} alt="" />
+            <span>Find and open files</span>
+          </a>
+          <a href="#submit-resources">
+            <img src={chemistryImage.src} alt="" />
+            <span>Upload a resource</span>
+          </a>
+          <a href="#page-map">
+            <img src={studentsImage.src} alt="" />
+            <span>Page directory</span>
+          </a>
+        </nav>
+      </aside>
+
+      <article class="guide-article">
+        <section class="guide-section" id="how-it-works" aria-labelledby="how-title">
+          <p class="eyebrow">01 / The system</p>
+          <h2 id="how-title">How the library works</h2>
+          <p>Study Hub keeps resource files and their searchable descriptions in a shared library. A file lives in Supabase Storage; a matching record in the <code>study_hub_resources</code> catalog supplies its subject, type, title, level, year, and storage location.</p>
+          <div class="guide-callout">
+            <strong>Public library</strong>
+            <p>Only approved files in the public <code>study-hub-resources</code> bucket, with catalog entries, appear in the browse lists.</p>
+          </div>
+          <p>Biology and Chemistry subject pages read a generated resource index. Mathematics reads its catalog records directly from Supabase. Their standalone archive pages also query the shared catalog, so an uploaded file is not listed until its public catalog entry exists.</p>
+          <p>New submissions are separate: they are placed in private submission storage and marked pending. A curator checks the file and rights confirmation, then publishes approved material to the public library. Sending a form does not immediately add a public result.</p>
+        </section>
+
+        <section class="guide-section" id="resource-counts" aria-labelledby="counts-title">
+          <p class="eyebrow">02 / The collection</p>
+          <h2 id="counts-title">How many resources are available?</h2>
+          <p>The shared catalog contained <strong>523 Mathematics, Biology, and Chemistry records</strong> when checked on October 2, 2026. Counts change as approved materials are added or corrected.</p>
+          <div class="guide-table-wrap">
+            <table>
+              <caption>Published catalog records by subject and category</caption>
+              <thead>
+                <tr><th scope="col">Subject</th><th scope="col">Notes</th><th scope="col">Past papers</th><th scope="col">Other / uncategorized</th><th scope="col">Total</th></tr>
+              </thead>
+              <tbody>
+                {subjects.map((subject) => (
+                  <tr>
+                    <th scope="row">{subject.name}</th>
+                    <td>{subject.notes}</td>
+                    <td>{subject.papers}</td>
+                    <td>{subject.name === 'Mathematics' ? 1 : 0}</td>
+                    <td><strong>{subject.total}</strong></td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr><th scope="row">All subjects</th><td>26</td><td>496</td><td>1</td><td>523</td></tr>
+              </tfoot>
+            </table>
+          </div>
+          <p class="guide-note">The Mathematics page shows 20 notes and 94 papers; its one uncategorized catalog record is excluded from those two lists. Chemistry currently has 335 papers and no records categorized as notes.</p>
+        </section>
+
+        <section class="guide-section" id="find-resources" aria-labelledby="find-title">
+          <p class="eyebrow">03 / Browse and study</p>
+          <h2 id="find-title">Find and open files</h2>
+          <ol class="guide-steps">
+            <li><strong>Choose a subject.</strong> Use the header’s subject menu or the directory below to open Biology, Chemistry, or Mathematics.</li>
+            <li><strong>Choose notes or past papers.</strong> Subject pages offer separate lists for each type; archive pages combine the collection with category tabs.</li>
+            <li><strong>Search and filter.</strong> Search titles or topics, narrow by study level, and sort by title, year, or date where the page offers those controls.</li>
+            <li><strong>Open the file.</strong> Select a resource title or its “Open resource” link. Public files open from Supabase Storage in a new browser tab.</li>
+          </ol>
+          <p>Some pages show an initial set of results with a “Load more” control. If a list is empty, clear its search and level filters first. A connection or configuration message means the page could not reach its data source; a “no published resources” message means no public rows matched that page’s subject and category.</p>
+        </section>
+
+        <section class="guide-section" id="submit-resources" aria-labelledby="submit-title">
+          <p class="eyebrow">04 / Contribute</p>
+          <h2 id="submit-title">Upload a resource</h2>
+          <p>Open the relevant standalone subject archive and choose <strong>Submit a resource</strong>. The form asks for a title, resource type, and file; level and year are optional. Confirm that you have permission to share the material and complete the verification step.</p>
+          <ol class="guide-steps">
+            <li>Open the Biology, Chemistry, or Mathematics archive below.</li>
+            <li>Select “Submit a resource” and enter its title and notes/past-paper category.</li>
+            <li>Add level and year if known, choose the file, confirm your sharing rights, and complete the security check.</li>
+            <li>Submit for review. The file remains private while pending; it appears in the public library only after a curator approves and publishes it.</li>
+          </ol>
+          <p>Accepted file types are PDF, Word, RTF, and plain text, with a 50 MB maximum shown on the archive forms. Do not upload material unless you have the right to distribute it. To request a topic instead of uploading a file, <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">contact Study Hub</a>.</p>
+        </section>
+
+        <section class="guide-section" id="page-map" aria-labelledby="map-title">
+          <p class="eyebrow">05 / Page directory</p>
+          <h2 id="map-title">Navigate the Study Hub</h2>
+          <p>Use the top navigation to return home, jump to the subject overview, or open a subject/archive submenu. These links take you directly to each destination:</p>
+          <div class="guide-directory">
+            {subjects.map((subject) => (
+              <section class="directory-row" aria-label={`${subject.name} pages`}>
+                <img src={subject.image.src} alt="" />
+                <div>
+                  <h3>{subject.name}</h3>
+                  <a href={subject.hub}>Study Hub page</a>
+                  <a href={subject.archive}>Resource archive</a>
+                </div>
+              </section>
+            ))}
+          </div>
+          <p class="guide-home-link"><a href={home}>Return to the Study Hub homepage <span aria-hidden="true">→</span></a></p>
+        </section>
+      </article>
+    </div>
+  </main>
+</SiteLayout>
