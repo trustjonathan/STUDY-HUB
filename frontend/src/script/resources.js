@@ -125,6 +125,7 @@
     const readerUrl = new URL(READER_PAGE, window.location.href);
     readerUrl.searchParams.set('file', item.publicUrl);
     readerUrl.searchParams.set('title', item.title || item.originalFilename || 'Study Hub resource');
+    readerUrl.searchParams.set('return', window.location.href);
     link.href = readerUrl.href;
     link.textContent = item.title || item.originalFilename;
 
