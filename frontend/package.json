@@ -3,18 +3,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node scripts/prepare-site-assets.mjs",
+    "predev": "node scripts/prepare-site-assets.mjs && node scripts/copy-flipbook-assets.mjs",
     "dev": "astro dev",
     "prebuild": "node scripts/prepare-site-assets.mjs",
-    "build": "astro check && astro build && node scripts/flatten-html-routes.mjs",
+    "build": "astro check && node scripts/copy-flipbook-assets.mjs && astro build && node scripts/flatten-html-routes.mjs",
     "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/react": "^7.0.0",
     "astro": "^7.3.5",
+    "docx-preview": "0.4.1",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "rtf.js": "3.0.9"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

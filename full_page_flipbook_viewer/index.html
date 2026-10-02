@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full Page PDF Flipbook Viewer</title>
+  <link rel="stylesheet" href="css/flipbook.style.css" />
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #111;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      overflow: hidden;
+    }
+    .viewer-wrap {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: #111;
+      box-sizing: border-box;
+    }
+    #book {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 0;
+      background: #000;
+    }
+    #document-reader, #reader-error {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      border: 0;
+    }
+    #document-reader { background: #fff; }
+    #document-frame { width: 100%; height: 100%; border: 0; }
+    #document-content { width: 100%; height: 100%; overflow: auto; padding: 16px; box-sizing: border-box; background: #777; }
+    #reader-error { display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #111; color: #fff; text-align: center; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="viewer-wrap">
+    <div id="book"></div>
+  </div>
+  <div id="document-reader" hidden>
+    <iframe id="document-frame" title="Study Hub resource reader" hidden></iframe>
+    <div id="document-content" hidden></div>
+  </div>
+  <div id="reader-error" role="alert" hidden></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="js/jszip.min.js"></script>
+  <script src="js/docx-preview.min.js"></script>
+  <script src="js/WMFJS.bundle.min.js"></script>
+  <script src="js/EMFJS.bundle.min.js"></script>
+  <script src="js/RTFJS.bundle.min.js"></script>
+  <script src="js/flipbook.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      const params = new URLSearchParams(window.location.search);
+      const requestedFile = params.get('file');
+      const title = params.get('title') || 'Study Hub resource';
+      const allowedStoragePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
+      document.title = `${title} | Study Hub`;
+
+      function showError(message) {
+        document.querySelector('#reader-error').textContent = message;
+        document.querySelector('#reader-error').hidden = false;
+        document.querySelector('.viewer-wrap').hidden = true;
+      }
+
+      let fileUrl = new URL('sample.pdf', window.location.href);
+      if (requestedFile) {
+        try {
+          fileUrl = new URL(requestedFile);
+        } catch {
+          showError('This resource link is invalid. Return to the library and try again.');
+          return;
+        }
+
+        if (!fileUrl.href.startsWith(allowedStoragePrefix)) {
+          showError('This resource is not hosted in the public Study Hub library. Return to the library and try again.');
+          return;
+        }
+      }
+
+      const extension = fileUrl.pathname.split('.').pop().toLowerCase();
+      if (extension !== 'pdf') {
+        document.querySelector('.viewer-wrap').hidden = true;
+        document.querySelector('#document-reader').hidden = false;
+        const frame = document.querySelector('#document-frame');
+        const content = document.querySelector('#document-content');
+
+        async function fetchDocument() {
+          const response = await fetch(fileUrl.href);
+          if (!response.ok) throw new Error(`Resource request failed (HTTP ${response.status}).`);
+          return response.arrayBuffer();
+        }
+
+        function showFrame(url) {
+          frame.title = `${title} reader`;
+          frame.src = url;
+          frame.hidden = false;
+        }
+
+        if (extension === 'docx') {
+          content.hidden = false;
+          fetchDocument()
+            .then((data) => window.docx.renderAsync(data, content, content))
+            .catch((error) => showError(error.message || 'This Word document could not be rendered.'));
+        } else if (extension === 'rtf') {
+          content.hidden = false;
+          fetchDocument()
+            .then(async (data) => {
+              const document = new window.RTFJS.Document(data);
+              content.replaceChildren(...await document.render());
+            })
+            .catch((error) => showError(error.message || 'This RTF document could not be rendered.'));
+        } else if (extension === 'doc') {
+          showFrame(`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl.href)}`);
+        } else {
+          showFrame(fileUrl.href);
+        }
+        return;
+      }
+
+      $('#book').flipBook({
+        pdfUrl: fileUrl.href,
+        lightBox: false,
+        layout: 3,
+        skin: 'light',
+        backgroundColor: '#111111',
+        btnShare: { enabled: false },
+        btnPrint: { enabled: false },
+        btnDownloadPages: { enabled: false },
+        btnDownloadPdf: { enabled: false },
+        menuOverBook: false,
+        menuFloating: false,
+        pdfBrowserViewerFullscreen: true,
+        pdfBrowserViewerFullscreenTarget: '_blank',
+        pdfPageScale: 1,
+        startPage: 0
+      });
+    });
+  </script>
+</body>
+</html>

@@ -21,6 +21,7 @@ const home = base.replace(/\/$/, '');
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {description && <meta name="description" content={description} />}
+    <meta name="study-hub-reader-url" content={`${base}full_page_flipbook_viewer/index.html`} />
     <title>{title}</title>
     <slot name="head" />
     <link rel="stylesheet" href={sharedStyles} />
