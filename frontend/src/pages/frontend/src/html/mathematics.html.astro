@@ -51,7 +51,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
     "@type": "EducationalOrganization",
     "name": "Study Hub",
     "url": "https://trustjonathan.github.io/STUDY-HUB/",
-    "logo": "https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png",
+    "logo": "https://trustjonathan.github.io/STUDY-HUB/favicon.svg",
     "description": "Free study notes and tools for Mathematics students.",
     "sameAs": []
   }
@@ -87,7 +87,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
   <div id="container">
     <div id="navbar">
       <div class="logo">
-        <img src="../assets/images/logo.png" alt="study hub's logo">
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Study Hub logo">
         <h7>STUDY HUB::: MATHEMATICS</h7>
       </div>
       <div class="home">

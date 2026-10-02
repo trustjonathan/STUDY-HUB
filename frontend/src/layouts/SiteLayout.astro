@@ -1,5 +1,4 @@
 ---
-import logo from '../assets/images/logo.png';
 import '../styles/astro-site.css';
 
 interface Props {
@@ -74,7 +73,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
           <a href={`${home}#subjects`}>Subjects</a>
         </nav>
         <a class="brand" href={home} aria-label="Study Hub home">
-          <img src={logo.src} width="40" height="40" alt="" />
+          <img src={`${base}favicon.svg`} width="40" height="40" alt="" />
           <span>Study Hub</span>
         </a>
         <nav class="header-actions" aria-label="Quick actions">
@@ -124,7 +123,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
       <div class="legacy-footer-inner">
         <div class="legacy-footer-brand">
           <a class="brand" href={home} aria-label="Study Hub home">
-            <img src={logo.src} width="36" height="36" alt="" />
+            <img src={`${base}favicon.svg`} width="36" height="36" alt="" />
             <span>Study Hub</span>
           </a>
           <p>Free study resources for focused, confident revision.</p>

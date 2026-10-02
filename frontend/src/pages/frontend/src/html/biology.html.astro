@@ -45,7 +45,7 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
     "@type": "EducationalOrganization",
     "name": "Study Hub",
     "url": "https://trustjonathan.github.io/STUDY-HUB/",
-    "logo": "https://trustjonathan.github.io/STUDY-HUB/assets/images/logo.png",
+    "logo": "https://trustjonathan.github.io/STUDY-HUB/favicon.svg",
     "description": "Free study notes and tools for Biology students.",
     "sameAs": []
   }
@@ -81,7 +81,7 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
   <div id="container">
     <div id="navbar">
       <div class="logo">
-        <img src="../assets/images/logo.png" alt="study hub's logo">
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Study Hub logo">
         <h7>STUDY HUB::: BIOLOGY</h7>
       </div>
       <div class="home">
