@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f4f5ef" />
+  <path d="M0 0h706c-34 84-34 196 0 315s34 231 0 315H0V0Z" fill="#102a40" />
+  <path d="M0 0h12v630H0z" fill="#f28c28" />
+
+  <g transform="translate(72 58)">
+    <path d="M0 8c10-3 19-1 27 5v29c-8-6-17-8-27-5V8Z" fill="#f4f5ef" />
+    <path d="M54 8c-10-3-19-1-27 5v29c8-6 17-8 27-5V8Z" fill="#f28c28" />
+    <path d="M27 13v29" stroke="#102a40" stroke-width="2" />
+    <text x="72" y="35" fill="#f4f5ef" font-family="Arial, sans-serif" font-size="28" font-weight="700">Study Hub</text>
+  </g>
+
+  <text x="76" y="218" fill="#f4f5ef" font-family="Arial, sans-serif" font-size="66" font-weight="700">Learn with</text>
+  <text x="76" y="294" fill="#f28c28" font-family="Arial, sans-serif" font-size="66" font-weight="700">clarity.</text>
+  <text x="79" y="356" fill="#e2e9e9" font-family="Arial, sans-serif" font-size="24">Notes, exam papers, and focused study tools</text>
+  <text x="79" y="391" fill="#e2e9e9" font-family="Arial, sans-serif" font-size="24">to move from understanding to practice.</text>
+
+  <path d="M79 438h470" stroke="#476071" stroke-width="2" />
+  <text x="79" y="481" fill="#f4c95d" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="2">MADE FOR UGANDAN LEARNERS</text>
+
+  <text x="770" y="105" fill="#476071" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="2">EXPLORE YOUR SUBJECT</text>
+  <path d="M770 128h354" stroke="#d5d9d1" stroke-width="2" />
+
+  <g font-family="Arial, sans-serif">
+    <circle cx="800" cy="205" r="25" fill="#dcebd9" />
+    <text x="800" y="211" fill="#285c43" font-size="15" font-weight="700" text-anchor="middle">01</text>
+    <text x="846" y="212" fill="#102a40" font-size="31" font-weight="700">Biology</text>
+    <path d="M846 232h275" stroke="#b4cdb5" stroke-width="3" />
+
+    <circle cx="800" cy="310" r="25" fill="#d8eaf0" />
+    <text x="800" y="316" fill="#17627a" font-size="15" font-weight="700" text-anchor="middle">02</text>
+    <text x="846" y="317" fill="#102a40" font-size="31" font-weight="700">Chemistry</text>
+    <path d="M846 337h275" stroke="#a9cad2" stroke-width="3" />
+
+    <circle cx="800" cy="415" r="25" fill="#f8e7c8" />
+    <text x="800" y="421" fill="#9a5719" font-size="15" font-weight="700" text-anchor="middle">03</text>
+    <text x="846" y="422" fill="#102a40" font-size="31" font-weight="700">Mathematics</text>
+    <path d="M846 442h275" stroke="#e7c38c" stroke-width="3" />
+  </g>
+
+  <text x="770" y="535" fill="#476071" font-family="Arial, sans-serif" font-size="17">One place to build exam confidence.</text>
+</svg>
