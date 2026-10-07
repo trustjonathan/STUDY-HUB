@@ -101,10 +101,16 @@ const subjects = [
       </div>
       <div class="dashboard-resource-grid">
         {recentlyAdded.map((item) => (
-          <a class="dashboard-resource-card" href={readerHref(item)}>
-            <span class="dashboard-card-icon" aria-hidden="true">{icon}</span>
-            <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
-            <span class="dashboard-card-meta">{itemLabel(item)}</span>
+          <a class="dashboard-resource-card" href={readerHref(item)} aria-label={`Open ${item.title || item.originalFilename}`}>
+            <span class="dashboard-preview" data-preview-url={["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") ? item.publicUrl : undefined} data-preview-format={item.extension} data-preview-worker={`${base}full_page_flipbook_viewer/js/pdf.worker.min.js`} aria-hidden="true">
+              <span class="dashboard-preview-placeholder">{item.resourceType === "paper" ? "✍" : icon}</span>
+              {["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">Loading page preview…</span>}
+              {!["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">{item.extension?.toUpperCase() || "FILE"} · Open to view</span>}
+            </span>
+            <span class="dashboard-resource-copy">
+              <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
+              <span class="dashboard-card-meta">{itemLabel(item)}</span>
+            </span>
           </a>
         ))}
       </div>
@@ -121,10 +127,16 @@ const subjects = [
       </div>
       <div class="dashboard-resource-grid">
         {featured.map((item) => (
-          <a class="dashboard-resource-card" href={readerHref(item)}>
-            <span class="dashboard-card-icon" aria-hidden="true">{item.resourceType === "paper" ? "✍" : icon}</span>
-            <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
-            <span class="dashboard-card-meta">{itemLabel(item)}</span>
+          <a class="dashboard-resource-card" href={readerHref(item)} aria-label={`Open ${item.title || item.originalFilename}`}>
+            <span class="dashboard-preview" data-preview-url={["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") ? item.publicUrl : undefined} data-preview-format={item.extension} data-preview-worker={`${base}full_page_flipbook_viewer/js/pdf.worker.min.js`} aria-hidden="true">
+              <span class="dashboard-preview-placeholder">{item.resourceType === "paper" ? "✍" : icon}</span>
+              {["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">Loading page preview…</span>}
+              {!["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">{item.extension?.toUpperCase() || "FILE"} · Open to view</span>}
+            </span>
+            <span class="dashboard-resource-copy">
+              <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
+              <span class="dashboard-card-meta">{itemLabel(item)}</span>
+            </span>
           </a>
         ))}
       </div>
@@ -145,6 +157,11 @@ const subjects = [
     </div>
   </section>
 </main>
+
+<script is:inline src={`${base}full_page_flipbook_viewer/js/jszip.min.js`} defer></script>
+<script is:inline src={`${base}full_page_flipbook_viewer/js/docx-preview.min.js`} defer></script>
+<script is:inline src={`${base}full_page_flipbook_viewer/js/pdf.min.js`} defer></script>
+<script is:inline src={`${base}scripts/dashboard-previews.js`} defer></script>
 
 <style>
   .subject-dashboard {
@@ -200,11 +217,23 @@ const subjects = [
   .dashboard-section-heading > a, .dashboard-text-button { padding: 0; border: 0; background: none; color: var(--dashboard-accent); font: inherit; font-size: .82rem; font-weight: 800; text-decoration: none; white-space: nowrap; cursor: pointer; }
   .dashboard-section-heading > a:hover, .dashboard-text-button:hover { text-decoration: underline; text-underline-offset: 3px; }
   .dashboard-resource-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-  .dashboard-resource-card { display: flex; min-width: 0; min-height: 152px; flex-direction: column; align-items: flex-start; padding: 16px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; color: #213448; text-decoration: none; transition: border-color .15s, transform .15s, box-shadow .15s; }
+  .dashboard-resource-card { display: flex; min-width: 0; min-height: 252px; flex-direction: column; overflow: hidden; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; color: #213448; text-decoration: none; transition: border-color .15s, transform .15s, box-shadow .15s; }
   .dashboard-resource-card:hover { transform: translateY(-2px); border-color: var(--dashboard-accent); box-shadow: 0 8px 20px rgba(25,43,59,.08); }
-  .dashboard-card-icon { display: grid; width: 34px; height: 34px; place-items: center; margin-bottom: 11px; border-radius: 9px; background: var(--dashboard-accent-soft); color: var(--dashboard-accent); font-size: 1.15rem; }
+  .dashboard-preview { position: relative; display: grid; width: 100%; height: 158px; flex: 0 0 158px; place-items: center; overflow: hidden; background: linear-gradient(145deg, var(--dashboard-accent-soft), #f5f7f7); }
+  .dashboard-preview canvas { display: block; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .2s; }
+  .dashboard-preview-image { width: 100%; height: 100%; object-fit: contain; }
+  .dashboard-preview-document { position: absolute; top: 0; left: 0; width: 816px; min-height: 1056px; overflow: hidden; transform: scale(.29); transform-origin: top left; pointer-events: none; }
+  .dashboard-preview-document .docx-wrapper { width: 816px !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+  .dashboard-preview-document .docx-wrapper > section.docx { width: 816px !important; min-height: 1056px !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box; }
+  .dashboard-preview.has-preview canvas { opacity: 1; }
+  .dashboard-preview.has-preview .dashboard-preview-placeholder,
+  .dashboard-preview.has-preview .dashboard-preview-caption { display: none; }
+  .dashboard-preview-placeholder { color: var(--dashboard-accent); font-size: 2.5rem; }
+  .dashboard-preview-caption { position: absolute; right: 8px; bottom: 7px; left: 8px; overflow: hidden; color: #697988; font-size: .67rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+  .dashboard-preview.preview-error .dashboard-preview-caption { color: #667583; }
+  .dashboard-resource-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: flex-start; padding: 12px 14px; }
   .dashboard-card-title { display: -webkit-box; overflow: hidden; width: 100%; font-size: .88rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-  .dashboard-card-meta { margin-top: auto; padding-top: 9px; color: #667583; font-size: .73rem; }
+  .dashboard-card-meta { margin-top: auto; padding-top: 7px; color: #667583; font-size: .73rem; }
   .dashboard-subject-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .dashboard-subject-chip { display: flex; min-height: 58px; align-items: center; gap: 11px; padding: 10px 14px; border: 1px solid #e0e6e9; border-radius: 10px; background: #fff; color: #24394c; text-decoration: none; }
   .dashboard-subject-chip > span:first-child { font-size: 1.3rem; }
@@ -234,7 +263,9 @@ const subjects = [
     .dashboard-stat strong { font-size: 1.1rem; }
     .dashboard-stat div span { font-size: .7rem; }
     .dashboard-resource-grid { gap: 8px; }
-    .dashboard-resource-card { min-height: 144px; padding: 12px; }
+    .dashboard-resource-card { min-height: 224px; }
+    .dashboard-preview { height: 136px; flex-basis: 136px; }
+    .dashboard-resource-copy { padding: 10px; }
     .dashboard-subject-grid { grid-template-columns: 1fr; }
   }
 </style>
