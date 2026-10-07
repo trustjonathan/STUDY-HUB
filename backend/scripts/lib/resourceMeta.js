@@ -167,14 +167,16 @@ function classifyResource({ relPath, originalFilename }) {
   const extension = path.extname(fileName).toLowerCase();
 
   const subject = SUBJECTS[String(folders[0] || '').toLowerCase()] || null;
-  const rawCategory = String(folders[1] || '').toLowerCase();
-  const category = rawCategory === 'notes' || rawCategory === 'papers' ? rawCategory : null;
+  const category = folders
+    .slice(1)
+    .map((folder) => folder.toLowerCase())
+    .find((folder) => folder === 'notes' || folder === 'papers') || null;
 
   return {
     subject,
     subjectLabel: subject ? SUBJECT_LABELS[subject] : null,
     category,
-    level: detectLevel(fileName),
+    level: detectLevel([...folders, fileName].join(' ')),
     year: detectYear(fileName),
     resourceType: detectResourceType(lowerName, category),
     extension,

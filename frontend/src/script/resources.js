@@ -149,7 +149,7 @@
     const statusEl = document.querySelector(`[data-resource-status="${key}"]`);
     let all = [];
     let visible = pageSize;
-    let loading = subject === 'mathematics' || subject === 'physics';
+    let loading = subject === 'mathematics';
 
     function draw() {
       if (loading) return;
@@ -242,7 +242,7 @@
     if (searchEl) searchEl.addEventListener('input', () => { visible = pageSize; draw(); });
     if (filterEl) filterEl.addEventListener('change', () => { visible = pageSize; draw(); });
 
-    if (subject === 'mathematics' || subject === 'physics') {
+    if (subject === 'mathematics') {
       void loadFromApi();
       return;
     }
