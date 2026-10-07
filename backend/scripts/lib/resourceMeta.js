@@ -35,13 +35,17 @@ const SUBJECTS = {
   chemistry: 'chemistry',
   math: 'mathematics',
   maths: 'mathematics',
-  mathematics: 'mathematics'
+  mathematics: 'mathematics',
+  phy: 'physics',
+  phys: 'physics',
+  physics: 'physics'
 };
 
 const SUBJECT_LABELS = {
   biology: 'Biology',
   chemistry: 'Chemistry',
-  mathematics: 'Mathematics'
+  mathematics: 'Mathematics',
+  physics: 'Physics'
 };
 
 const MIME_TYPES = {
