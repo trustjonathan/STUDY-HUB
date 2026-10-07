@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Full Page PDF Flipbook Viewer</title>
   <link rel="stylesheet" href="css/flipbook.style.css" />
+  <link rel="stylesheet" href="css/reader-controls.css" />
   <style>
     html, body {
       margin: 0;
@@ -42,7 +43,7 @@
     }
     #document-reader { background: #fff; }
     #document-frame { width: 100%; height: 100%; border: 0; }
-    #document-content { width: 100%; height: 100%; overflow: auto; padding: 64px 12px 20px; box-sizing: border-box; background: #777; }
+    #document-content { width: 100%; height: 100%; overflow: auto; padding: 12px 12px 20px; box-sizing: border-box; background: #777; }
     #document-content .docx-wrapper { width: 100%; box-sizing: border-box; padding: 12px !important; }
     #document-content .docx-wrapper > section.docx {
       width: min(100%, 816px) !important;
@@ -54,32 +55,74 @@
       box-sizing: border-box;
       overflow-wrap: anywhere;
     }
-    #exit-reader {
-      position: fixed;
-      z-index: 2147483647;
-      top: max(12px, env(safe-area-inset-top));
-      right: max(12px, env(safe-area-inset-right));
-      min-height: 42px;
-      padding: 0 16px;
-      border: 1px solid rgba(255, 255, 255, .28);
-      border-radius: 6px;
-      background: #202a35;
-      color: #fff;
-      font: 600 14px/1 Arial, sans-serif;
-      cursor: pointer;
-    }
-    #exit-reader:hover { background: #344454; }
-    #exit-reader:focus-visible { outline: 3px solid #8dd6ff; outline-offset: 2px; }
     #reader-error { display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #111; color: #fff; text-align: center; }
     [hidden] { display: none !important; }
     @media (max-width: 600px) {
-      #document-content { padding: 60px 8px 12px; }
+      #document-content { padding: 8px 8px 12px; }
       #document-content .docx-wrapper { padding: 8px !important; }
       #document-content .docx-wrapper > section.docx { padding: 16px !important; }
     }
   </style>
 </head>
 <body>
+  <header class="ela-top" id="reader-toolbar" hidden>
+    <button class="ela-btn" data-a="back" title="Back" aria-label="Back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </button>
+    <button class="ela-btn" data-a="panel" title="Pages, contents and bookmarks" aria-label="Pages, contents and bookmarks" aria-expanded="false" aria-controls="reader-panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"></rect><path d="M9 4v16"></path></svg>
+    </button>
+    <div class="ela-title">
+      <b class="ela-t-title">Study Hub resource</b>
+      <span class="ela-t-author"></span>
+    </div>
+    <div class="ela-pager" data-pdf-only hidden>
+      <button class="ela-btn ela-hide-sm" data-a="prev" title="Previous page" aria-label="Previous page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+      </button>
+      <label class="ela-pageinput">
+        <input type="number" min="1" value="1" aria-label="Page number">
+        <span>/ <i class="ela-total">1</i></span>
+      </label>
+      <button class="ela-btn ela-hide-sm" data-a="next" title="Next page" aria-label="Next page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+    <div class="ela-tools" data-pdf-only hidden>
+      <button class="ela-btn" data-a="search" title="Search in book" aria-label="Search in book">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path></svg>
+      </button>
+      <button class="ela-btn" data-a="zoom" title="Zoom" aria-label="Zoom">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"></path></svg>
+      </button>
+      <button class="ela-btn" data-a="mark" title="Bookmark this page" aria-label="Bookmark this page" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16l-5-3.5L7 20z"></path></svg>
+      </button>
+      <button class="ela-btn ela-hide-sm" data-a="sound" title="Page sound" aria-label="Page sound" aria-pressed="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 4V6L8 10z"></path><path class="ela-wave" d="M15.5 9a4 4 0 010 6M18 7a7 7 0 010 10"></path></svg>
+      </button>
+      <button class="ela-btn" data-a="settings" title="Reading settings" aria-label="Reading settings" aria-expanded="false" aria-controls="reader-settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"></path></svg>
+      </button>
+      <button class="ela-btn" data-a="full" title="Full screen (F)" aria-label="Full screen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
+      </button>
+    </div>
+    <div class="ela-popover" id="reader-panel" role="group" aria-label="Reader navigation" hidden>
+      <button type="button" data-panel="pages">Pages</button>
+      <button type="button" data-panel="contents">Contents</button>
+      <button type="button" data-panel="bookmarks">Bookmarks</button>
+    </div>
+    <div class="ela-popover ela-settings" id="reader-settings" hidden>
+      <label for="reader-zoom">Page zoom</label>
+      <select id="reader-zoom">
+        <option value="fit">Fit page</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+        <option value="2">200%</option>
+      </select>
+    </div>
+  </header>
   <div class="viewer-wrap">
     <div id="book"></div>
   </div>
@@ -88,7 +131,6 @@
     <div id="document-content" hidden></div>
   </div>
   <div id="reader-error" role="alert" hidden></div>
-  <button id="exit-reader" type="button" aria-label="Exit reader">Exit reader</button>
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="js/jszip.min.js"></script>
@@ -103,9 +145,19 @@
       const requestedFile = params.get('file');
       const title = params.get('title') || 'Study Hub resource';
       const allowedStoragePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
+      const toolbar = document.querySelector('#reader-toolbar');
+      const pageInput = document.querySelector('.ela-pageinput input');
+      const totalPages = document.querySelector('.ela-total');
+      const panel = document.querySelector('#reader-panel');
+      const settings = document.querySelector('#reader-settings');
+      const panelButton = document.querySelector('[data-a="panel"]');
+      const settingsButton = document.querySelector('[data-a="settings"]');
+      let flipbook = null;
+      let documentZoom = 1;
       document.title = `${title} | Study Hub`;
+      document.querySelector('.ela-t-title').textContent = title;
 
-      document.querySelector('#exit-reader').addEventListener('click', () => {
+      function goBack() {
         const returnUrl = params.get('return');
         if (returnUrl) {
           try {
@@ -126,13 +178,135 @@
           destination.pathname = destination.pathname.replace(/\/$/, '') || '/';
           window.location.assign(destination.href);
         }
-      });
+      }
 
       function showError(message) {
+        toolbar.hidden = true;
         document.querySelector('#reader-error').textContent = message;
         document.querySelector('#reader-error').hidden = false;
         document.querySelector('.viewer-wrap').hidden = true;
       }
+
+      function closePopovers() {
+        panel.hidden = true;
+        settings.hidden = true;
+        panelButton.setAttribute('aria-expanded', 'false');
+        settingsButton.setAttribute('aria-expanded', 'false');
+      }
+
+      function openPdfPanel(panelName) {
+        if (!flipbook) return;
+        flipbook.closeMenus();
+        if (panelName === 'pages') flipbook.toggleThumbs();
+        if (panelName === 'contents') flipbook.toggleToc();
+        if (panelName === 'bookmarks') flipbook.toggleBookmark();
+        closePopovers();
+      }
+
+      toolbar.addEventListener('click', (event) => {
+        const panelAction = event.target.closest('[data-panel]');
+        if (panelAction) {
+          openPdfPanel(panelAction.dataset.panel);
+          return;
+        }
+
+        const actionButton = event.target.closest('[data-a]');
+        if (!actionButton) return;
+
+        switch (actionButton.dataset.a) {
+          case 'back':
+            goBack();
+            break;
+          case 'panel': {
+            const show = panel.hidden;
+            closePopovers();
+            panel.hidden = !show;
+            panelButton.setAttribute('aria-expanded', String(show));
+            break;
+          }
+          case 'prev':
+            flipbook?.prevPage();
+            break;
+          case 'next':
+            flipbook?.nextPage();
+            break;
+          case 'search':
+            if (flipbook) flipbook.toggleSearch();
+            else if (!document.querySelector('#document-content').hidden) {
+              const query = window.prompt('Search this document');
+              if (query) window.find(query);
+            }
+            break;
+          case 'zoom':
+            if (flipbook) {
+              if (flipbook.zoom > 1.05) flipbook.zoomOut();
+              else flipbook.zoomIn();
+            } else if (!document.querySelector('#document-content').hidden) {
+              documentZoom = documentZoom > 1 ? 1 : 1.25;
+              document.querySelector('#document-content').style.zoom = String(documentZoom);
+            }
+            break;
+          case 'mark':
+            if (flipbook && flipbook.cPage?.length) {
+              if (!flipbook.thumbs) flipbook.createThumbs();
+              const page = flipbook.cPage[0];
+              if (flipbook.isBookmarked(page)) flipbook.removeBookmark(page);
+              else flipbook.bookmarkPage(page);
+            }
+            break;
+          case 'sound':
+            if (flipbook) {
+              flipbook.toggleSound();
+              actionButton.setAttribute('aria-pressed', String(flipbook.options.sound));
+            }
+            break;
+          case 'settings': {
+            const show = settings.hidden;
+            closePopovers();
+            settings.hidden = !show;
+            settingsButton.setAttribute('aria-expanded', String(show));
+            break;
+          }
+          case 'full':
+            if (flipbook) flipbook.toggleExpand();
+            else {
+              const reader = document.querySelector('#document-reader');
+              if (document.fullscreenElement) void document.exitFullscreen();
+              else if (reader.requestFullscreen) void reader.requestFullscreen();
+            }
+            break;
+        }
+      });
+
+      pageInput.addEventListener('change', () => {
+        if (!flipbook) return;
+        const page = Math.min(Math.max(Number(pageInput.value) || 1, 1), Number(pageInput.max) || 1);
+        pageInput.value = String(page);
+        flipbook.goToPage(page);
+      });
+
+      pageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          pageInput.dispatchEvent(new Event('change'));
+          pageInput.blur();
+        }
+      });
+
+      document.querySelector('#reader-zoom').addEventListener('change', (event) => {
+        if (flipbook) {
+          const zoom = event.target.value === 'fit' ? 1 : Number(event.target.value);
+          flipbook.zoomTo(zoom, 0);
+        } else {
+          documentZoom = event.target.value === 'fit' ? 1 : Number(event.target.value);
+          document.querySelector('#document-content').style.zoom = String(documentZoom);
+        }
+        closePopovers();
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('#reader-toolbar')) closePopovers();
+      });
 
       let fileUrl = new URL('sample.pdf', window.location.href);
       if (requestedFile) {
@@ -153,6 +327,12 @@
       if (extension !== 'pdf') {
         document.querySelector('.viewer-wrap').hidden = true;
         document.querySelector('#document-reader').hidden = false;
+        toolbar.hidden = false;
+        document.querySelector('.ela-pager').hidden = true;
+        document.querySelector('.ela-tools').hidden = !['docx', 'rtf'].includes(extension);
+        panelButton.hidden = true;
+        document.querySelector('[data-a="mark"]').hidden = true;
+        document.querySelector('[data-a="sound"]').hidden = true;
         const frame = document.querySelector('#document-frame');
         const content = document.querySelector('#document-content');
 
@@ -189,12 +369,18 @@
         return;
       }
 
-      $('#book').flipBook({
+      toolbar.hidden = false;
+      document.querySelectorAll('[data-pdf-only]').forEach((element) => { element.hidden = false; });
+      flipbook = $('#book').flipBook({
         pdfUrl: fileUrl.href,
+        name: `study-hub-${encodeURIComponent(fileUrl.href)}`,
         lightBox: false,
         layout: 3,
         skin: 'light',
         backgroundColor: '#111111',
+        hideMenu: true,
+        sideNavigationButtons: false,
+        btnSearch: { enabled: true },
         btnShare: { enabled: false },
         btnPrint: { enabled: false },
         btnDownloadPages: { enabled: false },
@@ -207,6 +393,33 @@
         singlePageMode: true,
         startPage: 0
       });
+
+      function syncPageControls() {
+        if (!flipbook) return;
+        const loadedPages = Number(flipbook.options.numPages || flipbook.options.pages.length);
+        const total = loadedPages || 1;
+        const current = Number.parseInt(flipbook.currentPageValue, 10) || 1;
+        const ready = loadedPages > 0;
+        pageInput.max = String(total);
+        totalPages.textContent = String(total);
+        document.querySelectorAll('[data-pdf-only] button, [data-pdf-only] input').forEach((control) => {
+          control.disabled = !ready;
+        });
+        document.querySelector('[data-a="panel"]').disabled = !ready;
+        document.querySelector('[data-a="prev"]').disabled = !ready || current <= 1;
+        document.querySelector('[data-a="next"]').disabled = !ready || current >= total;
+        if (document.activeElement !== pageInput) {
+          pageInput.value = String(Math.min(current, total));
+        }
+        const currentPage = flipbook.cPage?.[0];
+        document.querySelector('[data-a="mark"]').setAttribute(
+          'aria-pressed',
+          String(currentPage !== undefined && flipbook.isBookmarked(currentPage))
+        );
+      }
+
+      window.setInterval(syncPageControls, 250);
+      syncPageControls();
     });
   </script>
 </body>
