@@ -1,5 +1,6 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 ---
 
 <LegacyPageLayout title="Biology Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Biology notes for UACE – concise diagrams, explanations, and exam-focused study tools." dataPage="biology">
@@ -111,20 +112,13 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
         </p>
       </div>
     </div><br>
-    <div class="subject-shell subject-biology">
-      <div class="subject-hero">
-        <div class="subject-copy">
-          <p class="subject-badge">Biology study hub</p>
-          <h1>Study Biology with a clear next step.</h1>
-          <p>Browse concise notes, exam papers, and video lessons. Search by topic or narrow the library by study level as it grows.</p>
-          <div class="subject-actions">
-            <button class="subject-btn primary" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-            <button class="subject-btn secondary" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Find past papers</button>
-            <a class="subject-btn secondary" href="https://trustjonathan.github.io/BIOLOGY/archive.html">Open Biology archive</a>
-          </div>
-        </div>
-      </div>
-    </div>
+    <SubjectDashboard
+      subject="biology"
+      name="Biology"
+      icon="🧬"
+      headline="Study Biology with a clear next step."
+      description="Explore life processes, genetics, ecology, and practical work with notes and exam resources."
+    />
 
     <section class="resources-section biology-library" id="biology-library">
       <div class="library-heading">

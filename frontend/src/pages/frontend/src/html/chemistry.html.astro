@@ -1,5 +1,6 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 ---
 
 <LegacyPageLayout title="Chemistry Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Chemistry notes with formulas, equations, and simplified explanations for fast learning and exam success." dataPage="chemistry">
@@ -109,19 +110,13 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
       </div>
     </div><br>
     
-    <div class="subject-shell subject-chemistry">
-      <div class="subject-hero">
-        <div class="subject-copy">
-          <p class="subject-badge">Chemistry study hub</p>
-          <h1>Build understanding, one concept at a time.</h1>
-          <p>Explore clear notes, exam papers, and video lessons. Search by topic or filter the growing collection by study level.</p>
-          <div class="subject-actions">
-            <button class="subject-btn primary toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-            <button class="subject-btn secondary toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Find past papers</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <SubjectDashboard
+      subject="chemistry"
+      name="Chemistry"
+      icon="🧪"
+      headline="Build understanding, one concept at a time."
+      description="Connect chemical principles to reactions, equations, experiments, and exam practice."
+    />
 
     <!--=========================
              NOTES, PAPERS, VIDEOS (Expandable)

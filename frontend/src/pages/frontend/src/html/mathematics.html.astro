@@ -1,5 +1,6 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
@@ -116,19 +117,13 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
         </p>
       </div>
     </div><br>
-    <div class="subject-shell subject-mathematics">
-      <div class="subject-hero">
-        <div class="subject-copy">
-          <p class="subject-badge">Mathematics study hub</p>
-          <h1>Work through each problem with a method.</h1>
-          <p>Browse Mathematics notes and past papers from the shared Study Hub library, with guided video support for exam practice.</p>
-          <div class="subject-actions">
-            <button class="subject-btn primary toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-            <button class="subject-btn secondary toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Find past papers</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <SubjectDashboard
+      subject="mathematics"
+      name="Mathematics"
+      icon="∑"
+      headline="Work through each problem with a method."
+      description="Build confidence through worked examples, clear methods, and exam practice."
+    />
 
     <section class="resources-section math-library" id="mathematics-library">
       <div class="library-heading">

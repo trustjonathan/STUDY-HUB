@@ -1,5 +1,6 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
@@ -30,20 +31,13 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
   </Fragment>
 
   <div id="container">
-    <section class="subject-shell subject-physics">
-      <div class="subject-hero">
-        <div class="subject-copy">
-          <p class="subject-badge">Physics study hub</p>
-          <h1>Understand the forces shaping the world.</h1>
-          <p>Explore Physics notes and past papers, then search by topic or filter resources by study level.</p>
-          <div class="subject-actions">
-            <button class="subject-btn primary toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-            <button class="subject-btn secondary toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Find past papers</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
+    <SubjectDashboard
+      subject="physics"
+      name="Physics"
+      icon="⚡"
+      headline="Understand the forces shaping the world."
+      description="Explore motion, matter, and energy through Physics resources and exam practice."
+    />
     <section class="resources-section math-library physics-library" id="physics-library">
       <div class="library-heading">
         <p class="subject-badge">Study library</p>

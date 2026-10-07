@@ -1,0 +1,240 @@
+---
+import resourceManifest from "../data/resources.json";
+
+interface Props {
+  subject: "biology" | "chemistry" | "mathematics" | "physics";
+  name: string;
+  headline: string;
+  description: string;
+  icon: string;
+}
+
+const { subject, name, headline, description, icon } = Astro.props;
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const libraryId = `${subject}-library`;
+const allResources = resourceManifest.items.filter((item) => item.subject === subject);
+const notes = allResources.filter((item) => item.category === "notes");
+const papers = allResources.filter((item) => item.category === "papers");
+const recentlyAdded = [...allResources]
+  .sort((left, right) => Date.parse(right.updatedAt || "") - Date.parse(left.updatedAt || ""))
+  .slice(0, 4);
+const featured = (notes.length ? notes : papers).slice(0, 4);
+const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
+
+function readerHref(item: (typeof allResources)[number]) {
+  const query = new URLSearchParams({
+    file: item.publicUrl,
+    title: item.title || item.originalFilename || `${name} resource`,
+    return: `${base}frontend/src/html/${subject}.html`,
+  });
+  return `${base}full_page_flipbook_viewer/index.html?${query}`;
+}
+
+function itemLabel(item: (typeof allResources)[number]) {
+  return [item.level, item.year, item.resourceType === "guide" ? "Guide" : item.category === "notes" ? "Notes" : "Study resource"]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+const subjects = [
+  { name: "Biology", slug: "biology", icon: "🧬" },
+  { name: "Chemistry", slug: "chemistry", icon: "🧪" },
+  { name: "Mathematics", slug: "mathematics", icon: "∑" },
+  { name: "Physics", slug: "physics", icon: "⚡" },
+];
+---
+
+<main class="subject-dashboard" data-subject={subject}>
+  <section class="dashboard-hero">
+    <div class="dashboard-welcome">
+      <p class="dashboard-eyebrow">Study Hub · {name}</p>
+      <h1>{headline}</h1>
+      <p>{description}</p>
+      <div class="dashboard-hero-actions">
+        <a class="dashboard-primary" href={`#${libraryId}`}>Explore {name} resources <span aria-hidden="true">→</span></a>
+        <span class="dashboard-public-note">Free resources, open to everyone</span>
+      </div>
+    </div>
+    <div class="dashboard-subject-mark" aria-hidden="true">
+      <span>{icon}</span>
+      <small>{name.toUpperCase()}</small>
+    </div>
+  </section>
+
+  <section class="dashboard-stats" aria-label={`${name} library statistics`}>
+    <div class="dashboard-stat">
+      <span class="dashboard-stat-icon">▤</span>
+      <div><strong>{allResources.length}</strong><span>Resources</span></div>
+    </div>
+    <div class="dashboard-stat">
+      <span class="dashboard-stat-icon">✎</span>
+      <div><strong>{notes.length}</strong><span>Study notes</span></div>
+    </div>
+    <div class="dashboard-stat">
+      <span class="dashboard-stat-icon">✓</span>
+      <div><strong>{papers.length}</strong><span>Past papers</span></div>
+    </div>
+    <div class="dashboard-stat">
+      <span class="dashboard-stat-icon">⌂</span>
+      <div><strong>{levels.size}</strong><span>Study levels</span></div>
+    </div>
+  </section>
+
+  <section class="dashboard-quick-actions" aria-label={`${name} quick actions`}>
+    <a class="dashboard-action" href={`#${libraryId}`}><span aria-hidden="true">📚</span><span>Browse library</span></a>
+    <button class="dashboard-action toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">
+      <span aria-hidden="true">📝</span><span>Study notes</span>
+    </button>
+    <button class="dashboard-action toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">
+      <span aria-hidden="true">📄</span><span>Past papers</span>
+    </button>
+    <a class="dashboard-action" href={`${base}#subjects`}><span aria-hidden="true">↗</span><span>All subjects</span></a>
+  </section>
+
+  {recentlyAdded.length > 0 && (
+    <section class="dashboard-section" aria-labelledby={`${subject}-recent-heading`}>
+      <div class="dashboard-section-heading">
+        <div><p class="dashboard-eyebrow">Fresh from the library</p><h2 id={`${subject}-recent-heading`}>Recently added</h2></div>
+        <a href={`#${libraryId}`}>Browse all <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="dashboard-resource-grid">
+        {recentlyAdded.map((item) => (
+          <a class="dashboard-resource-card" href={readerHref(item)}>
+            <span class="dashboard-card-icon" aria-hidden="true">{icon}</span>
+            <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
+            <span class="dashboard-card-meta">{itemLabel(item)}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {featured.length > 0 && (
+    <section class="dashboard-section" aria-labelledby={`${subject}-featured-heading`}>
+      <div class="dashboard-section-heading">
+        <div><p class="dashboard-eyebrow">{notes.length ? "Start with the essentials" : "Practice and prepare"}</p><h2 id={`${subject}-featured-heading`}>{notes.length ? "Study notes" : "Explore past papers"}</h2></div>
+        <button class="dashboard-text-button toggle-btn" type="button" data-target={notes.length ? "notes-content" : "papers-content"} aria-controls={notes.length ? "notes-content" : "papers-content"} aria-expanded="false">
+          View collection <span aria-hidden="true">→</span>
+        </button>
+      </div>
+      <div class="dashboard-resource-grid">
+        {featured.map((item) => (
+          <a class="dashboard-resource-card" href={readerHref(item)}>
+            <span class="dashboard-card-icon" aria-hidden="true">{item.resourceType === "paper" ? "✍" : icon}</span>
+            <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
+            <span class="dashboard-card-meta">{itemLabel(item)}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="dashboard-section dashboard-subjects" id="subjects" aria-labelledby={`${subject}-subjects-heading`}>
+    <div class="dashboard-section-heading">
+      <div><p class="dashboard-eyebrow">Keep exploring</p><h2 id={`${subject}-subjects-heading`}>Browse by subject</h2></div>
+      <a href={`${base}#subjects`}>All subjects <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="dashboard-subject-grid">
+      {subjects.filter((entry) => entry.slug !== subject).map((entry) => (
+        <a class={`dashboard-subject-chip ${entry.slug}`} href={`${base}frontend/src/html/${entry.slug}.html`}>
+          <span aria-hidden="true">{entry.icon}</span><strong>{entry.name}</strong><span aria-hidden="true">↗</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</main>
+
+<style>
+  .subject-dashboard {
+    --dashboard-accent: #28634f;
+    --dashboard-accent-soft: #e8f2eb;
+    max-width: 1180px;
+    margin: 28px auto 56px;
+    padding: 0 28px;
+    color: #192b3b;
+    font-family: "DM Sans", Arial, sans-serif;
+  }
+  .subject-dashboard[data-subject="chemistry"] { --dashboard-accent: #94621c; --dashboard-accent-soft: #fff3dc; }
+  .subject-dashboard[data-subject="mathematics"] { --dashboard-accent: #315c91; --dashboard-accent-soft: #eaf1fb; }
+  .subject-dashboard[data-subject="physics"] { --dashboard-accent: #286d7a; --dashboard-accent-soft: #e5f3f4; }
+  .dashboard-hero {
+    position: relative;
+    display: flex;
+    min-height: 240px;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 38px clamp(24px, 5vw, 58px);
+    border-radius: 18px;
+    background: radial-gradient(circle at 85% 20%, rgba(255,255,255,.13), transparent 26%), linear-gradient(125deg, #102a42, #1c4058);
+    color: white;
+  }
+  .dashboard-welcome { position: relative; z-index: 1; max-width: 680px; }
+  .dashboard-eyebrow { margin: 0 0 8px; color: var(--dashboard-accent); font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .dashboard-hero .dashboard-eyebrow { color: #b8daca; }
+  .dashboard-hero h1 { max-width: 660px; margin: 0; font-family: Manrope, Arial, sans-serif; font-size: clamp(2rem, 4.2vw, 3.5rem); line-height: 1.08; }
+  .dashboard-hero p:not(.dashboard-eyebrow) { max-width: 620px; margin: 14px 0 0; color: rgba(255,255,255,.77); }
+  .dashboard-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 22px; }
+  .dashboard-primary { display: inline-flex; min-height: 44px; align-items: center; gap: 16px; padding: 0 17px; border-radius: 7px; background: #f0b642; color: #1b2d3d; font-size: .88rem; font-weight: 800; text-decoration: none; }
+  .dashboard-primary:hover { background: #ffca62; }
+  .dashboard-public-note { color: rgba(255,255,255,.68); font-size: .82rem; }
+  .dashboard-subject-mark { display: grid; width: 150px; height: 150px; flex: 0 0 auto; align-content: center; justify-items: center; gap: 8px; margin-left: 30px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; background: rgba(255,255,255,.06); }
+  .dashboard-subject-mark span { font-size: 3.8rem; line-height: 1; }
+  .dashboard-subject-mark small { color: #c6d6df; font-size: .65rem; font-weight: 800; letter-spacing: .16em; }
+  .dashboard-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 17px 0; }
+  .dashboard-stat { display: flex; min-height: 80px; align-items: center; gap: 12px; padding: 14px 17px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; }
+  .dashboard-stat-icon { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 11px; background: var(--dashboard-accent-soft); color: var(--dashboard-accent); font-size: 1.2rem; font-weight: 800; }
+  .dashboard-stat div { display: grid; gap: 1px; }
+  .dashboard-stat strong { font-size: 1.25rem; line-height: 1.2; }
+  .dashboard-stat div span { color: #657483; font-size: .78rem; }
+  .dashboard-quick-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 18px 0 32px; }
+  .dashboard-action { display: flex; min-height: 60px; align-items: center; gap: 11px; padding: 10px 15px; border: 1px solid #dfe5e8; border-radius: 10px; background: #fff; color: #213448; font: inherit; font-size: .85rem; font-weight: 700; text-align: left; text-decoration: none; cursor: pointer; }
+  .dashboard-action:hover { border-color: var(--dashboard-accent); transform: translateY(-1px); }
+  .dashboard-action > span:first-child { font-size: 1.25rem; }
+  .dashboard-section { margin: 32px 0; }
+  .dashboard-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+  .dashboard-section-heading .dashboard-eyebrow { margin-bottom: 4px; }
+  .dashboard-section-heading h2 { margin: 0; font-family: Manrope, Arial, sans-serif; font-size: clamp(1.3rem, 2vw, 1.7rem); }
+  .dashboard-section-heading > a, .dashboard-text-button { padding: 0; border: 0; background: none; color: var(--dashboard-accent); font: inherit; font-size: .82rem; font-weight: 800; text-decoration: none; white-space: nowrap; cursor: pointer; }
+  .dashboard-section-heading > a:hover, .dashboard-text-button:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .dashboard-resource-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .dashboard-resource-card { display: flex; min-width: 0; min-height: 152px; flex-direction: column; align-items: flex-start; padding: 16px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; color: #213448; text-decoration: none; transition: border-color .15s, transform .15s, box-shadow .15s; }
+  .dashboard-resource-card:hover { transform: translateY(-2px); border-color: var(--dashboard-accent); box-shadow: 0 8px 20px rgba(25,43,59,.08); }
+  .dashboard-card-icon { display: grid; width: 34px; height: 34px; place-items: center; margin-bottom: 11px; border-radius: 9px; background: var(--dashboard-accent-soft); color: var(--dashboard-accent); font-size: 1.15rem; }
+  .dashboard-card-title { display: -webkit-box; overflow: hidden; width: 100%; font-size: .88rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .dashboard-card-meta { margin-top: auto; padding-top: 9px; color: #667583; font-size: .73rem; }
+  .dashboard-subject-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .dashboard-subject-chip { display: flex; min-height: 58px; align-items: center; gap: 11px; padding: 10px 14px; border: 1px solid #e0e6e9; border-radius: 10px; background: #fff; color: #24394c; text-decoration: none; }
+  .dashboard-subject-chip > span:first-child { font-size: 1.3rem; }
+  .dashboard-subject-chip strong { flex: 1; font-size: .86rem; }
+  .dashboard-subject-chip > span:last-child { color: #82909b; }
+  .dashboard-subject-chip:hover { border-color: var(--dashboard-accent); }
+  @media (max-width: 760px) {
+    .subject-dashboard { margin-top: 16px; padding: 0 16px; }
+    .dashboard-hero { min-height: 215px; padding: 28px 24px; }
+    .dashboard-subject-mark { width: 92px; height: 92px; margin-left: 12px; }
+    .dashboard-subject-mark span { font-size: 2.6rem; }
+    .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-subject-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 480px) {
+    .dashboard-hero { align-items: flex-start; padding: 24px 18px; }
+    .dashboard-subject-mark { width: 56px; height: 56px; border: 0; background: transparent; }
+    .dashboard-subject-mark span { font-size: 2rem; }
+    .dashboard-subject-mark small { display: none; }
+    .dashboard-hero-actions { gap: 10px; }
+    .dashboard-public-note { width: 100%; }
+    .dashboard-stats { gap: 8px; }
+    .dashboard-stat { min-height: 70px; gap: 9px; padding: 10px; }
+    .dashboard-stat-icon { width: 34px; height: 34px; }
+    .dashboard-stat strong { font-size: 1.1rem; }
+    .dashboard-stat div span { font-size: .7rem; }
+    .dashboard-resource-grid { gap: 8px; }
+    .dashboard-resource-card { min-height: 144px; padding: 12px; }
+    .dashboard-subject-grid { grid-template-columns: 1fr; }
+  }
+</style>
