@@ -41,8 +41,8 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Study Hub connects Biology, Chemistry, and Mathematics notes with exam practice." />
-    <meta name="twitter:image:alt" content="Study Hub connects Biology, Chemistry, and Mathematics notes with exam practice." />
+    <meta property="og:image:alt" content="Study Hub connects Biology, Chemistry, Mathematics, and Physics notes with exam practice." />
+    <meta name="twitter:image:alt" content="Study Hub connects Biology, Chemistry, Mathematics, and Physics notes with exam practice." />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
     <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-touch-icon.png`} />
@@ -106,6 +106,12 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
           </div>
         </details>
         <details class="mega-nav-group">
+          <summary>Physics</summary>
+          <div class="mega-nav-panel">
+            <a href={`${home}/frontend/src/html/physics.html`}>Physics study hub</a>
+          </div>
+        </details>
+        <details class="mega-nav-group">
           <summary>Contact</summary>
           <div class="mega-nav-panel">
             <a href="mailto:trusteth777@gmail.com">Email Study Hub</a>
@@ -131,6 +137,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
           <a href={`${home}/frontend/src/html/biology.html`}>Biology</a>
           <a href={`${home}/frontend/src/html/chemistry.html`}>Chemistry</a>
           <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics</a>
+          <a href={`${home}/frontend/src/html/physics.html`}>Physics</a>
           <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
           <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
           <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>

@@ -8,7 +8,7 @@ interface Props {
 
 const {
   title = 'Study Hub | Learn with clarity',
-  description = 'Study notes, exam resources, and learning tools for Biology, Chemistry, and Mathematics.'
+  description = 'Study notes, exam resources, and learning tools for Biology, Chemistry, Mathematics, and Physics.'
 } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const home = base.replace(/\/$/, '');
@@ -44,12 +44,12 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Study Hub connects Biology, Chemistry, and Mathematics notes with exam practice." />
+    <meta property="og:image:alt" content="Study Hub connects Biology, Chemistry, Mathematics, and Physics notes with exam practice." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={socialImageUrl.href} />
-    <meta name="twitter:image:alt" content="Study Hub connects Biology, Chemistry, and Mathematics notes with exam practice." />
+    <meta name="twitter:image:alt" content="Study Hub connects Biology, Chemistry, Mathematics, and Physics notes with exam practice." />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
     <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-touch-icon.png`} />
@@ -107,6 +107,12 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
           <div class="mega-nav-panel">
             <a href={`${home}/frontend/src/html/mathematics.html`}>Mathematics study hub</a>
             <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
+          </div>
+        </details>
+        <details class="mega-nav-group">
+          <summary>Physics</summary>
+          <div class="mega-nav-panel">
+            <a href={`${home}/frontend/src/html/physics.html`}>Physics study hub</a>
           </div>
         </details>
         <details class="mega-nav-group">

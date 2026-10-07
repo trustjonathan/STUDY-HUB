@@ -1,0 +1,36 @@
+.subject-physics {
+  border-left-color: #397080;
+  background:
+    radial-gradient(ellipse at 85% 18%, rgba(57, 112, 126, 0.11), transparent 42%),
+    transparent;
+}
+
+.subject-physics .subject-btn.primary {
+  background: #315d6b;
+}
+
+.subject-physics .subject-btn.primary:hover {
+  background: #244955;
+}
+
+.physics-library .library-heading .subject-badge {
+  color: #397080;
+}
+
+.physics-library .resources-side .resource-card .btn {
+  background: #315d6b;
+}
+
+.physics-library .resources-side .resource-card .btn:hover {
+  background: #244955;
+}
+
+.physics-library .resource-content {
+  margin-top: 1rem;
+}
+
+@media (max-width: 760px) {
+  .physics-library .resources-side {
+    grid-template-columns: 1fr;
+  }
+}

@@ -154,7 +154,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 28px; }
 .section-heading h2, .practice-copy h2 { margin: 0; color: #293b32; font-size: 2rem; line-height: 1.2; }
 .section-heading > p { max-width: 360px; margin: 0; color: var(--muted); font-size: 0.9rem; }
-.subject-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #d8ded5; background: var(--paper); }
+.subject-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #d8ded5; background: var(--paper); }
 .subject-card { display: flex; min-height: 276px; flex-direction: column; justify-content: space-between; padding: 22px; border-right: 1px solid #d8ded5; }
 .subject-card:hover, .subject-card:focus-within { background: #f0f5ef; }
 .subject-card:last-child { border-right: 0; }
@@ -169,6 +169,8 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .subject-card.chemistry .subject-focus { color: #a25c38; }
 .subject-card.mathematics h3 { color: #435563; }
 .subject-card.mathematics .subject-focus { color: #a06a28; }
+.subject-card.physics h3 { color: #315d6b; }
+.subject-card.physics .subject-focus { color: #397080; }
 
 .practice-section { display: flex; min-height: 245px; align-items: center; justify-content: space-between; gap: 32px; margin: 48px 5.5% 80px; padding: 38px 42px; background: #29483a; color: white; }
 .practice-copy { max-width: 620px; }
@@ -285,7 +287,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .site-header .mega-nav a:focus-visible { color: var(--green); text-decoration: underline; text-underline-offset: 4px; }
 .site-header .site-nav a[aria-current='page'] { color: var(--green); background: transparent; text-decoration: underline; text-underline-offset: 4px; }
 .site-header .header-actions a:last-child { color: var(--green-dark); font-weight: 700; }
-.mega-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; padding: 18px 32px 22px; border-top: 1px solid var(--line); }
+.mega-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px; padding: 18px 32px 22px; border-top: 1px solid var(--line); }
 .mega-nav-group { position: relative; display: block; }
 .mega-nav-group > summary { display: flex; min-height: 32px; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink); font-size: 0.9rem; font-weight: 700; list-style: none; cursor: pointer; }
 .mega-nav-group > summary::-webkit-details-marker { display: none; }

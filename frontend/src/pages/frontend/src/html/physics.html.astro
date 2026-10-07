@@ -1,0 +1,90 @@
+---
+import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
+---
+
+<LegacyPageLayout
+  title="Physics Notes – Free Study Hub | Jonathan GitHub Pages"
+  description="Explore Physics notes and past papers with clear explanations and exam-focused practice."
+  dataPage="physics"
+>
+  <Fragment slot="head">
+    <meta name="study-hub-supabase-url" content={supabaseUrl}>
+    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
+    <meta name="keywords" content="physics notes, physics past papers, mechanics, electricity, UACE physics">
+    <meta name="author" content="Jonathan">
+    <meta property="og:title" content="Physics Notes – Free Study Hub">
+    <meta property="og:description" content="Access Physics notes and past papers for clear learning and confident exam preparation.">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="../styles/home.css">
+    <link rel="stylesheet" href="../styles/themes.css">
+    <link rel="stylesheet" href="../styles/mathematics.css">
+    <link rel="stylesheet" href="../styles/physics.css">
+    <link rel="stylesheet" href="../styles/resources.css">
+    <script is:inline src="../script/sidebar.js" defer></script>
+    <script is:inline src="../script/physics.js" defer></script>
+    <script is:inline src="../data/resources.js" defer></script>
+    <script is:inline src="../script/resources.js" defer></script>
+  </Fragment>
+
+  <div id="container">
+    <section class="subject-shell subject-physics">
+      <div class="subject-hero">
+        <div class="subject-copy">
+          <p class="subject-badge">Physics study hub</p>
+          <h1>Understand the forces shaping the world.</h1>
+          <p>Explore Physics notes and past papers, then search by topic or filter resources by study level.</p>
+          <div class="subject-actions">
+            <button class="subject-btn primary toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
+            <button class="subject-btn secondary toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Find past papers</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="resources-section math-library physics-library" id="physics-library">
+      <div class="library-heading">
+        <p class="subject-badge">Study library</p>
+        <h2>Choose a resource type</h2>
+        <p>Search Physics files from the Study Hub Supabase library, or narrow results by study level.</p>
+      </div>
+
+      <div class="resources-layout">
+        <div class="resources-side">
+          <div class="resource-card">
+            <h3>Physics Notes</h3>
+            <p>Review concepts, key equations, and worked examples.</p>
+            <button class="btn toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
+          </div>
+          <div class="resource-card">
+            <h3>Past Papers</h3>
+            <p>Practice exam questions and strengthen problem-solving skills.</p>
+            <button class="btn toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Browse papers</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="notes-content" class="resource-content" aria-labelledby="physics-notes-heading">
+        <h3 id="physics-notes-heading">Physics Notes</h3>
+        <div class="resource-toolbar">
+          <input type="search" data-resource-search="physics|notes" placeholder="Search notes by topic or title..." aria-label="Search Physics notes">
+          <select data-resource-filter="physics|notes" aria-label="Filter Physics notes by level"></select>
+        </div>
+        <p class="resource-status" data-resource-status="physics|notes" aria-live="polite"></p>
+        <div data-resources data-subject="physics" data-category="notes" data-limit="12"></div>
+      </div>
+
+      <div id="papers-content" class="resource-content" aria-labelledby="physics-papers-heading">
+        <h3 id="physics-papers-heading">Physics Past Papers</h3>
+        <div class="resource-toolbar">
+          <input type="search" data-resource-search="physics|papers" placeholder="Search past papers by name or year..." aria-label="Search Physics past papers">
+          <select data-resource-filter="physics|papers" aria-label="Filter Physics past papers by level"></select>
+        </div>
+        <p class="resource-status" data-resource-status="physics|papers" aria-live="polite"></p>
+        <div data-resources data-subject="physics" data-category="papers" data-limit="20"></div>
+      </div>
+    </section>
+  </div>
+</LegacyPageLayout>

@@ -32,7 +32,7 @@
     return `${SUPABASE_CONFIG.url.replace(/\/+$/, '')}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
   }
 
-  async function loadMathematicsResources(category) {
+  async function loadCatalogResources(subject, category) {
     const supabaseUrl = String(SUPABASE_CONFIG.url || '').replace(/\/+$/, '');
     const anonKey = SUPABASE_CONFIG.anonKey || '';
 
@@ -49,7 +49,7 @@
         'select',
         'subject,category,storage_bucket,storage_path,original_filename,title,size_bytes,level,year,resource_type'
       );
-      endpoint.searchParams.set('subject', 'eq.mathematics');
+      endpoint.searchParams.set('subject', `eq.${subject}`);
       endpoint.searchParams.set('category', `eq.${category}`);
       endpoint.searchParams.set('order', 'title.asc,original_filename.asc');
       endpoint.searchParams.set('limit', String(PAGE_SIZE));
@@ -149,7 +149,7 @@
     const statusEl = document.querySelector(`[data-resource-status="${key}"]`);
     let all = [];
     let visible = pageSize;
-    let loading = subject === 'mathematics';
+    let loading = subject === 'mathematics' || subject === 'physics';
 
     function draw() {
       if (loading) return;
@@ -195,7 +195,8 @@
       const message = document.createElement('div');
       message.className = 'resource-empty';
       message.setAttribute('role', 'alert');
-      message.textContent = 'Mathematics resources could not be loaded.';
+      const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
+      message.textContent = `${subjectName} resources could not be loaded.`;
 
       const retry = document.createElement('button');
       retry.type = 'button';
@@ -209,11 +210,12 @@
 
     async function loadFromApi() {
       loading = true;
-      listEl.innerHTML = '<div class="resource-empty" role="status">Loading Mathematics resources...</div>';
-      if (statusEl) statusEl.textContent = 'Loading Mathematics resources...';
+      const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
+      listEl.innerHTML = `<div class="resource-empty" role="status">Loading ${subjectName} resources...</div>`;
+      if (statusEl) statusEl.textContent = `Loading ${subjectName} resources...`;
 
       try {
-        all = await loadMathematicsResources(category);
+        all = await loadCatalogResources(subject, category);
         loading = false;
 
         if (filterEl) filterEl.dataset.ready = '';
@@ -231,7 +233,8 @@
         }
         draw();
       } catch (error) {
-        console.error('Unable to load Mathematics resources:', error);
+        const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
+        console.error(`Unable to load ${subjectName} resources:`, error);
         renderError();
       }
     }
@@ -239,7 +242,7 @@
     if (searchEl) searchEl.addEventListener('input', () => { visible = pageSize; draw(); });
     if (filterEl) filterEl.addEventListener('change', () => { visible = pageSize; draw(); });
 
-    if (subject === 'mathematics') {
+    if (subject === 'mathematics' || subject === 'physics') {
       void loadFromApi();
       return;
     }
