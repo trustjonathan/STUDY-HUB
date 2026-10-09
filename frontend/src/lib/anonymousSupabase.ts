@@ -1,9 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 interface CachedClient {
   url: string;
   anonKey: string;
-  client: ReturnType<typeof createClient>;
+  client: SupabaseClient;
 }
 
 const clientGlobal = globalThis as typeof globalThis & {
