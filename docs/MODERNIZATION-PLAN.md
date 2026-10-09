@@ -5,7 +5,7 @@
 > **In progress:** typed Astro/React component extraction and production deployment settings
 > **Last updated:** 2026-10-01
 > **Owner:** Jonathan (trustjonathan)
-
+...
 ### Current frontend migration checkpoint
 
 - Astro, TypeScript, and the React integration are configured in `frontend/`.
