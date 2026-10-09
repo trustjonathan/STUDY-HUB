@@ -1,0 +1,26 @@
+---
+import SuggestionBoard from '../components/SuggestionBoard';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import '../styles/community-chat.css';
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+---
+
+<SiteLayout
+  title="Study Hub Suggestions"
+  description="Share anonymous suggestions to help improve Study Hub."
+>
+  <main class="community-page">
+    <section class="community-intro">
+      <p class="eyebrow">Help shape Study Hub</p>
+      <h1>Suggestions from learners</h1>
+      <p>Share ideas for resources, features, and improvements. Suggestions appear publicly after review.</p>
+    </section>
+    <SuggestionBoard
+      client:only="react"
+      supabaseUrl={supabaseUrl}
+      supabaseAnonKey={supabaseAnonKey}
+    />
+  </main>
+</SiteLayout>

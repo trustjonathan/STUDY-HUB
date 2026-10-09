@@ -1,6 +1,7 @@
 ---
 import '../styles/astro-site.css';
 import subjectCatalog from '../data/subjects.json';
+import { subjectCategories } from '../data/subjectCategories';
 
 interface Props {
   title?: string;
@@ -24,6 +25,10 @@ const canonicalPath = routePath === 'index.html' ? '' : routePath.replace(/\.htm
 const siteUrl = Astro.site ?? Astro.url.origin;
 const canonicalUrl = new URL(`${base}${canonicalPath}`, siteUrl);
 const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
+const popularSlugs = ['biology', 'chemistry', 'mathematics', 'physics', 'ict'];
+const popularSubjects = popularSlugs
+  .map((slug) => subjectCatalog.find((subject) => subject.slug === slug))
+  .filter((subject) => subject !== undefined);
 ---
 
 <!doctype html>
@@ -62,47 +67,49 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <header class="site-header" id="top">
       <div class="utility-bar">
         <div class="utility-inner">
-          <nav class="utility-links" aria-label="Utility navigation">
-            <a href={`${home}/frontend/src/html/about.html`}>About</a>
-          </nav>
           <span class="utility-note">Made for Ugandan learners</span>
         </div>
       </div>
       <div class="header-main">
         <nav class="site-nav" aria-label="Main navigation">
           <a href={home}>Home</a>
-          <a href={`${home}#overview`}>Overview</a>
-          <a href={`${home}#subjects`}>Subjects</a>
+          <a href={`${home}/subjects.html`}>Subjects</a>
+          <a href={`${home}/frontend/src/html/about.html`}>About</a>
         </nav>
         <a class="brand" href={home} aria-label="Study Hub home">
           <img src={`${base}favicon.svg`} width="40" height="40" alt="" />
           <span>Study Hub</span>
         </a>
-        <nav class="header-actions" aria-label="Quick actions">
-          <a href={`${home}#subjects`}>Explore subjects</a>
-        </nav>
+        <span class="header-spacer" aria-hidden="true"></span>
       </div>
       <nav class="mega-nav" aria-label="Study Hub sections">
         <details class="mega-nav-group">
-          <summary>Study Hub</summary>
-          <div class="mega-nav-panel">
-            <a href={home}>Home</a>
-            <a href={`${home}/frontend/src/html/about.html`}>About</a>
-          </div>
-        </details>
-        <details class="mega-nav-group">
-          <summary>All subjects ({subjectCatalog.length})</summary>
-          <div class="mega-nav-panel mega-nav-subject-panel">
-            {subjectCatalog.map((subject) => (
-              <a href={`${home}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a>
+          <summary>Browse subjects ({subjectCatalog.length})</summary>
+          <div class="mega-nav-panel mega-nav-category-panel">
+            {subjectCategories.map((category) => (
+              <details class="mega-nav-category">
+                <summary>
+                  {category.label}
+                  <span>{subjectCatalog.filter((subject) => subject.category === category.id).length}</span>
+                </summary>
+                <ul>
+                  <li><a class="mega-nav-category-directory" href={`${home}/subjects.html?category=${category.id}`}>Browse {category.label}</a></li>
+                  {subjectCatalog.filter((subject) => subject.category === category.id).map((subject) => (
+                    <li><a href={`${home}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></li>
+                  ))}
+                </ul>
+              </details>
             ))}
+            <a class="mega-nav-all" href={`${home}/subjects.html`}>Search and filter all subjects</a>
           </div>
         </details>
         <details class="mega-nav-group">
-          <summary>Resources</summary>
+          <summary>More</summary>
           <div class="mega-nav-panel">
-            <a href={`${home}#subjects`}>Browse subjects</a>
             <a href={`${home}/library-guide.html`}>Library guide</a>
+            <a href={`${home}/community-chat.html`}>Suggestions</a>
+            <a href={`${home}/terms.html`}>Terms</a>
+            <a href={`${home}/copyright.html`}>Copyright</a>
           </div>
         </details>
       </nav>
@@ -118,30 +125,34 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
           <p>Free study resources for focused, confident revision.</p>
           <span class="legacy-footer-note">Made for Ugandan learners</span>
         </div>
-        <nav class="legacy-footer-links" aria-label="Footer navigation">
-          <h2>Explore</h2>
-          <a href={home}>Home</a>
-          <a href={`${home}/library-guide.html`}>Library guide</a>
-          <a href={`${home}/frontend/src/html/about.html`}>About</a>
-          <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology archive</a>
-          <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry archive</a>
-          <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html">Mathematics archive</a>
-        </nav>
-        <div class="legacy-footer-subjects">
-          <details class="footer-subjects">
-            <summary>All subjects ({subjectCatalog.length})</summary>
-            <nav class="footer-subject-grid" aria-label="All Study Hub subjects">
-              {subjectCatalog.map((subject) => (
-                <a href={`${home}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a>
-              ))}
-            </nav>
-          </details>
-        </div>
-        <div class="legacy-footer-contact">
-          <h2>Get in touch</h2>
-          <p>Have a question or a resource request?</p>
-          <a href="mailto:trusteth777@gmail.com">Email Study Hub</a>
-          <a href="https://wa.me/+256701810497">WhatsApp</a>
+        <div class="legacy-footer-grid">
+          <nav class="legacy-footer-column" aria-label="Main links">
+            <h2>Main</h2>
+            <a href={home}>Home</a>
+            <a href={`${home}#overview`}>Overview</a>
+            <a href={`${home}/frontend/src/html/about.html`}>About</a>
+            <a href="mailto:trusteth777@gmail.com">Contact</a>
+          </nav>
+          <nav class="legacy-footer-column" aria-label="Popular subjects">
+            <h2>Popular Subjects</h2>
+            {popularSubjects.map((subject) => (
+              <a href={`${home}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a>
+            ))}
+          </nav>
+          <nav class="legacy-footer-column" aria-label="Archives and past papers">
+            <h2>Archives &amp; Practice</h2>
+            <a href={`${home}/subjects.html`}>Past Papers</a>
+            <a href={`${home}/library-guide.html`}>Library Guide</a>
+            <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">Biology Archive</a>
+            <a href="https://trustjonathan.github.io/CHEMISTRY/archive.html">Chemistry Archive</a>
+          </nav>
+          <nav class="legacy-footer-column" aria-label="Legal and information">
+            <h2>Legal / Info</h2>
+            <a href={`${home}/terms.html`}>Terms</a>
+            <a href={`${home}/copyright.html`}>Copyright Info</a>
+            <a href={`${home}/community-chat.html`}>Suggestions</a>
+            <a href="https://wa.me/+256701810497">WhatsApp</a>
+          </nav>
         </div>
         <div class="legacy-footer-bottom">
           <span>© {new Date().getFullYear()} Study Hub</span>

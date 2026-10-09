@@ -2,6 +2,7 @@
   {
     "slug": "biology",
     "name": "Biology",
+    "category": "sciences-math",
     "storageFolder": "bio",
     "folderAliases": ["biology"],
     "levels": ["O-Level", "A-Level"],
@@ -15,6 +16,7 @@
   {
     "slug": "chemistry",
     "name": "Chemistry",
+    "category": "sciences-math",
     "storageFolder": "chem",
     "folderAliases": ["chemistry"],
     "levels": ["O-Level", "A-Level"],
@@ -28,6 +30,7 @@
   {
     "slug": "mathematics",
     "name": "Mathematics",
+    "category": "sciences-math",
     "storageFolder": "mathematics",
     "folderAliases": ["math", "maths"],
     "levels": ["O-Level", "A-Level"],
@@ -41,6 +44,7 @@
   {
     "slug": "physics",
     "name": "Physics",
+    "category": "sciences-math",
     "storageFolder": "physics",
     "folderAliases": ["phy", "phys"],
     "levels": ["O-Level", "A-Level"],
@@ -54,6 +58,7 @@
   {
     "slug": "english-language",
     "name": "English Language",
+    "category": "languages",
     "storageFolder": "english",
     "folderAliases": ["english-language"],
     "levels": ["O-Level"],
@@ -67,6 +72,7 @@
   {
     "slug": "geography",
     "name": "Geography",
+    "category": "humanities-social",
     "storageFolder": "geography",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -80,6 +86,7 @@
   {
     "slug": "history",
     "name": "History & Political Education",
+    "category": "humanities-social",
     "storageFolder": "history",
     "folderAliases": ["history-and-political-education"],
     "levels": ["O-Level", "A-Level"],
@@ -93,6 +100,7 @@
   {
     "slug": "entrepreneurship",
     "name": "Entrepreneurship Education",
+    "category": "applied-technical",
     "storageFolder": "entrepreneurship",
     "folderAliases": ["entrepreneurship-education"],
     "levels": ["O-Level", "A-Level"],
@@ -106,6 +114,7 @@
   {
     "slug": "agriculture",
     "name": "Agriculture",
+    "category": "applied-technical",
     "storageFolder": "agriculture",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -119,6 +128,7 @@
   {
     "slug": "ict",
     "name": "Information & Communication Technology (ICT)",
+    "category": "applied-technical",
     "storageFolder": "ict",
     "folderAliases": ["information-and-communication-technology", "information-communication-technology"],
     "levels": ["O-Level", "Subsidiary"],
@@ -132,6 +142,7 @@
   {
     "slug": "kiswahili",
     "name": "Kiswahili",
+    "category": "languages",
     "storageFolder": "kiswahili",
     "folderAliases": ["swahili"],
     "levels": ["O-Level", "A-Level"],
@@ -145,6 +156,7 @@
   {
     "slug": "literature-in-english",
     "name": "Literature in English",
+    "category": "languages",
     "storageFolder": "literature-in-english",
     "folderAliases": ["literature"],
     "levels": ["O-Level", "A-Level"],
@@ -158,6 +170,7 @@
   {
     "slug": "cre",
     "name": "Christian Religious Education (CRE / Divinity)",
+    "category": "humanities-social",
     "storageFolder": "cre",
     "folderAliases": ["christian-religious-education", "divinity"],
     "levels": ["O-Level", "A-Level"],
@@ -171,6 +184,7 @@
   {
     "slug": "ire",
     "name": "Islamic Religious Education (IRE)",
+    "category": "humanities-social",
     "storageFolder": "ire",
     "folderAliases": ["islamic-religious-education"],
     "levels": ["O-Level", "A-Level"],
@@ -184,6 +198,7 @@
   {
     "slug": "art-and-design",
     "name": "Art & Design",
+    "category": "applied-technical",
     "storageFolder": "art-and-design",
     "folderAliases": ["art", "art-design"],
     "levels": ["O-Level", "A-Level"],
@@ -197,6 +212,7 @@
   {
     "slug": "performing-arts-and-music",
     "name": "Performing Arts & Music",
+    "category": "applied-technical",
     "storageFolder": "performing-arts-and-music",
     "folderAliases": ["music", "performing-arts"],
     "levels": ["O-Level", "A-Level"],
@@ -210,6 +226,7 @@
   {
     "slug": "physical-education",
     "name": "Physical Education (PE)",
+    "category": "applied-technical",
     "storageFolder": "physical-education",
     "folderAliases": ["pe"],
     "levels": ["O-Level"],
@@ -223,6 +240,7 @@
   {
     "slug": "technology-and-design",
     "name": "Technology & Design / Technical Drawing",
+    "category": "applied-technical",
     "storageFolder": "technology-and-design",
     "folderAliases": ["technical-drawing", "geometrical-and-mechanical-drawing", "drawing"],
     "levels": ["O-Level", "A-Level"],
@@ -236,6 +254,7 @@
   {
     "slug": "nutrition-and-food-technology",
     "name": "Nutrition & Food Technology / Home Economics",
+    "category": "applied-technical",
     "storageFolder": "nutrition-and-food-technology",
     "folderAliases": ["food-and-nutrition", "foods-and-nutrition", "home-economics"],
     "levels": ["O-Level", "A-Level"],
@@ -249,6 +268,7 @@
   {
     "slug": "french",
     "name": "French",
+    "category": "languages",
     "storageFolder": "french",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -262,6 +282,7 @@
   {
     "slug": "german",
     "name": "German",
+    "category": "languages",
     "storageFolder": "german",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -275,6 +296,7 @@
   {
     "slug": "arabic",
     "name": "Arabic",
+    "category": "languages",
     "storageFolder": "arabic",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -288,6 +310,7 @@
   {
     "slug": "chinese",
     "name": "Chinese",
+    "category": "languages",
     "storageFolder": "chinese",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -301,6 +324,7 @@
   {
     "slug": "luganda",
     "name": "Luganda",
+    "category": "languages",
     "storageFolder": "luganda",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -314,6 +338,7 @@
   {
     "slug": "runyankole-rukiga",
     "name": "Runyankole-Rukiga",
+    "category": "languages",
     "storageFolder": "runyankole-rukiga",
     "folderAliases": ["runyankole", "rukiga"],
     "levels": ["O-Level", "A-Level"],
@@ -327,6 +352,7 @@
   {
     "slug": "luo",
     "name": "Luo",
+    "category": "languages",
     "storageFolder": "luo",
     "folderAliases": [],
     "levels": ["O-Level", "A-Level"],
@@ -340,6 +366,7 @@
   {
     "slug": "general-paper",
     "name": "General Paper (GP)",
+    "category": "humanities-social",
     "storageFolder": "general-paper",
     "folderAliases": ["gp"],
     "levels": ["Subsidiary"],
@@ -353,6 +380,7 @@
   {
     "slug": "economics",
     "name": "Economics",
+    "category": "humanities-social",
     "storageFolder": "economics",
     "folderAliases": [],
     "levels": ["A-Level"],

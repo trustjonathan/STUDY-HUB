@@ -1,0 +1,124 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import subjectCatalog from '../data/subjects.json';
+import { subjectCategories } from '../data/subjectCategories';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const categories = subjectCategories.map((category) => ({
+  ...category,
+  subjects: subjectCatalog.filter((subject) => subject.category === category.id)
+}));
+---
+
+<SiteLayout
+  title="Browse Subjects | Study Hub"
+  description="Search and browse all Study Hub subjects by category."
+>
+  <main class="subjects-directory">
+    <header class="directory-intro">
+      <p class="eyebrow">Find a subject</p>
+      <h1>Browse all {subjectCatalog.length} subjects</h1>
+      <p>Search by subject or choose a category to find the right place to start.</p>
+    </header>
+
+    <section class="directory-controls" aria-label="Filter subjects">
+      <label class="directory-search-label" for="subject-search">Search subjects</label>
+      <input id="subject-search" type="search" placeholder="Search subjects..." autocomplete="off" data-subject-search />
+      <div class="category-filters" role="group" aria-label="Subject category filters">
+        <button type="button" class="category-filter is-active" data-category-filter="all" aria-pressed="true">
+          All <span>{subjectCatalog.length}</span>
+        </button>
+        {categories.map((category) => (
+          <button type="button" class="category-filter" data-category-filter={category.id} aria-pressed="false">
+            {category.filterLabel} <span>{category.subjects.length}</span>
+          </button>
+        ))}
+      </div>
+      <p class="directory-result-count" data-result-count aria-live="polite">Showing {subjectCatalog.length} subjects</p>
+    </section>
+
+    <nav class="directory-jump-nav" aria-label="Jump to subject category">
+      {categories.map((category) => (
+        <a href={`#${category.id}`}>{category.label}</a>
+      ))}
+    </nav>
+
+    <div class="directory-groups">
+      {categories.map((category) => (
+        <section class="directory-category" id={category.id} data-category-section={category.id} aria-labelledby={`${category.id}-heading`}>
+          <div class="directory-category-heading">
+            <div>
+              <p class="eyebrow">{category.filterLabel}</p>
+              <h2 id={`${category.id}-heading`}>{category.label}</h2>
+            </div>
+            <p>{category.description}</p>
+          </div>
+          <div class="directory-subject-grid">
+            {category.subjects.map((subject) => (
+              <article
+                class="directory-subject"
+                data-subject-card
+                data-category={category.id}
+                data-search={`${subject.name} ${subject.focus} ${subject.description}`.toLowerCase()}
+              >
+                <span class="directory-subject-icon" aria-hidden="true">{subject.icon}</span>
+                <div>
+                  <h3><a href={`${base}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></h3>
+                  <p>{subject.description}</p>
+                  <span class="directory-subject-levels">{subject.tracks.join(' · ')}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+      <p class="directory-no-results" data-no-results hidden>No subjects match that search. Try another term or category.</p>
+    </div>
+  </main>
+
+  <script>
+    const searchInput = document.querySelector<HTMLInputElement>('[data-subject-search]');
+    const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-category-filter]'));
+    const subjectCards = Array.from(document.querySelectorAll<HTMLElement>('[data-subject-card]'));
+    const categorySections = Array.from(document.querySelectorAll<HTMLElement>('[data-category-section]'));
+    const resultCount = document.querySelector<HTMLElement>('[data-result-count]');
+    const noResults = document.querySelector<HTMLElement>('[data-no-results]');
+
+    let activeCategory = new URLSearchParams(window.location.search).get('category') || 'all';
+    if (!filterButtons.some((button) => button.dataset.categoryFilter === activeCategory)) activeCategory = 'all';
+
+    function updateSubjectList() {
+      const query = searchInput?.value.trim().toLocaleLowerCase() || '';
+      let visibleCount = 0;
+
+      for (const card of subjectCards) {
+        const categoryMatches = activeCategory === 'all' || card.dataset.category === activeCategory;
+        const searchMatches = !query || (card.dataset.search || '').includes(query);
+        card.hidden = !(categoryMatches && searchMatches);
+        if (!card.hidden) visibleCount += 1;
+      }
+
+      for (const section of categorySections) {
+        section.hidden = !section.querySelector('[data-subject-card]:not([hidden])');
+      }
+
+      if (resultCount) resultCount.textContent = `Showing ${visibleCount} subject${visibleCount === 1 ? '' : 's'}`;
+      if (noResults) noResults.hidden = visibleCount > 0;
+      for (const button of filterButtons) {
+        const isActive = button.dataset.categoryFilter === activeCategory;
+        button.setAttribute('aria-pressed', String(isActive));
+        button.classList.toggle('is-active', isActive);
+      }
+    }
+
+    for (const button of filterButtons) {
+      button.addEventListener('click', () => {
+        activeCategory = button.dataset.categoryFilter || 'all';
+        updateSubjectList();
+      });
+    }
+
+    searchInput?.addEventListener('input', updateSubjectList);
+    updateSubjectList();
+  </script>
+</SiteLayout>
