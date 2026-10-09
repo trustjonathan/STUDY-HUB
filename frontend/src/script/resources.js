@@ -21,6 +21,7 @@
     anonKey: document.querySelector('meta[name="study-hub-supabase-anon-key"]')?.content || ''
   };
   const READER_PAGE = document.querySelector('meta[name="study-hub-reader-url"]')?.content || '/STUDY-HUB/full_page_flipbook_viewer/index.html';
+  const TURNSTILE_SITE_KEY = document.querySelector('meta[name="study-hub-turnstile-site-key"]')?.content || '';
   const SUPABASE_TABLE = 'study_hub_resources';
   const PAGE_SIZE = 1000;
 
@@ -126,6 +127,8 @@
     readerUrl.searchParams.set('file', item.publicUrl);
     readerUrl.searchParams.set('title', item.title || item.originalFilename || 'Study Hub resource');
     readerUrl.searchParams.set('return', window.location.href);
+    if (SUPABASE_CONFIG.anonKey) readerUrl.searchParams.set('anon_key', SUPABASE_CONFIG.anonKey);
+    if (TURNSTILE_SITE_KEY) readerUrl.searchParams.set('turnstile_key', TURNSTILE_SITE_KEY);
     link.href = readerUrl.href;
     link.textContent = item.title || item.originalFilename;
 

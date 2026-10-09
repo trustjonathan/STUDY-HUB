@@ -1,426 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Full Page PDF Flipbook Viewer</title>
-  <link rel="stylesheet" href="css/flipbook.style.css" />
+  <meta name="theme-color" content="#101923" />
+  <title>Study Hub reader</title>
   <link rel="stylesheet" href="css/reader-controls.css" />
   <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: #111;
-      font-family: Arial, sans-serif;
-    }
-    body {
-      overflow: hidden;
-    }
-    .viewer-wrap {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      background: #111;
-      box-sizing: border-box;
-    }
-    #book {
-      width: 100%;
-      height: 100%;
-      min-height: 0;
-      border: 0;
-      background: #000;
-    }
-    #document-reader, #reader-error {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      border: 0;
-    }
-    #document-reader { background: #fff; }
-    #document-frame { width: 100%; height: 100%; border: 0; }
-    #document-content { width: 100%; height: 100%; overflow: auto; padding: 12px 12px 20px; box-sizing: border-box; background: #777; }
-    #document-content .docx-wrapper { width: 100%; box-sizing: border-box; padding: 12px !important; }
-    #document-content .docx-wrapper > section.docx {
-      width: min(100%, 816px) !important;
-      max-width: 100% !important;
-      height: auto !important;
-      min-height: 0 !important;
-      margin: 0 auto 16px !important;
-      padding: clamp(16px, 5vw, 48px) !important;
-      box-sizing: border-box;
-      overflow-wrap: anywhere;
-    }
-    #reader-error { display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #111; color: #fff; text-align: center; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body { overflow: hidden; background: #111923; font-family: Arial, sans-serif; }
     [hidden] { display: none !important; }
-    @media (max-width: 600px) {
-      #document-content { padding: 8px 8px 12px; }
-      #document-content .docx-wrapper { padding: 8px !important; }
-      #document-content .docx-wrapper > section.docx { padding: 16px !important; }
-    }
   </style>
 </head>
 <body>
   <header class="ela-top" id="reader-toolbar" hidden>
-    <button class="ela-btn" data-a="back" title="Back" aria-label="Back">
+    <button class="ela-btn" data-a="back" title="Back to library" aria-label="Back to library">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
-    </button>
-    <button class="ela-btn" data-a="panel" title="Pages, contents and bookmarks" aria-label="Pages, contents and bookmarks" aria-expanded="false" aria-controls="reader-panel">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"></rect><path d="M9 4v16"></path></svg>
     </button>
     <div class="ela-title">
       <b class="ela-t-title">Study Hub resource</b>
-      <span class="ela-t-author"></span>
+      <span class="ela-t-author">Study Hub library</span>
     </div>
     <div class="ela-pager" data-pdf-only hidden>
-      <button class="ela-btn ela-hide-sm" data-a="prev" title="Previous page" aria-label="Previous page">
+      <button class="ela-btn ela-hide-sm" data-a="prev" title="Previous page" aria-label="Previous page" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
       </button>
       <label class="ela-pageinput">
-        <input type="number" min="1" value="1" aria-label="Page number">
+        <input type="number" min="1" value="1" aria-label="Go to page">
         <span>/ <i class="ela-total">1</i></span>
       </label>
-      <button class="ela-btn ela-hide-sm" data-a="next" title="Next page" aria-label="Next page">
+      <button class="ela-btn ela-hide-sm" data-a="next" title="Next page" aria-label="Next page" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
       </button>
     </div>
-    <div class="ela-tools" data-pdf-only hidden>
-      <button class="ela-btn" data-a="search" title="Search in book" aria-label="Search in book">
+    <div class="ela-tools">
+      <button class="ela-btn" data-a="contents" title="Contents and bookmarks" aria-label="Open contents and bookmarks" aria-expanded="false" aria-controls="reading-panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+      </button>
+      <label class="ela-color">
+        <span class="sr-only">Reading colors</span>
+        <select id="reader-color" aria-label="Reading colors">
+          <option value="original">Original</option>
+          <option value="warm">Warm</option>
+          <option value="gray">Grayscale</option>
+          <option value="night">Night</option>
+        </select>
+      </label>
+      <button class="ela-btn" data-a="search" title="Find text in document" aria-label="Find text in document" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path></svg>
       </button>
-      <button class="ela-btn" data-a="zoom" title="Zoom" aria-label="Zoom">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"></path></svg>
-      </button>
-      <button class="ela-btn" data-a="mark" title="Bookmark this page" aria-label="Bookmark this page" aria-pressed="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16l-5-3.5L7 20z"></path></svg>
-      </button>
-      <button class="ela-btn ela-hide-sm" data-a="sound" title="Page sound" aria-label="Page sound" aria-pressed="true">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 4V6L8 10z"></path><path class="ela-wave" d="M15.5 9a4 4 0 010 6M18 7a7 7 0 010 10"></path></svg>
-      </button>
-      <button class="ela-btn" data-a="settings" title="Reading settings" aria-label="Reading settings" aria-expanded="false" aria-controls="reader-settings">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"></path></svg>
-      </button>
-      <button class="ela-btn" data-a="full" title="Full screen (F)" aria-label="Full screen">
+      <label class="ela-zoom" hidden>
+        <span class="sr-only">Document zoom</span>
+        <select id="reader-zoom" aria-label="Document zoom">
+          <option value="fit">Fit</option>
+          <option value="1.25">125%</option>
+          <option value="1.5">150%</option>
+          <option value="2">200%</option>
+        </select>
+      </label>
+      <button class="ela-btn" data-a="full" title="Full screen" aria-label="Full screen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
       </button>
-    </div>
-    <div class="ela-popover" id="reader-panel" role="group" aria-label="Reader navigation" hidden>
-      <button type="button" data-panel="pages">Pages</button>
-      <button type="button" data-panel="contents">Contents</button>
-      <button type="button" data-panel="bookmarks">Bookmarks</button>
-    </div>
-    <div class="ela-popover ela-settings" id="reader-settings" hidden>
-      <label for="reader-zoom">Page zoom</label>
-      <select id="reader-zoom">
-        <option value="fit">Fit page</option>
-        <option value="1.25">125%</option>
-        <option value="1.5">150%</option>
-        <option value="2">200%</option>
-      </select>
+      <button class="ela-btn ela-contribute-toggle" data-a="contribute" title="Contribute a resource" aria-label="Open contribution panel" aria-expanded="false" aria-controls="contribution-rail">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      </button>
     </div>
   </header>
-  <div class="viewer-wrap">
-    <div id="book"></div>
-  </div>
-  <div id="document-reader" hidden>
-    <iframe id="document-frame" title="Study Hub resource reader" hidden></iframe>
-    <div id="document-content" hidden></div>
-  </div>
-  <div id="reader-error" role="alert" hidden></div>
 
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <div class="reader-layout">
+    <main class="reader-main" id="reader-main">
+      <div class="document-scroll pdf-reader" id="pdf-reader" hidden>
+        <div class="pdf-pages" id="pdf-pages"></div>
+      </div>
+      <div class="document-scroll" id="document-reader" hidden>
+        <iframe id="document-frame" title="Study Hub resource reader" hidden></iframe>
+        <div id="document-content" hidden></div>
+      </div>
+      <div id="reader-error" role="alert" hidden></div>
+    </main>
+
+    <aside class="contribution-rail" id="contribution-rail" aria-labelledby="contribution-title">
+      <div class="contribution-heading">
+        <div>
+          <p class="rail-eyebrow">Help grow the library</p>
+          <h2 id="contribution-title">Share a resource</h2>
+        </div>
+        <button class="ela-btn contribution-close" data-a="close-contribution" type="button" aria-label="Close contribution panel">×</button>
+      </div>
+      <p class="contribution-intro">Have a related file? Sharing is optional. Contributions stay private until they are reviewed and sorted into the library.</p>
+      <form id="contribution-form" hidden>
+        <label class="form-field">
+          <span>Choose files</span>
+          <input name="files" type="file" accept=".pdf,.doc,.docx,.rtf,.txt" multiple required />
+          <small>Up to 20 PDF, Word, RTF, or text files · 50 MB each, 250 MB total</small>
+        </label>
+        <div class="upload-queue" id="upload-queue" aria-live="polite"></div>
+        <label class="rights-check">
+          <input name="rights_confirmed" type="checkbox" required />
+          <span>I have permission to share every selected material.</span>
+        </label>
+        <div class="verification" id="turnstile-widget"></div>
+        <button class="contribution-submit" id="submit-contribution" type="submit" disabled>Submit complete batch</button>
+      </form>
+      <p class="upload-status" id="upload-status" role="status" aria-live="polite">Uploads are optional. Selected files stage privately as they transfer and are submitted together when you choose.</p>
+    </aside>
+  </div>
+
+  <aside class="reading-panel" id="reading-panel" aria-label="Contents and bookmarks" hidden>
+    <div class="reading-panel-heading">
+      <h2>Reading tools</h2>
+      <button class="ela-btn" data-a="close-reading-panel" type="button" aria-label="Close reading tools">×</button>
+    </div>
+    <button class="bookmark-current" id="bookmark-current" type="button">Bookmark this position</button>
+    <section>
+      <h3>Contents</h3>
+      <nav id="document-toc" aria-label="Document contents"><p>Contents will appear when available.</p></nav>
+    </section>
+    <section>
+      <h3>Bookmarks</h3>
+      <div id="document-bookmarks"><p>No bookmarks saved yet.</p></div>
+    </section>
+  </aside>
+
+  <script src="js/pdf.min.js"></script>
   <script src="js/jszip.min.js"></script>
   <script src="js/docx-preview.min.js"></script>
   <script src="js/WMFJS.bundle.min.js"></script>
   <script src="js/EMFJS.bundle.min.js"></script>
   <script src="js/RTFJS.bundle.min.js"></script>
-  <script src="js/flipbook.min.js"></script>
-  <script>
-    $(document).ready(function () {
-      const params = new URLSearchParams(window.location.search);
-      const requestedFile = params.get('file');
-      const title = params.get('title') || 'Study Hub resource';
-      const allowedStoragePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
-      const toolbar = document.querySelector('#reader-toolbar');
-      const pageInput = document.querySelector('.ela-pageinput input');
-      const totalPages = document.querySelector('.ela-total');
-      const panel = document.querySelector('#reader-panel');
-      const settings = document.querySelector('#reader-settings');
-      const panelButton = document.querySelector('[data-a="panel"]');
-      const settingsButton = document.querySelector('[data-a="settings"]');
-      let flipbook = null;
-      let documentZoom = 1;
-      document.title = `${title} | Study Hub`;
-      document.querySelector('.ela-t-title').textContent = title;
-
-      function goBack() {
-        const returnUrl = params.get('return');
-        if (returnUrl) {
-          try {
-            const destination = new URL(returnUrl);
-            if (destination.origin === window.location.origin) {
-              window.location.assign(destination.href);
-              return;
-            }
-          } catch {
-            // Ignore invalid return URLs and use browser navigation instead.
-          }
-        }
-
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          const destination = new URL('../', window.location.href);
-          destination.pathname = destination.pathname.replace(/\/$/, '') || '/';
-          window.location.assign(destination.href);
-        }
-      }
-
-      function showError(message) {
-        toolbar.hidden = true;
-        document.querySelector('#reader-error').textContent = message;
-        document.querySelector('#reader-error').hidden = false;
-        document.querySelector('.viewer-wrap').hidden = true;
-      }
-
-      function closePopovers() {
-        panel.hidden = true;
-        settings.hidden = true;
-        panelButton.setAttribute('aria-expanded', 'false');
-        settingsButton.setAttribute('aria-expanded', 'false');
-      }
-
-      function openPdfPanel(panelName) {
-        if (!flipbook) return;
-        flipbook.closeMenus();
-        if (panelName === 'pages') flipbook.toggleThumbs();
-        if (panelName === 'contents') flipbook.toggleToc();
-        if (panelName === 'bookmarks') flipbook.toggleBookmark();
-        closePopovers();
-      }
-
-      toolbar.addEventListener('click', (event) => {
-        const panelAction = event.target.closest('[data-panel]');
-        if (panelAction) {
-          openPdfPanel(panelAction.dataset.panel);
-          return;
-        }
-
-        const actionButton = event.target.closest('[data-a]');
-        if (!actionButton) return;
-
-        switch (actionButton.dataset.a) {
-          case 'back':
-            goBack();
-            break;
-          case 'panel': {
-            const show = panel.hidden;
-            closePopovers();
-            panel.hidden = !show;
-            panelButton.setAttribute('aria-expanded', String(show));
-            break;
-          }
-          case 'prev':
-            flipbook?.prevPage();
-            break;
-          case 'next':
-            flipbook?.nextPage();
-            break;
-          case 'search':
-            if (flipbook) flipbook.toggleSearch();
-            else if (!document.querySelector('#document-content').hidden) {
-              const query = window.prompt('Search this document');
-              if (query) window.find(query);
-            }
-            break;
-          case 'zoom':
-            if (flipbook) {
-              if (flipbook.zoom > 1.05) flipbook.zoomOut();
-              else flipbook.zoomIn();
-            } else if (!document.querySelector('#document-content').hidden) {
-              documentZoom = documentZoom > 1 ? 1 : 1.25;
-              document.querySelector('#document-content').style.zoom = String(documentZoom);
-            }
-            break;
-          case 'mark':
-            if (flipbook && flipbook.cPage?.length) {
-              if (!flipbook.thumbs) flipbook.createThumbs();
-              const page = flipbook.cPage[0];
-              if (flipbook.isBookmarked(page)) flipbook.removeBookmark(page);
-              else flipbook.bookmarkPage(page);
-            }
-            break;
-          case 'sound':
-            if (flipbook) {
-              flipbook.toggleSound();
-              actionButton.setAttribute('aria-pressed', String(flipbook.options.sound));
-            }
-            break;
-          case 'settings': {
-            const show = settings.hidden;
-            closePopovers();
-            settings.hidden = !show;
-            settingsButton.setAttribute('aria-expanded', String(show));
-            break;
-          }
-          case 'full':
-            if (flipbook) flipbook.toggleExpand();
-            else {
-              const reader = document.querySelector('#document-reader');
-              if (document.fullscreenElement) void document.exitFullscreen();
-              else if (reader.requestFullscreen) void reader.requestFullscreen();
-            }
-            break;
-        }
-      });
-
-      pageInput.addEventListener('change', () => {
-        if (!flipbook) return;
-        const page = Math.min(Math.max(Number(pageInput.value) || 1, 1), Number(pageInput.max) || 1);
-        pageInput.value = String(page);
-        flipbook.goToPage(page);
-      });
-
-      pageInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          pageInput.dispatchEvent(new Event('change'));
-          pageInput.blur();
-        }
-      });
-
-      document.querySelector('#reader-zoom').addEventListener('change', (event) => {
-        if (flipbook) {
-          const zoom = event.target.value === 'fit' ? 1 : Number(event.target.value);
-          flipbook.zoomTo(zoom, 0);
-        } else {
-          documentZoom = event.target.value === 'fit' ? 1 : Number(event.target.value);
-          document.querySelector('#document-content').style.zoom = String(documentZoom);
-        }
-        closePopovers();
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!event.target.closest('#reader-toolbar')) closePopovers();
-      });
-
-      let fileUrl = new URL('sample.pdf', window.location.href);
-      if (requestedFile) {
-        try {
-          fileUrl = new URL(requestedFile);
-        } catch {
-          showError('This resource link is invalid. Return to the library and try again.');
-          return;
-        }
-
-        if (!fileUrl.href.startsWith(allowedStoragePrefix)) {
-          showError('This resource is not hosted in the public Study Hub library. Return to the library and try again.');
-          return;
-        }
-      }
-
-      const extension = fileUrl.pathname.split('.').pop().toLowerCase();
-      if (extension !== 'pdf') {
-        document.querySelector('.viewer-wrap').hidden = true;
-        document.querySelector('#document-reader').hidden = false;
-        toolbar.hidden = false;
-        document.querySelector('.ela-pager').hidden = true;
-        document.querySelector('.ela-tools').hidden = !['docx', 'rtf'].includes(extension);
-        panelButton.hidden = true;
-        document.querySelector('[data-a="mark"]').hidden = true;
-        document.querySelector('[data-a="sound"]').hidden = true;
-        const frame = document.querySelector('#document-frame');
-        const content = document.querySelector('#document-content');
-
-        async function fetchDocument() {
-          const response = await fetch(fileUrl.href);
-          if (!response.ok) throw new Error(`Resource request failed (HTTP ${response.status}).`);
-          return response.arrayBuffer();
-        }
-
-        function showFrame(url) {
-          frame.title = `${title} reader`;
-          frame.src = url;
-          frame.hidden = false;
-        }
-
-        if (extension === 'docx') {
-          content.hidden = false;
-          fetchDocument()
-            .then((data) => window.docx.renderAsync(data, content, content))
-            .catch((error) => showError(error.message || 'This Word document could not be rendered.'));
-        } else if (extension === 'rtf') {
-          content.hidden = false;
-          fetchDocument()
-            .then(async (data) => {
-              const document = new window.RTFJS.Document(data);
-              content.replaceChildren(...await document.render());
-            })
-            .catch((error) => showError(error.message || 'This RTF document could not be rendered.'));
-        } else if (extension === 'doc') {
-          showFrame(`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl.href)}`);
-        } else {
-          showFrame(fileUrl.href);
-        }
-        return;
-      }
-
-      toolbar.hidden = false;
-      document.querySelectorAll('[data-pdf-only]').forEach((element) => { element.hidden = false; });
-      flipbook = $('#book').flipBook({
-        pdfUrl: fileUrl.href,
-        name: `study-hub-${encodeURIComponent(fileUrl.href)}`,
-        lightBox: false,
-        layout: 3,
-        skin: 'light',
-        backgroundColor: '#111111',
-        hideMenu: true,
-        sideNavigationButtons: false,
-        btnSearch: { enabled: true },
-        btnShare: { enabled: false },
-        btnPrint: { enabled: false },
-        btnDownloadPages: { enabled: false },
-        btnDownloadPdf: { enabled: false },
-        menuOverBook: false,
-        menuFloating: false,
-        pdfBrowserViewerFullscreen: true,
-        pdfBrowserViewerFullscreenTarget: '_blank',
-        pdfPageScale: 1,
-        singlePageMode: true,
-        startPage: 0
-      });
-
-      function syncPageControls() {
-        if (!flipbook) return;
-        const loadedPages = Number(flipbook.options.numPages || flipbook.options.pages.length);
-        const total = loadedPages || 1;
-        const current = Number.parseInt(flipbook.currentPageValue, 10) || 1;
-        const ready = loadedPages > 0;
-        pageInput.max = String(total);
-        totalPages.textContent = String(total);
-        document.querySelectorAll('[data-pdf-only] button, [data-pdf-only] input').forEach((control) => {
-          control.disabled = !ready;
-        });
-        document.querySelector('[data-a="panel"]').disabled = !ready;
-        document.querySelector('[data-a="prev"]').disabled = !ready || current <= 1;
-        document.querySelector('[data-a="next"]').disabled = !ready || current >= total;
-        if (document.activeElement !== pageInput) {
-          pageInput.value = String(Math.min(current, total));
-        }
-        const currentPage = flipbook.cPage?.[0];
-        document.querySelector('[data-a="mark"]').setAttribute(
-          'aria-pressed',
-          String(currentPage !== undefined && flipbook.isBookmarked(currentPage))
-        );
-      }
-
-      window.setInterval(syncPageControls, 250);
-      syncPageControls();
-    });
-  </script>
+  <script src="js/reader.bundle.js" defer></script>
 </body>
 </html>

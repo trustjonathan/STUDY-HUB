@@ -13,6 +13,21 @@ verify_jwt = false
 [functions.submit-chemistry-resource]
 verify_jwt = false
 
+[functions.submit-resource-contribution]
+verify_jwt = false
+
+[functions.start-resource-contribution]
+verify_jwt = false
+
+[functions.finalize-resource-contribution]
+verify_jwt = false
+
+[functions.cancel-resource-contribution]
+verify_jwt = false
+
+[functions.cleanup-contribution-staging]
+verify_jwt = false
+
 [api]
 enabled = true
 # Port to use for the API URL.

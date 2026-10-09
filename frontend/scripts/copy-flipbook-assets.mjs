@@ -1,6 +1,7 @@
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildSync } from 'esbuild';
 
 const frontendRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const source = join(frontendRoot, '..', 'full_page_flipbook_viewer');
@@ -25,3 +26,16 @@ const browserLibraries = [
 for (const [libraryPath, viewerPath] of browserLibraries) {
 	cpSync(join(frontendRoot, 'node_modules', libraryPath), join(destination, viewerPath));
 }
+
+buildSync({
+	entryPoints: [join(source, 'js', 'reader.js')],
+	bundle: true,
+	format: 'iife',
+	nodePaths: [join(frontendRoot, 'node_modules')],
+	platform: 'browser',
+	target: 'es2020',
+	minify: true,
+	outfile: join(destination, 'js', 'reader.bundle.js')
+});
+
+rmSync(join(destination, 'js', 'reader.js'), { force: true });

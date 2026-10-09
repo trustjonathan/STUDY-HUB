@@ -11,6 +11,8 @@ interface Props {
 }
 
 const { title, description, dataPage, bodyClass } = Astro.props;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const home = base.replace(/\/$/, '');
 const basePath = base.replace(/^\/|\/$/g, '');
@@ -33,6 +35,8 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {description && <meta name="description" content={description} />}
     <meta name="study-hub-reader-url" content={`${base}full_page_flipbook_viewer/index.html`} />
+    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey} />
+    <meta name="study-hub-turnstile-site-key" content={turnstileSiteKey} />
     <title>{title}</title>
     <slot name="head" />
     <link rel="canonical" href={canonicalUrl.href} />

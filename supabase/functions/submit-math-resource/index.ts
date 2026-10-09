@@ -37,6 +37,16 @@ function safeExtension(file: File): string | null {
   return extension === expected ? extension : null;
 }
 
+function safeStorageFilename(file: File, extension: string): string {
+  const stem = file.name
+    .slice(0, -extension.length)
+    .replace(/[^a-z0-9._-]/gi, '_')
+    .replace(/_+/g, '_')
+    .replace(/^[._-]+|[._-]+$/g, '')
+    .slice(0, 100);
+  return `${stem || 'resource'}${extension}`;
+}
+
 async function verifyTurnstile(token: string, remoteIp: string | null, expectedHostname: string): Promise<boolean> {
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!secret) return false;
@@ -126,16 +136,17 @@ Deno.serve(async (request) => {
 
   const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
   if (!remoteIp || !rateLimitSalt) return response({ error: 'Upload protection is not configured.' }, 503, headers);
-  const { data: allowed, error: rateLimitError } = await supabase.rpc('study_hub_consume_math_submission_limit', {
+  const { data: allowed, error: rateLimitError } = await supabase.rpc('study_hub_consume_contribution_limit', {
     p_ip_hash: await hashIp(remoteIp, rateLimitSalt),
   });
   if (rateLimitError) return response({ error: 'Could not verify upload limits.' }, 503, headers);
   if (allowed !== true) return response({ error: 'Upload limit reached. Please try again later.' }, 429, headers);
 
   const id = crypto.randomUUID();
-  const storagePath = `pending/${id}${extension}`;
+  const storagePath = `contribution/${id}_${safeStorageFilename(file, extension)}`;
+  const bucket = 'study-hub-contributions';
   const { error: uploadError } = await supabase.storage
-    .from('math-resource-submissions')
+    .from(bucket)
     .upload(storagePath, file, { contentType: file.type, upsert: false });
 
   if (uploadError) return response({ error: 'Could not store this upload.' }, 500, headers);
@@ -147,7 +158,7 @@ Deno.serve(async (request) => {
     level,
     year,
     original_filename: file.name.slice(0, 255),
-    storage_bucket: 'math-resource-submissions',
+    storage_bucket: bucket,
     storage_path: storagePath,
     mime_type: file.type,
     size_bytes: file.size,
@@ -155,7 +166,7 @@ Deno.serve(async (request) => {
   });
 
   if (rowError) {
-    await supabase.storage.from('math-resource-submissions').remove([storagePath]);
+    await supabase.storage.from(bucket).remove([storagePath]);
     return response({ error: 'Could not queue this upload for review.' }, 500, headers);
   }
 

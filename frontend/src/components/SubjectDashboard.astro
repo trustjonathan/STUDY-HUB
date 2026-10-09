@@ -18,6 +18,8 @@ const base = import.meta.env.BASE_URL.endsWith("/")
   : `${import.meta.env.BASE_URL}/`;
 const libraryId = `${subject}-library`;
 const subjectSlugs = [subject, subjectInfo.storageFolder, ...subjectInfo.folderAliases];
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "";
 const allResources = resourceManifest.items.filter((item) => subjectSlugs.includes(item.subject));
 const notes = allResources.filter((item) => item.category === "notes");
 const papers = allResources.filter((item) => item.category === "papers");
@@ -33,6 +35,8 @@ function readerHref(item: (typeof allResources)[number]) {
     title: item.title || item.originalFilename || `${name} resource`,
     return: `${base}frontend/src/html/${subject}.html`,
   });
+  if (supabaseAnonKey) query.set("anon_key", supabaseAnonKey);
+  if (turnstileSiteKey) query.set("turnstile_key", turnstileSiteKey);
   return `${base}full_page_flipbook_viewer/index.html?${query}`;
 }
 

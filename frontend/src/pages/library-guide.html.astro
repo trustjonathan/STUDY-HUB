@@ -138,7 +138,7 @@ const subjects = [
             <li><strong>Choose a subject.</strong> Use the header’s subject menu or the directory below to open Biology, Chemistry, or Mathematics.</li>
             <li><strong>Choose notes or past papers.</strong> Subject pages offer separate lists for each type; archive pages combine the collection with category tabs.</li>
             <li><strong>Search and filter.</strong> Search titles or topics, narrow by study level, and sort by title, year, or date where the page offers those controls.</li>
-            <li><strong>Open the file.</strong> Select a resource title or its “Open resource” link. Public files open from Supabase Storage in a new browser tab.</li>
+            <li><strong>Open the file.</strong> Select a resource title or its “Open resource” link. The dedicated reader keeps its toolbar and contribution panel in place while you scroll through the document.</li>
           </ol>
           <p>Some pages show an initial set of results with a “Load more” control. If a list is empty, clear its search and level filters first. A connection or configuration message means the page could not reach its data source; a “no published resources” message means no public rows matched that page’s subject and category.</p>
         </section>
@@ -146,14 +146,15 @@ const subjects = [
         <section class="guide-section" id="submit-resources" aria-labelledby="submit-title">
           <p class="eyebrow">04 / Contribute</p>
           <h2 id="submit-title">Upload a resource</h2>
-          <p>Open the relevant standalone subject archive and choose <strong>Submit a resource</strong>. The form asks for a title, resource type, and file; level and year are optional. Confirm that you have permission to share the material and complete the verification step.</p>
+          <p>While reading, use the reader’s contribution panel, or choose <strong>Submit a resource</strong> in a subject archive. Reader contributions are optional: select up to 20 related files (250 MB total, 50 MB each), confirm sharing rights, and complete verification. Files stage privately in parallel; submit the batch when all transfers are ready.</p>
           <ol class="guide-steps">
             <li>Open the Biology, Chemistry, or Mathematics archive below.</li>
             <li>Select “Submit a resource” and enter its title and notes/past-paper category.</li>
             <li>Add level and year if known, choose the file, confirm your sharing rights, and complete the security check.</li>
-            <li>Submit for review. The file remains private while pending; it appears in the public library only after a curator approves and publishes it.</li>
+            <li>Submit for review. Staged files are moved together into the private <code>study-hub-contributions/contribution/</code> inbox. A curator sorts suitable files into the relevant library folders; uploads are never published automatically.</li>
           </ol>
-          <p>Accepted file types are PDF, Word, RTF, and plain text, with a 50 MB maximum shown on the archive forms. Do not upload material unless you have the right to distribute it. To request a topic instead of uploading a file, <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">contact Study Hub</a>.</p>
+          <p>Accepted file types are PDF, Word, RTF, and plain text. Completed staged files remain available if you leave the reader; to resume an interrupted file, return in the same browser and reselect the original file. Unsubmitted staging expires after 24 hours. Do not upload material unless you have the right to distribute it. To request a topic instead of uploading a file, <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">contact Study Hub</a>.</p>
+          <p>When reading, open <strong>Contents and bookmarks</strong> for document navigation and saved positions. Reading colors can be changed from the toolbar, and preferences are kept in the current browser.</p>
         </section>
 
         <section class="guide-section" id="page-map" aria-labelledby="map-title">

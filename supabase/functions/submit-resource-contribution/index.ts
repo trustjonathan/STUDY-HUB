@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
+const BUCKET = 'study-hub-contributions';
 const ALLOWED_TYPES = new Map([
   ['application/pdf', '.pdf'],
   ['application/msword', '.doc'],
@@ -9,7 +10,7 @@ const ALLOWED_TYPES = new Map([
   ['text/plain', '.txt'],
 ]);
 
-const allowedOrigins = (Deno.env.get('BIOLOGY_ARCHIVE_ALLOWED_ORIGINS') || 'https://trustjonathan.github.io,http://localhost:4323,http://127.0.0.1:4323')
+const allowedOrigins = (Deno.env.get('STUDY_HUB_ALLOWED_ORIGINS') || 'https://trustjonathan.github.io,http://localhost:4321,http://127.0.0.1:4321')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -84,8 +85,11 @@ Deno.serve(async (request) => {
   const origin = request.headers.get('Origin');
   const headers = corsHeaders(origin);
 
+  if (request.method === 'OPTIONS') {
+    if (!origin || !allowedOrigins.includes(origin)) return jsonResponse({ error: 'Origin not allowed.' }, 403, headers);
+    return new Response(null, { status: 204, headers });
+  }
   if (!origin || !allowedOrigins.includes(origin)) return jsonResponse({ error: 'Origin not allowed.' }, 403, headers);
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
   if (request.method !== 'POST') return jsonResponse({ error: 'Method not allowed.' }, 405, headers);
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('multipart/form-data')) {
     return jsonResponse({ error: 'Use a multipart form upload.' }, 415, headers);
@@ -104,37 +108,33 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Invalid upload form.' }, 400, headers);
   }
 
-  const title = String(form.get('title') || '').trim();
-  const category = String(form.get('category') || '');
-  const level = String(form.get('level') || '').trim() || null;
-  const yearInput = String(form.get('year') || '').trim();
-  const year = yearInput ? Number(yearInput) : null;
+  const titleInput = String(form.get('title') || '').trim();
   const rightsConfirmed = form.get('rights_confirmed') === 'on';
   const turnstileToken = String(form.get('cf-turnstile-response') || '');
   const file = form.get('file');
 
-  if (title.length < 3 || title.length > 120) return jsonResponse({ error: 'Title must be 3 to 120 characters.' }, 400, headers);
-  if (category !== 'notes' && category !== 'papers') return jsonResponse({ error: 'Choose notes or past papers.' }, 400, headers);
-  if (level && !['O-Level', 'A-Level', 'S.3', 'S.4', 'S.5', 'S.6'].includes(level)) return jsonResponse({ error: 'Invalid study level.' }, 400, headers);
-  if (year !== null && (!Number.isInteger(year) || year < 1990 || year > 2035)) return jsonResponse({ error: 'Year must be between 1990 and 2035.' }, 400, headers);
-  if (!rightsConfirmed) return jsonResponse({ error: 'Confirm that you have permission to share this material.' }, 400, headers);
   if (!(file instanceof File)) return jsonResponse({ error: 'Choose a resource file.' }, 400, headers);
+  const filenameTitle = file.name.replace(/\.[^.]+$/, '').trim().slice(0, 120);
+  const title = titleInput || (filenameTitle.length >= 3 ? filenameTitle : 'Shared resource');
+  if (title.length < 3 || title.length > 120) return jsonResponse({ error: 'Title must be 3 to 120 characters.' }, 400, headers);
+  if (!rightsConfirmed) return jsonResponse({ error: 'Confirm that you have permission to share this material.' }, 400, headers);
   if (file.size < 1 || file.size > MAX_FILE_BYTES) return jsonResponse({ error: 'File must be smaller than 50 MB.' }, 413, headers);
   const extension = safeExtension(file);
   if (!extension) return jsonResponse({ error: 'File type is not supported or does not match its extension.' }, 415, headers);
   if (!(await matchesFileSignature(file, extension))) return jsonResponse({ error: 'File contents do not match the selected file type.' }, 415, headers);
 
   const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
-  const expectedHostname = origin ? new URL(origin).hostname : '';
-  if (!turnstileToken || !expectedHostname || !(await verifyTurnstile(turnstileToken, remoteIp, expectedHostname))) {
+  const expectedHostname = new URL(origin).hostname;
+  if (!turnstileToken || !(await verifyTurnstile(turnstileToken, remoteIp, expectedHostname))) {
     return jsonResponse({ error: 'Verification failed. Please try again.' }, 403, headers);
   }
+
+  const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
+  if (!remoteIp || !rateLimitSalt) return jsonResponse({ error: 'Upload protection is not configured.' }, 503, headers);
 
   const supabase = createClient(apiUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
-  if (!remoteIp || !rateLimitSalt) return jsonResponse({ error: 'Upload protection is not configured.' }, 503, headers);
   const { data: allowed, error: rateLimitError } = await supabase.rpc('study_hub_consume_contribution_limit', {
     p_ip_hash: await hashIp(remoteIp, rateLimitSalt),
   });
@@ -143,28 +143,26 @@ Deno.serve(async (request) => {
 
   const id = crypto.randomUUID();
   const storagePath = `contribution/${id}_${safeStorageFilename(file, extension)}`;
-  const bucket = 'study-hub-contributions';
-  const { error: uploadError } = await supabase.storage.from(bucket).upload(storagePath, file, {
+  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file, {
     contentType: file.type,
     upsert: false,
   });
   if (uploadError) return jsonResponse({ error: 'Could not store this upload.' }, 500, headers);
 
-  const { error: rowError } = await supabase.from('study_hub_biology_submissions').insert({
+  const { error: rowError } = await supabase.from('study_hub_contributions').insert({
     id,
     title,
-    category,
-    level,
-    year,
     original_filename: file.name.slice(0, 255),
-    storage_bucket: bucket,
+    storage_bucket: BUCKET,
     storage_path: storagePath,
     mime_type: file.type,
     size_bytes: file.size,
     status: 'pending',
   });
+
   if (rowError) {
-    await supabase.storage.from(bucket).remove([storagePath]);
+    const { error: cleanupError } = await supabase.storage.from(BUCKET).remove([storagePath]);
+    if (cleanupError) console.error('Could not remove an unqueued contribution upload.', cleanupError);
     return jsonResponse({ error: 'Could not queue this upload for review.' }, 500, headers);
   }
 

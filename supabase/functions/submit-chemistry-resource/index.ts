@@ -36,6 +36,16 @@ function safeExtension(file: File): string | null {
   return ALLOWED_TYPES.get(file.type) === extension ? extension : null;
 }
 
+function safeStorageFilename(file: File, extension: string): string {
+  const stem = file.name
+    .slice(0, -extension.length)
+    .replace(/[^a-z0-9._-]/gi, '_')
+    .replace(/_+/g, '_')
+    .replace(/^[._-]+|[._-]+$/g, '')
+    .slice(0, 100);
+  return `${stem || 'resource'}${extension}`;
+}
+
 async function verifyTurnstile(token: string, remoteIp: string | null, expectedHostname: string): Promise<boolean> {
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!secret) return false;
@@ -126,15 +136,15 @@ Deno.serve(async (request) => {
 
   const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
   if (!remoteIp || !rateLimitSalt) return jsonResponse({ error: 'Upload protection is not configured.' }, 503, headers);
-  const { data: allowed, error: rateLimitError } = await supabase.rpc('study_hub_consume_chemistry_submission_limit', {
+  const { data: allowed, error: rateLimitError } = await supabase.rpc('study_hub_consume_contribution_limit', {
     p_ip_hash: await hashIp(remoteIp, rateLimitSalt),
   });
   if (rateLimitError) return jsonResponse({ error: 'Could not verify upload limits.' }, 503, headers);
   if (allowed !== true) return jsonResponse({ error: 'Upload limit reached. Please try again later.' }, 429, headers);
 
   const id = crypto.randomUUID();
-  const storagePath = `pending/${id}${extension}`;
-  const bucket = 'chemistry-resource-submissions';
+  const storagePath = `contribution/${id}_${safeStorageFilename(file, extension)}`;
+  const bucket = 'study-hub-contributions';
   const { error: uploadError } = await supabase.storage.from(bucket).upload(storagePath, file, {
     contentType: file.type,
     upsert: false,

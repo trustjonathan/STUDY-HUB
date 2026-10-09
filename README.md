@@ -8,6 +8,14 @@ STUDY HUB that will bring accademic resources at the comfort of the student's ph
 
 Verify the installation with `node --version` and `npm --version`.
 
+## Resource contributions
+
+The document reader supports bulk batches of up to 20 files and 250 MB total (50 MB per file). It sends files directly to private, resumable staging storage in three parallel transfers; after the user submits the complete batch, the server verifies and moves each file to `contribution/` for manual sorting. Completed staged files survive leaving the reader; an interrupted file can resume when the user returns and reselects it in the same browser. Incomplete batches expire after 24 hours. The Biology, Chemistry, and Mathematics archive forms continue to store new uploads in the same private contribution inbox. Existing curated files and previously submitted files are not moved, and contributions are never published automatically.
+
+Apply both `supabase/migrations/20261009150000_study_hub_contributions_inbox.sql` and `supabase/migrations/20261009200000_study_hub_resumable_contributions.sql`. Enable anonymous sign-ins in Supabase Auth, then deploy `start-resource-contribution`, `finalize-resource-contribution`, `cancel-resource-contribution`, and `cleanup-contribution-staging`. Configure `TURNSTILE_SECRET_KEY`, `SUBMISSION_RATE_LIMIT_SALT`, `STUDY_HUB_ALLOWED_ORIGINS`, and `CONTRIBUTION_CLEANUP_SECRET`; schedule `cleanup-contribution-staging` to run hourly using that secret so expired staging files are removed. Redeploy `submit-resource-contribution` and the three subject submission functions so archive-form uploads continue to use the shared inbox and rate limit. Static sites need only the public Supabase anon key and Cloudflare Turnstile site key; never put a service-role key in frontend code or URLs.
+
+The reader's contents panel uses embedded PDF outlines or rendered document headings when available, saves bookmarks and color preferences in the current browser, and offers warm, grayscale, and night color modes. Resuming a partially transferred file requires reselecting that original file because browsers do not let a page reopen a user's local file automatically.
+
 ## Anonymous Suggestions
 
 The suggestions board is available at `/STUDY-HUB/community-chat.html`. Visitors do not need an account and the board does not create or restore a Supabase Auth session. The database stores suggestion text, moderation status, and submission time only; it does not store a name, email, user ID, or IP address.
