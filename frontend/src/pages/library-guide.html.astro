@@ -11,6 +11,7 @@ import subjectCatalog from '../data/subjects.json';
 const home = import.meta.env.BASE_URL.replace(/\/$/, '');
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 const subjects = [
   {
     name: 'Biology',
@@ -40,6 +41,7 @@ const subjects = [
   <Fragment slot="head">
     <meta name="study-hub-supabase-url" content={supabaseUrl}>
     <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
+    <meta name="study-hub-turnstile-site-key" content={turnstileSiteKey}>
   </Fragment>
   <main class="library-guide">
     <section class="guide-intro" id="guide-start" aria-labelledby="guide-title">

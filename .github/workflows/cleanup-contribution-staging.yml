@@ -1,0 +1,29 @@
+name: Clean expired contribution uploads
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove expired staged uploads
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://ttuxelhyoctyshgvjykj.supabase.co' }}
+          CONTRIBUTION_CLEANUP_SECRET: ${{ secrets.CONTRIBUTION_CLEANUP_SECRET }}
+        run: |
+          if [ -z "$CONTRIBUTION_CLEANUP_SECRET" ]; then
+            echo "::error::Set the CONTRIBUTION_CLEANUP_SECRET repository secret."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $CONTRIBUTION_CLEANUP_SECRET" \
+            --header "Content-Type: application/json" \
+            --data '{}' \
+            "${PUBLIC_SUPABASE_URL%/}/functions/v1/cleanup-contribution-staging"
