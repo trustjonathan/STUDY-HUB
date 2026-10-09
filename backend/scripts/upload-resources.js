@@ -36,7 +36,7 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 const { walkFiles, resolveResourcesDir, sha256File } = require('./lib/resourceWalker');
-const { classifyResource, formatBytes, sanitizeStorageKey } = require('./lib/resourceMeta');
+const { SUBJECTS, classifyResource, formatBytes, sanitizeStorageKey } = require('./lib/resourceMeta');
 const {
   getSupabaseClient,
   SUPABASE_URL,
@@ -47,6 +47,8 @@ const {
 const DEFAULT_REPORT_PATH = path.resolve(__dirname, '..', 'data', 'resources-manifest.json');
 const DEFAULT_SKIP_EXTENSIONS = ['.exe'];
 const DB_TABLE = RESOURCES_TABLE;
+const RESOURCES_PREFIX = (process.env.SUPABASE_RESOURCES_PREFIX || 'documents').replace(/^\/+|\/+$/g, '');
+const SUBJECT_CATALOG = require('../../frontend/src/data/subjects.json');
 const MAX_FILE_SIZE_BYTES = 52428800; // 50 MB - Supabase Free plan ceiling
 
 function printHelp() {
@@ -112,6 +114,7 @@ function parseArgs(argv) {
 async function buildPlan(options) {
   const root = resolveResourcesDir(options.resourcesDir);
   const files = walkFiles(root, { skipExtensions: options.skipExtensions });
+  const normalizedOnly = options.only ? options.only.replace(/\\/g, '/').replace(/\/+$/, '') : null;
 
   const checksums = new Map(); // checksum -> first relPath
   const items = [];
@@ -120,7 +123,7 @@ async function buildPlan(options) {
   let skippedByFilter = 0;
 
   for (const file of files) {
-    if (options.only && !file.relPath.toLowerCase().startsWith(options.only.toLowerCase())) {
+    if (normalizedOnly && !file.relPath.toLowerCase().startsWith(normalizedOnly.toLowerCase())) {
       skippedByFilter += 1;
       continue;
     }
@@ -132,10 +135,22 @@ async function buildPlan(options) {
 
     const checksumSha256 = await sha256File(file.absPath);
     const meta = classifyResource({ relPath: file.relPath, originalFilename: file.originalFilename });
-    const storageKey = sanitizeStorageKey(file.relPath);
+    const subjectFolder = file.relPath.split(/[\\/]+/)[0].toLowerCase().trim().replace(/[\s_]+/g, '-');
+    const canonicalRelPath = SUBJECTS[subjectFolder]
+      ? [SUBJECT_CATALOG.find((entry) => entry.slug === SUBJECTS[subjectFolder]).storageFolder, ...file.relPath.split(/[\\/]+/).slice(1)].join('/')
+      : file.relPath;
+    const relativeStorageKey = sanitizeStorageKey(canonicalRelPath);
+    const subjectInfo = SUBJECT_CATALOG.find((entry) => entry.slug === meta.subject);
+    const subjectStorageKey = subjectInfo
+      ? `${subjectInfo.storageFolder}/${relativeStorageKey.split('/').slice(1).join('/')}`
+      : relativeStorageKey;
+    const storageKey = RESOURCES_PREFIX
+      ? `${RESOURCES_PREFIX}/${subjectStorageKey}`
+      : subjectStorageKey;
 
     const item = {
       relPath: file.relPath,
+      relativeStorageKey,
       absPath: file.absPath,
       originalFilename: file.originalFilename,
       storageKey,

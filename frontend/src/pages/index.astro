@@ -1,37 +1,13 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import subjectCatalog from '../data/subjects.json';
+import aLevelCombinations from '../data/aLevelCombinations.json';
 
 const base = `${import.meta.env.BASE_URL}/`;
-const subjects = [
-  {
-    name: 'Biology',
-    theme: 'biology',
-    focus: 'Life sciences',
-    description: 'Explore life processes, genetics, ecology, and practical work.',
-    href: `${base}frontend/src/html/biology.html`
-  },
-  {
-    name: 'Chemistry',
-    theme: 'chemistry',
-    focus: 'Matter & reactions',
-    description: 'Connect chemical principles to reactions, equations, and experiments.',
-    href: `${base}frontend/src/html/chemistry.html`
-  },
-  {
-    name: 'Mathematics',
-    theme: 'mathematics',
-    focus: 'Methods & practice',
-    description: 'Build confidence through worked examples and exam preparation.',
-    href: `${base}frontend/src/html/mathematics.html`
-  },
-  {
-    name: 'Physics',
-    theme: 'physics',
-    focus: 'Motion, matter & energy',
-    description: 'Explore physical principles, worked problems, and exam practice.',
-    href: `${base}frontend/src/html/physics.html`
-  }
-];
+const subjects = subjectCatalog.map((subject) => ({
+  ...subject,
+  href: `${base}frontend/src/html/${subject.slug}.html`
+}));
 ---
 
 <SiteLayout>
@@ -53,7 +29,7 @@ const subjects = [
         </div>
       </div>
       <aside class="study-brief" aria-label="Study Hub overview">
-        <div class="brief-topline"><span>STUDY HUB</span><span>01 / 04</span></div>
+        <div class="brief-topline"><span>STUDY HUB</span><span>{subjects.length} SUBJECTS</span></div>
         <div class="brief-rule"></div>
         <p class="brief-label">Start with a subject</p>
         <ol>
@@ -71,22 +47,42 @@ const subjects = [
           <p class="eyebrow">Choose your direction</p>
           <h2>Study by subject</h2>
         </div>
-        <p>Open a subject hub to explore its notes, papers, and learning resources.</p>
+        <p>Explore UNEB/NCDC O-Level, A-Level, and subsidiary subjects, then browse notes and exam practice.</p>
       </div>
       <div class="subject-grid">
         {subjects.map((subject, index) => (
-          <article class={`subject-card ${subject.theme}`}>
-            <div class="subject-index">0{index + 1}</div>
+          <article class={`subject-card ${subject.slug}`}>
+            <div class="subject-index">{String(index + 1).padStart(2, '0')}</div>
             <div class="subject-card-body">
               <p class="subject-focus">{subject.focus}</p>
               <h3>{subject.name}</h3>
               <p>{subject.description}</p>
+              <p class="subject-levels">
+                {subject.tracks.join(' · ')}
+                {subject.codes.length > 0 && ` · ${subject.codes.map(({ code }) => code).join(', ')}`}
+              </p>
               <a href={subject.href} aria-label={`Open ${subject.name} study hub`}>
                 Open study hub <span aria-hidden="true">↗</span>
               </a>
             </div>
           </article>
         ))}
+      </div>
+      <div class="combination-guide" aria-labelledby="combination-heading">
+        <div class="combination-heading">
+          <p class="eyebrow">Plan your A-Level path</p>
+          <h3 id="combination-heading">Common subject combinations</h3>
+          <p>Students choose three principal subjects and two subsidiaries: General Paper (S101) plus Subsidiary ICT (S850) or Subsidiary Mathematics (S475), depending on the principal Mathematics choice. Examples are guidance; confirm current requirements with your school and UNEB.</p>
+        </div>
+        <div class="combination-grid">
+          {aLevelCombinations.map((combination) => (
+            <article class="combination-card">
+              <h4>{combination.category}</h4>
+              <p class="combination-examples">{combination.examples.join(' · ')}</p>
+              <p>{combination.careers}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
 

@@ -1,8 +1,9 @@
 ---
 import resourceManifest from "../data/resources.json";
+import subjectCatalog from "../data/subjects.json";
 
 interface Props {
-  subject: "biology" | "chemistry" | "mathematics" | "physics";
+  subject: string;
   name: string;
   headline: string;
   description: string;
@@ -10,11 +11,14 @@ interface Props {
 }
 
 const { subject, name, headline, description, icon } = Astro.props;
+const subjectInfo = subjectCatalog.find((entry) => entry.slug === subject);
+if (!subjectInfo) throw new Error(`Unknown Study Hub subject: ${subject}`);
 const base = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : `${import.meta.env.BASE_URL}/`;
 const libraryId = `${subject}-library`;
-const allResources = resourceManifest.items.filter((item) => item.subject === subject);
+const subjectSlugs = [subject, subjectInfo.storageFolder, ...subjectInfo.folderAliases];
+const allResources = resourceManifest.items.filter((item) => subjectSlugs.includes(item.subject));
 const notes = allResources.filter((item) => item.category === "notes");
 const papers = allResources.filter((item) => item.category === "papers");
 const recentlyAdded = [...allResources]
@@ -38,12 +42,7 @@ function itemLabel(item: (typeof allResources)[number]) {
     .join(" · ");
 }
 
-const subjects = [
-  { name: "Biology", slug: "biology", icon: "🧬" },
-  { name: "Chemistry", slug: "chemistry", icon: "🧪" },
-  { name: "Mathematics", slug: "mathematics", icon: "∑" },
-  { name: "Physics", slug: "physics", icon: "⚡" },
-];
+const subjects = subjectCatalog;
 ---
 
 <main class="subject-dashboard" data-subject={subject}>
@@ -79,6 +78,21 @@ const subjects = [
     <div class="dashboard-stat">
       <span class="dashboard-stat-icon">⌂</span>
       <div><strong>{levels.size}</strong><span>Study levels</span></div>
+    </div>
+  </section>
+
+  <section class="dashboard-section curriculum-overview" aria-labelledby={`${subject}-curriculum-heading`}>
+    <div class="dashboard-section-heading">
+      <div><p class="dashboard-eyebrow">UNEB / NCDC curriculum</p><h2 id={`${subject}-curriculum-heading`}>Subject overview</h2></div>
+    </div>
+    <div class="curriculum-details">
+      <p><strong>Study levels</strong><span>{subjectInfo.levels.join(" · ")}</span></p>
+      <p><strong>Curriculum track</strong><span>{subjectInfo.tracks.join(" · ")}</span></p>
+      {subjectInfo.codes.length > 0 && (
+        <p><strong>UNEB subject code</strong><span>{subjectInfo.codes.map(({ level, code }) => `${level}: ${code}`).join(" · ")}</span></p>
+      )}
+      <p><strong>Supabase folder</strong><code>{`documents/${subjectInfo.storageFolder}/`}</code></p>
+      <p class="curriculum-note">Resources are added as they become available. Check back for notes and exam papers.</p>
     </div>
   </section>
 
@@ -211,6 +225,13 @@ const subjects = [
   .dashboard-action:hover { border-color: var(--dashboard-accent); transform: translateY(-1px); }
   .dashboard-action > span:first-child { font-size: 1.25rem; }
   .dashboard-section { margin: 32px 0; }
+  .curriculum-overview { padding: 20px 22px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; }
+  .curriculum-overview .dashboard-section-heading { margin-bottom: 12px; }
+  .curriculum-details { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+  .curriculum-details > p { display: grid; gap: 2px; margin: 0; color: #657483; font-size: .82rem; }
+  .curriculum-details strong { color: #213448; font-size: .76rem; }
+  .curriculum-details code { color: var(--dashboard-accent); font-size: .82rem; }
+  .curriculum-details .curriculum-note { flex-basis: 100%; margin-top: 4px; }
   .dashboard-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
   .dashboard-section-heading .dashboard-eyebrow { margin-bottom: 4px; }
   .dashboard-section-heading h2 { margin: 0; font-family: Manrope, Arial, sans-serif; font-size: clamp(1.3rem, 2vw, 1.7rem); }

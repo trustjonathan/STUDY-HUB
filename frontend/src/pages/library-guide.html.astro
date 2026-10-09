@@ -6,35 +6,29 @@ import chemistryImage from '../assets/images/chemistry.jpg';
 import mathematicsImage from '../assets/images/mathematics.jpg';
 import studentsImage from '../assets/images/students_studying.jpeg';
 import studyImage from '../assets/images/study_pic.png';
+import subjectCatalog from '../data/subjects.json';
 
 const home = import.meta.env.BASE_URL.replace(/\/$/, '');
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 const subjects = [
   {
     name: 'Biology',
     image: biologyImage,
     hub: `${home}/frontend/src/html/biology.html`,
-    archive: 'https://trustjonathan.github.io/BIOLOGY/archive.html',
-    notes: 6,
-    papers: 67,
-    total: 73
+    archive: 'https://trustjonathan.github.io/BIOLOGY/archive.html'
   },
   {
     name: 'Chemistry',
     image: chemistryImage,
     hub: `${home}/frontend/src/html/chemistry.html`,
-    archive: 'https://trustjonathan.github.io/CHEMISTRY/archive.html',
-    notes: 0,
-    papers: 335,
-    total: 335
+    archive: 'https://trustjonathan.github.io/CHEMISTRY/archive.html'
   },
   {
     name: 'Mathematics',
     image: mathematicsImage,
     hub: `${home}/frontend/src/html/mathematics.html`,
-    archive: 'https://trustjonathan.github.io/MATHEMATICS/archive.html',
-    notes: 20,
-    papers: 94,
-    total: 115
+    archive: 'https://trustjonathan.github.io/MATHEMATICS/archive.html'
   }
 ];
 ---
@@ -43,13 +37,17 @@ const subjects = [
   title="Study Hub Library Guide"
   description="A detailed guide to Study Hub subjects, resource counts, navigation, searching, and submitting study materials."
 >
+  <Fragment slot="head">
+    <meta name="study-hub-supabase-url" content={supabaseUrl}>
+    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
+  </Fragment>
   <main class="library-guide">
     <section class="guide-intro" id="guide-start" aria-labelledby="guide-title">
       <div class="guide-intro-copy">
         <p class="eyebrow">Study Hub reference</p>
         <h1 id="guide-title">The library, explained.</h1>
         <p class="guide-lede">Find the right subject page, browse the shared collection, and learn how contributed files are reviewed before they become public.</p>
-        <p class="guide-updated">Resource snapshot verified October 2, 2026</p>
+        <p class="guide-updated">Resource counts are read live from the public catalog.</p>
       </div>
       <img class="guide-hero-image" src={studentsImage.src} alt="Learners studying together" />
     </section>
@@ -90,37 +88,47 @@ const subjects = [
             <strong>Public library</strong>
             <p>Only approved files in the public <code>study-hub-resources</code> bucket, with catalog entries, appear in the browse lists.</p>
           </div>
-          <p>Biology and Chemistry subject pages read a generated resource index. Mathematics reads its catalog records directly from Supabase. Their standalone archive pages also query the shared catalog, so an uploaded file is not listed until its public catalog entry exists.</p>
+          <p>Subject pages and this count table read the public catalog directly from Supabase. An uploaded file appears after its public catalog entry exists.</p>
           <p>New submissions are separate: they are placed in private submission storage and marked pending. A curator checks the file and rights confirmation, then publishes approved material to the public library. Sending a form does not immediately add a public result.</p>
         </section>
 
         <section class="guide-section" id="resource-counts" aria-labelledby="counts-title">
           <p class="eyebrow">02 / The collection</p>
           <h2 id="counts-title">How many resources are available?</h2>
-          <p>The shared catalog contained <strong>523 Mathematics, Biology, and Chemistry records</strong> when checked on October 2, 2026. Counts change as approved materials are added or corrected.</p>
+          <p>Counts below are refreshed from the published catalog when this page opens and periodically while it remains open. Newly published resources are included automatically.</p>
           <div class="guide-table-wrap">
             <table>
               <caption>Published catalog records by subject and category</caption>
               <thead>
                 <tr><th scope="col">Subject</th><th scope="col">Notes</th><th scope="col">Past papers</th><th scope="col">Other / uncategorized</th><th scope="col">Total</th></tr>
               </thead>
-              <tbody>
-                {subjects.map((subject) => (
-                  <tr>
-                    <th scope="row">{subject.name}</th>
-                    <td>{subject.notes}</td>
-                    <td>{subject.papers}</td>
-                    <td>{subject.name === 'Mathematics' ? 1 : 0}</td>
-                    <td><strong>{subject.total}</strong></td>
-                  </tr>
-                ))}
+              <tbody data-resource-counts>
+                <tr><td colspan="5" role="status">Loading live resource counts…</td></tr>
               </tbody>
-              <tfoot>
-                <tr><th scope="row">All subjects</th><td>26</td><td>496</td><td>1</td><td>523</td></tr>
+              <tfoot data-resource-totals>
+                <tr><th scope="row">All subjects</th><td>—</td><td>—</td><td>—</td><td>—</td></tr>
               </tfoot>
             </table>
           </div>
-          <p class="guide-note">The Mathematics page shows 20 notes and 94 papers; its one uncategorized catalog record is excluded from those two lists. Chemistry currently has 335 papers and no records categorized as notes.</p>
+          <div class="guide-count-controls">
+            <p class="guide-count-status" data-resource-count-status role="status" aria-live="polite">Connecting to the public resource catalog…</p>
+            <button class="guide-count-refresh" type="button" data-resource-count-refresh>Refresh counts</button>
+          </div>
+          <template data-subject-rows>
+                {subjectCatalog.map((subject) => (
+                  <tr>
+                    <th
+                      scope="row"
+                      data-subject-name={subject.slug}
+                      data-subject-aliases={[subject.storageFolder, ...subject.folderAliases].join(',')}
+                    >{subject.name}</th>
+                    <td data-count-category="notes">0</td>
+                    <td data-count-category="papers">0</td>
+                    <td data-count-category="other">0</td>
+                    <td><strong data-count-category="total">0</strong></td>
+                  </tr>
+                ))}
+          </template>
         </section>
 
         <section class="guide-section" id="find-resources" aria-labelledby="find-title">
@@ -170,3 +178,131 @@ const subjects = [
     </div>
   </main>
 </SiteLayout>
+
+<script>
+  type SubjectCounts = { notes: number; papers: number; other: number; total: number };
+  type ResourceCategory = 'notes' | 'papers' | 'other';
+
+  const tableBody = document.querySelector<HTMLTableSectionElement>('[data-resource-counts]');
+  const totalsFooter = document.querySelector<HTMLTableSectionElement>('[data-resource-totals]');
+  const status = document.querySelector<HTMLParagraphElement>('[data-resource-count-status]');
+  const refreshButton = document.querySelector<HTMLButtonElement>('[data-resource-count-refresh]');
+  const supabaseUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-url"]')?.content.replace(/\/+$/, '');
+  const anonKey = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-anon-key"]')?.content;
+  const subjectTemplate = document.querySelector<HTMLTemplateElement>('template[data-subject-rows]');
+  const pageSize = 1000;
+  let isLoading = false;
+
+  function showError(message: string) {
+    if (status) status.textContent = message;
+    if (tableBody) {
+      tableBody.replaceChildren();
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 5;
+      cell.setAttribute('role', 'alert');
+      cell.textContent = message;
+      row.appendChild(cell);
+      tableBody.appendChild(row);
+    }
+    totalsFooter?.querySelectorAll('td').forEach((cell) => { cell.textContent = '—'; });
+  }
+
+  async function loadResourceCounts() {
+    if (isLoading || !tableBody || !totalsFooter || !subjectTemplate || !refreshButton) return;
+    if (!supabaseUrl || !anonKey) {
+      showError('Live counts are unavailable: configure the public Supabase URL and anon key.');
+      return;
+    }
+
+    isLoading = true;
+    refreshButton.disabled = true;
+    if (status) status.textContent = 'Refreshing resource counts…';
+
+    try {
+      const counts = new Map<string, SubjectCounts>();
+      const subjectKeys = new Map();
+      for (const row of subjectTemplate.content.querySelectorAll<HTMLTableRowElement>('[data-subject-name]')) {
+        const slug = row.dataset.subjectName;
+        subjectKeys.set(slug, slug);
+        for (const alias of (row.dataset.subjectAliases || '').split(',')) {
+          if (alias) subjectKeys.set(alias.trim().toLowerCase(), slug);
+        }
+      }
+      let offset = 0;
+      let fetched = 0;
+      const headers: Record<string, string> = { apikey: anonKey };
+      if (anonKey.startsWith('eyJ')) headers.Authorization = `Bearer ${anonKey}`;
+
+      for (;;) {
+        const endpoint = new URL(`${supabaseUrl}/rest/v1/study_hub_resources`);
+        endpoint.searchParams.set('select', 'subject,category');
+        endpoint.searchParams.set('order', 'subject.asc,category.asc');
+        endpoint.searchParams.set('limit', String(pageSize));
+        endpoint.searchParams.set('offset', String(offset));
+
+        const response = await fetch(endpoint, { headers });
+        if (!response.ok) throw new Error(`Supabase returned HTTP ${response.status}.`);
+        const rows = await response.json();
+        if (!Array.isArray(rows)) throw new Error('Supabase returned an invalid resource catalog.');
+
+        for (const resource of rows) {
+          const subjectKey = String(resource.subject || '').trim().toLowerCase();
+          const key = subjectKeys.get(subjectKey);
+          if (!key) continue;
+          const category: ResourceCategory = resource.category === 'notes' || resource.category === 'papers'
+            ? resource.category
+            : 'other';
+          const subjectCount = counts.get(key) || { notes: 0, papers: 0, other: 0, total: 0 };
+          subjectCount[category] += 1;
+          subjectCount.total += 1;
+          counts.set(key, subjectCount);
+        }
+
+        fetched += rows.length;
+        if (rows.length < pageSize) break;
+        offset += rows.length;
+      }
+
+      const fragment = document.importNode(subjectTemplate.content, true);
+      const subjectRows = Array.from(fragment.querySelectorAll<HTMLTableRowElement>('tr'));
+      let totalNotes = 0;
+      let totalPapers = 0;
+      let totalOther = 0;
+      let totalResources = 0;
+
+      for (const row of subjectRows) {
+        const subjectKey = row.querySelector<HTMLTableCellElement>('[data-subject-name]')?.dataset.subjectName;
+        const subjectCount = counts.get(subjectKey || '') || { notes: 0, papers: 0, other: 0, total: 0 };
+        for (const category of ['notes', 'papers', 'other', 'total'] as const) {
+          const cell = row.querySelector<HTMLTableCellElement>(`[data-count-category="${category}"]`);
+          if (cell) cell.textContent = String(subjectCount[category]);
+        }
+        totalNotes += subjectCount.notes;
+        totalPapers += subjectCount.papers;
+        totalOther += subjectCount.other;
+        totalResources += subjectCount.total;
+      }
+
+      tableBody.replaceChildren(fragment);
+      totalsFooter.querySelectorAll('td').forEach((cell, index) => {
+        cell.textContent = String([totalNotes, totalPapers, totalOther, totalResources][index]);
+      });
+      if (status) {
+        status.textContent = `Showing counts for ${subjectRows.length} subjects from ${fetched} catalog records. Last updated ${new Date().toLocaleTimeString()}.`;
+      }
+    } catch (error) {
+      console.error('Unable to refresh Study Hub resource counts:', error);
+      showError('Could not load live resource counts. Check your connection and Supabase configuration, then retry.');
+    } finally {
+      isLoading = false;
+      refreshButton.disabled = false;
+    }
+  }
+
+  refreshButton?.addEventListener('click', loadResourceCounts);
+  void loadResourceCounts();
+  window.setInterval(() => {
+    if (document.visibilityState === 'visible') void loadResourceCounts();
+  }, 60_000);
+</script>

@@ -58,7 +58,18 @@ function resolveFolder(candidate) {
 const FOLDER_PATH = resolveFolder(positional[1] || 'resources');
 
 // Object keys are stored under this prefix, mirroring the local folder layout.
-const STORAGE_PREFIX = 'documents';
+const STORAGE_PREFIX = (process.env.SUPABASE_RESOURCES_PREFIX || 'documents').replace(/^\/+|\/+$/g, '');
+const SUBJECT_CATALOG = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../../frontend/src/data/subjects.json'), 'utf8')
+);
+const SUBJECT_FOLDER_MAP = new Map(
+  SUBJECT_CATALOG.flatMap((subject) =>
+    [subject.slug, subject.storageFolder, ...subject.folderAliases].map((alias) => [
+      alias.toLowerCase().trim().replace(/[\s_]+/g, '-'),
+      subject.storageFolder
+    ])
+  )
+);
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -153,7 +164,11 @@ function collectFiles(folder, root = folder, found = []) {
 // documents/bio/papers/A-level-Science Self help Materials-1 - NCDC.pdf
 function buildObjectKey(relativePath) {
   const segments = relativePath.split('/').map((segment) => sanitizeFileName(segment));
-  return [STORAGE_PREFIX, ...segments].join('/');
+  const subjectFolder = SUBJECT_FOLDER_MAP.get(
+    String(segments[0] || '').toLowerCase().trim().replace(/[\s_]+/g, '-')
+  );
+  if (subjectFolder) segments[0] = subjectFolder;
+  return [...(STORAGE_PREFIX ? [STORAGE_PREFIX] : []), ...segments].join('/');
 }
 
 async function batchUpload() {

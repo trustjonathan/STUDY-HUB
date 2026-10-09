@@ -28,25 +28,16 @@ const NORMALISATIONS = [
   [/[\\/|<>"]/g, '-']
 ];
 
-const SUBJECTS = {
-  bio: 'biology',
-  biology: 'biology',
-  chem: 'chemistry',
-  chemistry: 'chemistry',
-  math: 'mathematics',
-  maths: 'mathematics',
-  mathematics: 'mathematics',
-  phy: 'physics',
-  phys: 'physics',
-  physics: 'physics'
-};
-
-const SUBJECT_LABELS = {
-  biology: 'Biology',
-  chemistry: 'Chemistry',
-  mathematics: 'Mathematics',
-  physics: 'Physics'
-};
+const SUBJECT_CATALOG = require('../../../frontend/src/data/subjects.json');
+const SUBJECTS = Object.fromEntries(
+  SUBJECT_CATALOG.flatMap((subject) =>
+    [subject.slug, subject.storageFolder, ...subject.folderAliases]
+      .map((alias) => [alias.toLowerCase(), subject.slug])
+  )
+);
+const SUBJECT_LABELS = Object.fromEntries(
+  SUBJECT_CATALOG.map((subject) => [subject.slug, subject.name])
+);
 
 const MIME_TYPES = {
   '.pdf': 'application/pdf',
@@ -166,7 +157,8 @@ function classifyResource({ relPath, originalFilename }) {
   const lowerName = fileName.toLowerCase();
   const extension = path.extname(fileName).toLowerCase();
 
-  const subject = SUBJECTS[String(folders[0] || '').toLowerCase()] || null;
+  const subjectFolder = String(folders[0] || '').toLowerCase().trim().replace(/[\s_]+/g, '-');
+  const subject = SUBJECTS[subjectFolder] || null;
   const category = folders
     .slice(1)
     .map((folder) => folder.toLowerCase())

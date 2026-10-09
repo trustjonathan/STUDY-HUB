@@ -1,0 +1,27 @@
+[
+  {
+    "category": "Pure Sciences",
+    "examples": ["PCB", "PCM", "BCM"],
+    "careers": "Medicine, surgery, engineering, pharmacy, and biochemistry"
+  },
+  {
+    "category": "Agricultural & Life Sciences",
+    "examples": ["BCA", "BAG"],
+    "careers": "Agriculture, veterinary medicine, environmental science, and agribusiness"
+  },
+  {
+    "category": "Physical & Quantitative Sciences",
+    "examples": ["PEM", "MEG"],
+    "careers": "Architecture, data science, quantitative economics, and computer science"
+  },
+  {
+    "category": "Arts & Humanities",
+    "examples": ["HEL", "HEG", "HLD"],
+    "careers": "Law, journalism, international relations, education, and social sciences"
+  },
+  {
+    "category": "Business & Vocational",
+    "examples": ["MEntE", "GEA"],
+    "careers": "Commerce, business administration, accounting, and fine art & design"
+  }
+]

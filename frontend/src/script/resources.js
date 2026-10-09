@@ -242,7 +242,7 @@
     if (searchEl) searchEl.addEventListener('input', () => { visible = pageSize; draw(); });
     if (filterEl) filterEl.addEventListener('change', () => { visible = pageSize; draw(); });
 
-    if (subject === 'mathematics') {
+    if (subject === 'mathematics' || listEl.dataset.resourceSource === 'supabase') {
       void loadFromApi();
       return;
     }
@@ -254,8 +254,12 @@
       return;
     }
 
+    const resourceSubjects = Array.from(document.querySelectorAll(`[data-resources][data-subject="${subject}"]`))
+      .flatMap((element) => (element.dataset.subjectAliases || '').split(','))
+      .filter(Boolean);
+    const matchingSubjects = new Set([subject, ...resourceSubjects]);
     all = MANIFEST.items.filter(
-      (item) => item.subject === subject && item.category === category
+      (item) => matchingSubjects.has(item.subject) && item.category === category
     );
 
     if (filterEl && all.length) {

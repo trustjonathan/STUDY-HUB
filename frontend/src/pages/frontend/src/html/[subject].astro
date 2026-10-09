@@ -1,0 +1,90 @@
+---
+import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
+import subjectCatalog from "../../../../data/subjects.json";
+
+export function getStaticPaths() {
+  const existingSubjectSlugs = new Set(["biology", "chemistry", "mathematics", "physics"]);
+  return subjectCatalog
+    .filter((subject) => !existingSubjectSlugs.has(subject.slug))
+    .map((subject) => ({
+      params: { subject: subject.slug },
+      props: { subject },
+    }));
+}
+
+const { subject } = Astro.props;
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
+const levelLabel = subject.levels.join(", ");
+---
+
+<LegacyPageLayout
+  title={`${subject.name} Study Hub | UNEB ${levelLabel}`}
+  description={`${subject.description} Find ${subject.name} resources and exam practice for Ugandan ${levelLabel} learners.`}
+  dataPage={subject.slug}
+>
+  <Fragment slot="head">
+    <meta name="study-hub-supabase-url" content={supabaseUrl}>
+    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
+    <meta name="keywords" content={`${subject.name}, UNEB, NCDC, ${levelLabel}, study notes, past papers`}>
+    <link rel="stylesheet" href="../styles/home.css">
+    <link rel="stylesheet" href="../styles/themes.css">
+    <link rel="stylesheet" href="../styles/mathematics.css">
+    <link rel="stylesheet" href="../styles/resources.css">
+    <script is:inline src="../data/resources.js" defer></script>
+    <script is:inline src="../script/resources.js" defer></script>
+  </Fragment>
+
+  <div id="container">
+    <SubjectDashboard
+      subject={subject.slug}
+      name={subject.name}
+      icon={subject.icon}
+      headline={subject.headline}
+      description={subject.description}
+    />
+    <section class="resources-section math-library" id={`${subject.slug}-library`}>
+      <div class="library-heading">
+        <p class="subject-badge">UNEB / NCDC study library</p>
+        <h2>{subject.name} resources</h2>
+        <p>Search notes and past papers stored in the Study Hub Supabase library, or filter by study level.</p>
+      </div>
+
+      <div class="resources-layout">
+        <div class="resources-side">
+          <div class="resource-card">
+            <h3>{subject.name} Notes</h3>
+            <p>Review concepts, key ideas, and worked examples.</p>
+            <button class="btn toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
+          </div>
+          <div class="resource-card">
+            <h3>Past Papers</h3>
+            <p>Practice exam questions and strengthen your understanding.</p>
+            <button class="btn toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Browse papers</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="notes-content" class="resource-content" aria-labelledby={`${subject.slug}-notes-heading`}>
+        <h3 id={`${subject.slug}-notes-heading`}>{subject.name} Notes</h3>
+        <div class="resource-toolbar">
+          <input type="search" data-resource-search={`${subject.slug}|notes`} placeholder="Search notes by topic or title..." aria-label={`Search ${subject.name} notes`}>
+          <select data-resource-filter={`${subject.slug}|notes`} aria-label={`Filter ${subject.name} notes by level`}></select>
+        </div>
+        <p class="resource-status" data-resource-status={`${subject.slug}|notes`} aria-live="polite"></p>
+        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="notes" data-limit="12" data-resource-source="supabase"></div>
+      </div>
+
+      <div id="papers-content" class="resource-content" aria-labelledby={`${subject.slug}-papers-heading`}>
+        <h3 id={`${subject.slug}-papers-heading`}>{subject.name} Past Papers</h3>
+        <div class="resource-toolbar">
+          <input type="search" data-resource-search={`${subject.slug}|papers`} placeholder="Search past papers by name or year..." aria-label={`Search ${subject.name} past papers`}>
+          <select data-resource-filter={`${subject.slug}|papers`} aria-label={`Filter ${subject.name} past papers by level`}></select>
+        </div>
+        <p class="resource-status" data-resource-status={`${subject.slug}|papers`} aria-live="polite"></p>
+        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="papers" data-limit="20" data-resource-source="supabase"></div>
+      </div>
+    </section>
+  </div>
+</LegacyPageLayout>
