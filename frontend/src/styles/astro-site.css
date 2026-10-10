@@ -435,7 +435,10 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 
 .legal-page { max-width: 880px; min-height: 55vh; padding-top: 48px; padding-bottom: 76px; }
 .legal-page-heading { padding-bottom: 24px; border-bottom: 1px solid #d8ded5; }
+.legal-page-heading .policy-updated { margin-top: 15px; color: #718078; font-size: .78rem; font-weight: 700; }
 .legal-copy { display: grid; gap: 20px; padding-top: 22px; }
+.legal-copy section { padding-top: 18px; border-top: 1px solid #e5e9e2; }
+.legal-copy section:first-of-type { padding-top: 0; border-top: 0; }
 .legal-copy h2 { margin: 0; color: #293b32; font-size: 1.1rem; }
 .legal-copy p { margin: 6px 0 0; color: #53645a; font-size: .92rem; line-height: 1.7; }
 .legal-copy a { color: #285c3e; font-weight: 700; }

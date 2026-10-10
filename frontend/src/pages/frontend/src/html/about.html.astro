@@ -1,378 +1,96 @@
 ---
-import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
+import SiteLayout from '../../../../layouts/SiteLayout.astro';
+import '../../../../styles/about.css';
+
+const home = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
-<LegacyPageLayout title="ABOUT — Study Hub" description="Study Hub provides structured, exam-friendly academic notes for Biology, Chemistry and Mathematics. Clean, simple and accessible." dataPage="about">
+<SiteLayout
+  title="About Study Hub | Learning Resources for Ugandan Students"
+  description="Learn how Study Hub helps learners find subject resources, study notes, exam practice, and practical tools for focused revision."
+>
   <Fragment slot="head">
-
-  <!-- Essential Meta -->
-  
-  
-
-  <!-- Verification -->
-  <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
-  <meta name="google-site-verification" content="ekOqLM1fntpBVAn7Ey_2SjgOF9qNX4SDnwGkUzMoYAw" />
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="ABOUT — Study Hub">
-  <meta property="og:description" content="Study Hub provides structured, exam-friendly academic notes for Biology, Chemistry and Mathematics. Clean, simple and accessible.">
-  <meta property="og:image" content="https://trustjonathan.github.io/STUDY-HUB/social-preview.png">
-  <meta property="og:url" content="https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/about.html">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="ABOUT — Study Hub">
-  <meta name="twitter:description" content="Study Hub provides structured, exam-friendly academic notes for Biology, Chemistry and Mathematics. Clean, simple and accessible.">
-  <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/social-preview.png">
-  
-  
-  <meta name="author" content="Jonathan">
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="../styles/themes.css">
-  <link rel="stylesheet" href="../styles/home.css">
-  <link rel="stylesheet" href="../styles/index.css">
-  <link rel="stylesheet" href="../styles/about.css">
-
-  <!-- Futuristic Internal Theme -->
-  <style is:global>
-    /* GENERAL THEME */
-    :root {
-      --bg-dark: #0b0e12;
-      --bg-panel: #11151b;
-      --neon-blue: #00d9ff;
-      --neon-purple: #b400ff;
-      --neon-pink: #ff008c;
-      --text-light: #e9f1ff;
-      --subtext: #9aa5b8;
-      --glow-strong: 0 0 25px var(--neon-blue);
-      --glow-soft: 0 0 10px var(--neon-purple);
-      --glow-pink: 0 0 12px var(--neon-pink);
-    }
-
-    body {
-      background: var(--bg-dark);
-      color: var(--text-light);
-      font-family: "Segoe UI", sans-serif;
-      line-height: 1.7;
-      overflow-x: hidden;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-      margin: 40px 0;
-    }
-
-    /* WATER EFFECT UPDATED */
-    .fx-container span {
-      background: linear-gradient(45deg, #0ff4, #00f2);
-      box-shadow: 0 0 8px #0ff4;
-    }
-
-    /* NAVBAR */
-    #navbar {
-      background: rgba(15, 18, 25, 0.7);
-      backdrop-filter: blur(10px);
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    #navbar .logo img {
-      width: 40px;
-      filter: drop-shadow(0 0 6px var(--neon-blue));
-    }
-
-    #navbar h7 {
-      color: var(--neon-blue);
-      font-size: 18px;
-      margin-left: 10px;
-      text-shadow: var(--glow-soft);
-    }
-
-    /* SIDEBAR */
-    #side-menu nav a {
-      color: var(--text-light);
-      font-size: 18px;
-      padding: 10px;
-      display: block;
-      text-decoration: none;
-      transition: 0.3s;
-      border-left: 2px solid transparent;
-    }
-
-    #side-menu nav a:hover {
-      color: var(--neon-blue);
-      border-left: 2px solid var(--neon-blue);
-      text-shadow: var(--glow-strong);
-    }
-
-    /* HERO */
-    .box1 {
-      padding: 60px 20px;
-      text-align: center;
-    }
-
-    .box1 h3 {
-      font-size: 48px;
-      color: var(--neon-blue);
-      text-shadow: var(--glow-strong);
-    }
-
-    .hex img {
-      width: 180px;
-      filter: drop-shadow(0 0 20px var(--neon-purple));
-      border-radius: 15px;
-    }
-
-    /* ABOUT CONTENT */
-    .about-content .container {
-      background: var(--bg-panel);
-      padding: 40px 25px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #000;
-      width: 90%;
-      margin: auto;
-    }
-
-    .about-content h1 {
-      font-size: 36px;
-      color: var(--neon-purple);
-      text-shadow: var(--glow-soft);
-    }
-
-    .about-content h2 {
-      font-size: 26px;
-      margin-top: 25px;
-      color: var(--neon-blue);
-      text-shadow: var(--glow-soft);
-    }
-
-    .about-content p {
-      color: var(--subtext);
-      font-size: 17px;
-    }
-
-    .about-content ul li {
-      color: var(--text-light);
-      margin: 10px 0;
-    }
-
-    .quote {
-      background: rgba(255, 0, 170, 0.08);
-      padding: 18px;
-      border-left: 4px solid var(--neon-pink);
-      margin: 25px 0;
-      border-radius: 6px;
-      font-style: italic;
-      color: var(--neon-pink);
-      text-shadow: var(--glow-pink);
-    }
-
-    .footer {
-      text-align: right;
-      margin-top: 40px;
-      font-size: 18px;
-      color: var(--neon-blue);
-    }
-
-    /* INLINE SECTIONS */
-    #inline div {
-      background: var(--bg-panel);
-      padding: 20px;
-      margin: 20px;
-      border-radius: 12px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      transition: 0.3s;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    #inline div:hover {
-      transform: translateY(-6px);
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 20px var(--neon-purple);
-    }
-
-    #inline img {
-      width: 90px;
-      border-radius: 10px;
-      filter: drop-shadow(0 0 10px var(--neon-blue));
-    }
-
-    /* FOOTER */
-    footer {
-      text-align: center;
-      padding: 25px;
-      margin-top: 30px;
-      color: var(--subtext);
-      font-size: 15px;
-    }
-
-    footer a {
-      color: var(--neon-blue);
-      text-shadow: var(--glow-soft);
-    }
-  </style>
-
-  <!-- JS -->
-  
-  <script is:inline src="../script/sidebar.js" defer></script>
-
-
+    <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY" />
+    <meta name="google-site-verification" content="ekOqLM1fntpBVAn7Ey_2SjgOF9qNX4SDnwGkUzMoYAw" />
   </Fragment>
 
-
-  <!-- FX BACKGROUND -->
-  <div class="fx-container">
-    <span></span><span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span><span></span>
-  </div>
-
-  <!-- NAVBAR -->
-  <div id="navbar">
-    <div class="logo">
-      <img src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/favicon.svg`} alt="Study Hub logo">
-      <h7>STUDY HUB</h7>
-    </div>
-
-    <div class="home hamburger">
-      <span></span><span></span><span></span>
-    </div>
-
-    <div id="side-menu">
-      <nav>
-        <a href="/STUDY-HUB/">Home</a>
-        <a href="biology.html">Biology</a>
-        <a href="chemistry.html">Chemistry</a>
-        <a href="mathematics.html">Mathematics</a>
-        <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX">Music</a>
-        <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS">Motivacity</a>
-      </nav>
-    </div>
-
-    <div id="overlay"></div>
-  </div>
-
-  <!-- HERO -->
-  <div class="box1 about-hero">
-    <div class="about-hero-copy">
+  <main class="site-about">
+    <section class="about-hero" aria-labelledby="about-title">
       <p class="eyebrow">About Study Hub</p>
-      <h1>A practical study hub, shaped by a student's experience.</h1>
-      <p>Study Hub grew from my A-level Biology, Chemistry, and Mathematics journey. I built it to make clear notes and purposeful exam practice easier to reach.</p>
-    </div>
-    <figure class="about-founder">
-      <img src="../assets/images/ABA2.jpg" alt="Jonathan, creator of Study Hub">
-      <figcaption>Jonathan · Study Hub creator</figcaption>
-    </figure>
-  </div>
-
-  <hr>
-
-  <!-- ABOUT SECTION -->
-  <div class="about-content">
-    <div class="container">
-      <h1>About the Author</h1>
-  
-      <div class="quote">
-        “From struggle to 19 points — not by luck, but by understanding the system.”
+      <h1 id="about-title">A clearer route from finding a resource to understanding it.</h1>
+      <p>Study Hub is an independent learning library built to help students explore subject materials, practise with exam resources, and study with more confidence.</p>
+      <div class="about-hero-actions">
+        <a class="about-primary-link" href={`${home}/subjects.html`}>Explore subjects <span aria-hidden="true">→</span></a>
+        <a href={`${home}/documentation.html`}>How to use Study Hub</a>
       </div>
-  
-      <h2>My Journey</h2>
-      <p>
-        Like many students, A-Level was not easy for me. Studying Biology, Chemistry, and Mathematics (BCM) came with
-        pressure, confusion, and moments of doubt. There were times when balancing all three felt overwhelming, especially
-        when results did not reflect the effort I was putting in.
-      </p>
-  
-      <p>
-        I realized that the problem was not just about working hard — it was about <span class="highlight">how</span> I
-        was working. I needed a smarter approach.
-      </p>
-  
-      <h2>The Turning Point</h2>
-      <p>
-        Everything changed when I started focusing on:
-      </p>
-  
-      <ul>
-        <li>Understanding concepts instead of cramming</li>
-        <li>Practicing consistently with purpose</li>
-        <li>Targeting high-yield topics in each subject</li>
-        <li>Learning how exam questions are set and answered</li>
-      </ul>
-  
-      <p>
-        This shift in strategy made a huge difference in my confidence and performance.
-      </p>
-  
-      <h2>The Result</h2>
-      <p>
-        Through discipline and the right methods, I was able to achieve <span class="highlight">19 points in UACE
-          (BCM)</span>.
-      </p>
-  
-      <p>
-        I am currently pursuing a <span class="highlight">Bachelor of Science in Agriculture at Kabale University</span>,
-        applying my scientific foundation to real-world solutions. At the same time, I teach Biology, Chemistry, and
-        Mathematics to help other students unlock their potential and reach their academic goals.
-      </p>
-  
-      <h2>Why This Platform Exists</h2>
-      <p>
-        I created this platform to give students what I wish I had earlier:
-      </p>
-  
-      <ul>
-        <li>Clear explanations</li>
-        <li>Focused learning strategies</li>
-        <li>Exam-oriented guidance</li>
-      </ul>
-  
-      <p>
-        This is not just a website — it is a system designed to help you improve efficiently and perform at your best.
-      </p>
-  
-      <div class="quote">
-        “Success is not about being the smartest — it is about using the right strategy consistently.”
+      <div class="about-hero-note">
+        <span aria-hidden="true">01</span>
+        <p>Made for Ugandan learners, with a growing collection across secondary-school subjects.</p>
       </div>
-  
-      <div class="footer">
-        — Jonathan
-      </div>
-    </div>
-  </div>
+    </section>
 
-  <hr>
-
-  <!-- INLINE CARDS -->
-  <div id="inline">
-    <div id="music">
-      <img src="../assets/images/music.png" alt="music">
+    <section class="about-section about-purpose" aria-labelledby="purpose-title">
       <div>
-        <p>Feeling overwhelmed?
-          <br>Let music fuel your mind.
-          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX">Open Playlist</a>
-        </p>
+        <p class="eyebrow">The purpose</p>
+        <h2 id="purpose-title">Make useful study material easier to navigate.</h2>
       </div>
-    </div>
+      <div class="about-section-copy">
+        <p>Finding a good explanation or a relevant practice paper can take time. Study Hub brings subject pages, study notes, recent additions, and exam practice into one organised place so learners can spend more time learning and less time searching.</p>
+        <p>The site is designed as a practical study companion, not a replacement for a teacher, a school syllabus, or an examining body. Students should use resources thoughtfully and confirm important requirements with their school.</p>
+      </div>
+    </section>
 
-    <div id="grind">
-      <img src="../assets/images/grit.jpg" alt="grind">
-      <p style="background-color: #2b2a2a; border-radius: 5px; padding: 10px; color: white;">Need motivation?
-        <br>Get energized on STUDY HUB.
-        <a href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS">Check It Out</a>
-      </p>
-    </div>
-  </div>
+    <section class="about-section about-offerings" aria-labelledby="offerings-title">
+      <div class="about-section-heading">
+        <p class="eyebrow">What you can do</p>
+        <h2 id="offerings-title">A study flow that stays connected.</h2>
+      </div>
+      <div class="about-feature-grid">
+        <article class="about-feature">
+          <span class="about-feature-number">01</span>
+          <h3>Start with a subject</h3>
+          <p>Browse a subject directory and follow pages shaped around the topics and resources learners look for.</p>
+        </article>
+        <article class="about-feature">
+          <span class="about-feature-number">02</span>
+          <h3>Choose notes or practice</h3>
+          <p>Explore notes and past papers, search the collection, and narrow results with the filters available on each page.</p>
+        </article>
+        <article class="about-feature">
+          <span class="about-feature-number">03</span>
+          <h3>Read at your pace</h3>
+          <p>Open supported documents in a reader with page navigation, reading preferences, bookmarks, and related subject material.</p>
+        </article>
+        <article class="about-feature">
+          <span class="about-feature-number">04</span>
+          <h3>Ask for a clearer explanation</h3>
+          <p>For PDFs, the optional AI study companion can explain visible page content. Its answers are suggestions to check, not official guidance.</p>
+        </article>
+      </div>
+    </section>
 
-  <!-- FOOTER -->
-  <footer>
-    🔗 AUTHOR: <a href="mailto:trusteth777@gmail.com">talk to me</a><br>
-    &copy; STUDY HUB // 2026+
-  </footer>
+    <section class="about-section about-quality" aria-labelledby="quality-title">
+      <div>
+        <p class="eyebrow">A growing library</p>
+        <h2 id="quality-title">Useful materials need context and care.</h2>
+      </div>
+      <div class="about-section-copy">
+        <p>The library includes resources from different authors and sources. Titles and descriptions help students identify material, but a resource may be incomplete, outdated, or owned by someone else. Check the subject, level, and year where shown, and review a document before relying on it.</p>
+        <p>Contributions are optional and reviewed before they can become part of the public collection. Contributors must have permission to share the material. If you notice an incorrect label, a broken file, or a rights concern, please contact Study Hub so it can be reviewed.</p>
+      </div>
+    </section>
 
-
-</LegacyPageLayout>
+    <section class="about-contact" aria-labelledby="about-contact-title">
+      <div>
+        <p class="eyebrow">Keep improving the library</p>
+        <h2 id="about-contact-title">Have a resource request or an idea?</h2>
+        <p>Tell us what would make your study session more useful.</p>
+      </div>
+      <div class="about-contact-links">
+        <a href={`${home}/community-chat.html`}>Share a suggestion <span aria-hidden="true">→</span></a>
+        <a href={`${home}/library-guide.html`}>Read the Library Guide <span aria-hidden="true">→</span></a>
+        <a href="mailto:trusteth777@gmail.com">Contact Study Hub <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+</SiteLayout>

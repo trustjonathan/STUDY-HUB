@@ -1083,7 +1083,10 @@ import * as tus from 'tus-js-client';
 
   function toggleContributionPanel(open) {
     const shouldOpen = open ?? !document.body.classList.contains('contribution-panel-open');
-    if (shouldOpen) toggleRelatedPanel(false);
+    if (shouldOpen) {
+      toggleRelatedPanel(false);
+      window.dispatchEvent(new CustomEvent('study-hub:close-ai-panel'));
+    }
     document.body.classList.toggle('contribution-panel-open', shouldOpen);
     document.querySelector('#contribution-rail').setAttribute('aria-hidden', String(!shouldOpen));
     contributionToggle.setAttribute('aria-expanded', String(shouldOpen));
@@ -1094,7 +1097,10 @@ import * as tus from 'tus-js-client';
 
   function toggleRelatedPanel(open) {
     const shouldOpen = open ?? !document.body.classList.contains('related-panel-open');
-    if (shouldOpen) toggleContributionPanel(false);
+    if (shouldOpen) {
+      toggleContributionPanel(false);
+      window.dispatchEvent(new CustomEvent('study-hub:close-ai-panel'));
+    }
     document.body.classList.toggle('related-panel-open', shouldOpen);
     const isMobile = window.matchMedia('(max-width: 760px)').matches;
     relatedRail.setAttribute('aria-hidden', String(isMobile && !shouldOpen));
@@ -1206,6 +1212,11 @@ import * as tus from 'tus-js-client';
       readingPanel.hidden = true;
       contentsButton.setAttribute('aria-expanded', 'false');
     }
+  });
+
+  window.addEventListener('study-hub:close-reader-drawers', () => {
+    toggleRelatedPanel(false);
+    toggleContributionPanel(false);
   });
 
   async function start() {

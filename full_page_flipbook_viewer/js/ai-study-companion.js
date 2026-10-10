@@ -40,6 +40,7 @@
   }
 
   function setOpen(open) {
+    if (open) window.dispatchEvent(new CustomEvent("study-hub:close-reader-drawers"));
     panel.dataset.open = String(open);
     panel.setAttribute("aria-hidden", String(!open));
     toggle.setAttribute("aria-expanded", String(open));
@@ -208,6 +209,13 @@
 
   toggle.addEventListener("click", () => setOpen(panel.dataset.open !== "true"));
   close.addEventListener("click", () => setOpen(false));
+  window.addEventListener("study-hub:close-ai-panel", () => {
+    if (panel.dataset.open === "true") {
+      panel.dataset.open = "false";
+      panel.setAttribute("aria-hidden", "true");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && panel.dataset.open === "true") setOpen(false);
   });

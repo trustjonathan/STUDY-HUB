@@ -68,14 +68,18 @@ const subjects = [
           </a>
           <a href="#find-resources">
             <img src={biologyImage.src} alt="" />
-            <span>Find and open files</span>
+            <span>Search the library</span>
+          </a>
+          <a href="#reader-tools">
+            <img src={studentsImage.src} alt="" />
+            <span>Reader and AI tools</span>
           </a>
           <a href="#submit-resources">
             <img src={chemistryImage.src} alt="" />
             <span>Upload a resource</span>
           </a>
           <a href="#page-map">
-            <img src={studentsImage.src} alt="" />
+            <img src={mathematicsImage.src} alt="" />
             <span>Page directory</span>
           </a>
         </nav>
@@ -83,24 +87,23 @@ const subjects = [
 
       <article class="guide-article">
         <section class="guide-section" id="how-it-works" aria-labelledby="how-title">
-          <p class="eyebrow">01 / The system</p>
+          <p class="eyebrow">01 / The library</p>
           <h2 id="how-title">How the library works</h2>
-          <p>Study Hub keeps resource files and their searchable descriptions in a shared library. A file lives in Supabase Storage; a matching record in the <code>study_hub_resources</code> catalog supplies its subject, type, title, level, year, and storage location.</p>
+          <p>Study Hub organises learning materials by subject, resource type, and the details available for each file. Public subject pages show items that have been reviewed and added to the library. Titles, levels, years, and other descriptions help you decide whether a resource fits your study needs.</p>
           <div class="guide-callout">
-            <strong>Public library</strong>
-            <p>Only approved files in the public <code>study-hub-resources</code> bucket, with catalog entries, appear in the browse lists.</p>
+            <strong>From submission to library</strong>
+            <p>Contributed files are reviewed before they can appear in public search. Sending a form does not publish a resource automatically.</p>
           </div>
-          <p>Subject pages and this count table read the public catalog directly from Supabase. An uploaded file appears after its public catalog entry exists.</p>
-          <p>New submissions are separate: they are placed in private submission storage and marked pending. A curator checks the file and rights confirmation, then publishes approved material to the public library. Sending a form does not immediately add a public result.</p>
+          <p>The resource-count table below summarises the published library by subject and category. Counts update while this page is open; a temporary connection problem may prevent the latest totals from loading.</p>
         </section>
 
         <section class="guide-section" id="resource-counts" aria-labelledby="counts-title">
           <p class="eyebrow">02 / The collection</p>
           <h2 id="counts-title">How many resources are available?</h2>
-          <p>Counts below are refreshed from the published catalog when this page opens and periodically while it remains open. Newly published resources are included automatically.</p>
+          <p>Counts below are refreshed when this page opens and periodically while it remains open. Newly published resources are included automatically.</p>
           <div class="guide-table-wrap">
             <table>
-              <caption>Published catalog records by subject and category</caption>
+              <caption>Published learning resources by subject and category</caption>
               <thead>
                 <tr><th scope="col">Subject</th><th scope="col">Notes</th><th scope="col">Past papers</th><th scope="col">Other / uncategorized</th><th scope="col">Total</th></tr>
               </thead>
@@ -113,7 +116,7 @@ const subjects = [
             </table>
           </div>
           <div class="guide-count-controls">
-            <p class="guide-count-status" data-resource-count-status role="status" aria-live="polite">Connecting to the public resource catalog…</p>
+            <p class="guide-count-status" data-resource-count-status role="status" aria-live="polite">Loading the latest library totals…</p>
             <button class="guide-count-refresh" type="button" data-resource-count-refresh>Refresh counts</button>
           </div>
           <template data-subject-rows>
@@ -135,34 +138,55 @@ const subjects = [
 
         <section class="guide-section" id="find-resources" aria-labelledby="find-title">
           <p class="eyebrow">03 / Browse and study</p>
-          <h2 id="find-title">Find and open files</h2>
+          <h2 id="find-title">Search the library</h2>
           <ol class="guide-steps">
-            <li><strong>Choose a subject.</strong> Use the header’s subject menu or the directory below to open Biology, Chemistry, or Mathematics.</li>
-            <li><strong>Choose notes or past papers.</strong> Subject pages offer separate lists for each type; archive pages combine the collection with category tabs.</li>
-            <li><strong>Search and filter.</strong> Search titles or topics, narrow by study level, and sort by title, year, or date where the page offers those controls.</li>
-            <li><strong>Open the file.</strong> Select a resource title or its “Open resource” link. The dedicated reader keeps its toolbar and contribution panel in place while you scroll through the document.</li>
+            <li><strong>Choose a subject.</strong> Use Browse subjects in the header or the full directory below to open a subject page.</li>
+            <li><strong>Choose a collection.</strong> Subject pages provide separate study-note and recently added sections; past papers and other resources appear where they are available.</li>
+            <li><strong>Search and filter.</strong> Search matches words in resource titles, filenames, subject, type, level, year, and other indexed details. Use available level or year filters to narrow the list.</li>
+            <li><strong>Load more results.</strong> Recent and notes collections scroll independently and request additional catalog pages as you continue. Search can also check the full matching collection.</li>
+            <li><strong>Open the file.</strong> Select a resource title or its “Open resource” link to read it in the document viewer.</li>
           </ol>
-          <p>Some pages show an initial set of results with a “Load more” control. If a list is empty, clear its search and level filters first. A connection or configuration message means the page could not reach its data source; a “no published resources” message means no public rows matched that page’s subject and category.</p>
+          <p>Search does not read text inside every document. A topic is searchable when the wording appears in the title, filename, or other indexed description. If a list is empty, try a shorter term and clear its filters. If the list cannot connect, try again later.</p>
+        </section>
+
+        <section class="guide-section" id="reader-tools" aria-labelledby="reader-title">
+          <p class="eyebrow">04 / Read and revise</p>
+          <h2 id="reader-title">Reader and AI study tools</h2>
+          <p>The document reader supports page navigation, zoom, full-screen reading, text search when available, colour preferences, contents, and bookmarks. On desktop, same-subject documents stay beside the reading area; on a phone, open <strong>Related documents</strong> from the toolbar to view the full-width drawer.</p>
+          <p>For PDFs, the optional AI study companion can answer questions about the visible page. It sends the page image, question, and recent conversation context to an external AI provider. Do not submit personal or confidential information, and check AI explanations against your course materials. Read the <a href={`${home}/privacy.html`}>Privacy Policy</a> for more details.</p>
+          <p>Bookmarks and reading preferences are kept in the browser you use and may be removed when you clear that browser’s site data.</p>
         </section>
 
         <section class="guide-section" id="submit-resources" aria-labelledby="submit-title">
-          <p class="eyebrow">04 / Contribute</p>
+          <p class="eyebrow">05 / Contribute</p>
           <h2 id="submit-title">Upload a resource</h2>
           <p>While reading, use the reader’s contribution panel, or choose <strong>Submit a resource</strong> in a subject archive. Reader contributions are optional: select up to 20 related files (250 MB total, 50 MB each), confirm sharing rights, and complete verification. Files stage privately in parallel; submit the batch when all transfers are ready.</p>
           <ol class="guide-steps">
-            <li>Open the Biology, Chemistry, or Mathematics archive below.</li>
+            <li>Open a subject page or a supported archive.</li>
             <li>Select “Submit a resource” and enter its title and notes/past-paper category.</li>
             <li>Add level and year if known, choose the file, confirm your sharing rights, and complete the security check.</li>
-            <li>Submit for review. Staged files are moved together into the private <code>study-hub-contributions/contribution/</code> inbox. A curator sorts suitable files into the relevant library folders; uploads are never published automatically.</li>
+            <li>Submit the completed batch for review. A curator checks suitable files before they can be added to the public library.</li>
           </ol>
-          <p>Accepted file types are PDF, Word, RTF, and plain text. Completed staged files remain available if you leave the reader; to resume an interrupted file, return in the same browser and reselect the original file. Unsubmitted staging expires after 24 hours. Do not upload material unless you have the right to distribute it. To request a topic instead of uploading a file, <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">contact Study Hub</a>.</p>
-          <p>When reading, open <strong>Contents and bookmarks</strong> for document navigation and saved positions. Reading colors can be changed from the toolbar, and preferences are kept in the current browser.</p>
+          <p>Accepted types and size limits are shown in the contribution form. Do not upload material unless you have the right to share it. To request a topic instead of uploading a file, <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20resource%20request">contact Study Hub</a>.</p>
         </section>
 
         <section class="guide-section" id="page-map" aria-labelledby="map-title">
-          <p class="eyebrow">05 / Page directory</p>
-          <h2 id="map-title">Navigate the Study Hub</h2>
-          <p>Use the top navigation to return home, jump to the subject overview, or open a subject/archive submenu. These links take you directly to each destination:</p>
+          <p class="eyebrow">06 / Page directory</p>
+          <h2 id="map-title">Explore subjects and site pages</h2>
+          <p>Browse the complete subject directory, or open one of the available subject archives for additional collections:</p>
+          <div class="guide-directory">
+            {subjectCatalog.map((subject) => (
+              <section class="directory-row subject-directory-row" aria-label={`${subject.name} subject page`}>
+                <span class="guide-directory-icon" aria-hidden="true">{subject.icon}</span>
+                <div>
+                  <h3>{subject.name}</h3>
+                  <p>{subject.description}</p>
+                  <a href={`${home}/frontend/src/html/${subject.slug}.html`}>Open subject page</a>
+                </div>
+              </section>
+            ))}
+          </div>
+          <h3 class="guide-subheading">Additional archives</h3>
           <div class="guide-directory">
             {subjects.map((subject) => (
               <section class="directory-row" aria-label={`${subject.name} pages`}>
@@ -175,6 +199,8 @@ const subjects = [
               </section>
             ))}
           </div>
+          <h3 class="guide-subheading">Study Hub information</h3>
+          <p>Learn <a href={`${home}/frontend/src/html/about.html`}>about Study Hub</a>, follow the <a href={`${home}/documentation.html`}>site documentation</a>, or review the <a href={`${home}/privacy.html`}>Privacy Policy</a>, <a href={`${home}/terms.html`}>Terms of Use</a>, and <a href={`${home}/copyright.html`}>Copyright Information</a>.</p>
           <p class="guide-home-link"><a href={home}>Return to the Study Hub homepage <span aria-hidden="true">→</span></a></p>
         </section>
       </article>
@@ -214,7 +240,7 @@ const subjects = [
   async function loadResourceCounts() {
     if (isLoading || !tableBody || !totalsFooter || !subjectTemplate || !refreshButton) return;
     if (!supabaseUrl || !anonKey) {
-      showError('Live counts are unavailable: configure the public Supabase URL and anon key.');
+      showError('Live resource counts are currently unavailable. Please try again later.');
       return;
     }
 
@@ -247,7 +273,7 @@ const subjects = [
         const response = await fetch(endpoint, { headers });
         if (!response.ok) throw new Error(`Supabase returned HTTP ${response.status}.`);
         const rows = await response.json();
-        if (!Array.isArray(rows)) throw new Error('Supabase returned an invalid resource catalog.');
+        if (!Array.isArray(rows)) throw new Error('The library returned an invalid response.');
 
         for (const resource of rows) {
           const subjectKey = String(resource.subject || '').trim().toLowerCase();
@@ -296,7 +322,7 @@ const subjects = [
       }
     } catch (error) {
       console.error('Unable to refresh Study Hub resource counts:', error);
-      showError('Could not load live resource counts. Check your connection and Supabase configuration, then retry.');
+      showError('Could not load live resource counts. Check your connection and try again.');
     } finally {
       isLoading = false;
       refreshButton.disabled = false;

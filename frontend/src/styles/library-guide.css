@@ -59,6 +59,9 @@
 .guide-directory { display: grid; gap: 0; margin-top: 22px; border-top: 1px solid var(--guide-line); }
 .directory-row { display: grid; grid-template-columns: 132px minmax(0, 1fr); align-items: center; gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--guide-line); }
 .directory-row img { display: block; width: 132px; height: 84px; border-radius: 3px; object-fit: cover; }
+.subject-directory-row { grid-template-columns: 52px minmax(0, 1fr); gap: 15px; }
+.guide-directory-icon { display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid var(--guide-line); background: #f0f4ed; color: #345742; font-size: 1.35rem; }
+.guide-subheading { margin: 34px 0 10px; color: #293b32; font-size: 1.1rem; }
 .directory-row h3 { margin: 0 0 8px; color: var(--guide-ink); font-size: 1rem; }
 .directory-row a { display: inline-block; margin: 0 18px 3px 0; font-size: 0.82rem; }
 .guide-home-link { margin-top: 24px; }
@@ -83,6 +86,8 @@
   .guide-section h2 { font-size: 1.55rem; }
   .guide-count-controls { align-items: flex-start; flex-direction: column; }
   .directory-row { grid-template-columns: 88px minmax(0, 1fr); gap: 12px; }
+  .subject-directory-row { grid-template-columns: 44px minmax(0, 1fr); gap: 11px; }
+  .guide-directory-icon { width: 42px; height: 42px; font-size: 1.1rem; }
   .directory-row img { width: 88px; height: 72px; }
   .directory-row a { margin-right: 12px; font-size: 0.78rem; }
 }

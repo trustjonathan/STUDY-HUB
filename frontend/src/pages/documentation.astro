@@ -1,0 +1,95 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import '../styles/documentation.css';
+
+const home = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<SiteLayout
+  title="Study Hub Documentation | How to Use the Site"
+  description="Practical instructions for finding resources, reading documents, using the AI study companion, and contributing to Study Hub."
+>
+  <main class="documentation-page">
+    <header class="documentation-hero">
+      <p class="eyebrow">Study Hub help centre</p>
+      <h1>Make the most of your study session.</h1>
+      <p>Use this guide to find the right subject, search the library, read a document comfortably, and understand what happens when you use the optional study tools.</p>
+      <a class="documentation-primary-link" href={`${home}/subjects.html`}>Browse all subjects <span aria-hidden="true">→</span></a>
+    </header>
+
+    <div class="documentation-layout">
+      <nav class="documentation-index" aria-label="Documentation contents">
+        <p>On this page</p>
+        <a href="#find">Find a resource</a>
+        <a href="#read">Read and navigate</a>
+        <a href="#ai">Ask the AI companion</a>
+        <a href="#contribute">Suggest or contribute</a>
+        <a href="#troubleshoot">Troubleshooting</a>
+      </nav>
+
+      <article class="documentation-content">
+        <section id="find">
+          <p class="eyebrow">01 / Discover</p>
+          <h2>Find the resource you need</h2>
+          <ol>
+            <li>Open <a href={`${home}/subjects.html`}>Subjects</a> and choose a subject. Each subject page introduces its study areas and links to the available notes and practice material.</li>
+            <li>Search can match words from a resource title, filename, subject, category, level, year, resource type, and other indexed details. Narrow results with the filters on that page, then clear or adjust them if no results appear.</li>
+            <li>Check the resource title and details before opening it. Recently added items and study-note collections can be browsed independently; continue loading results to see more of the available collection.</li>
+          </ol>
+          <p>Search quality depends on the title and descriptive information available for each resource. Search does not read the full text inside every PDF, so a topic may not appear unless it is included in a searchable title or description.</p>
+          <p>For live collection totals and a site-wide subject directory, visit the <a href={`${home}/library-guide.html`}>Library Guide</a>.</p>
+        </section>
+
+        <section id="read">
+          <p class="eyebrow">02 / Study</p>
+          <h2>Use the document reader</h2>
+          <p>Open a resource to use the dedicated reader. On PDFs, the toolbar provides page navigation, text search where available, zoom, reading colours, and full-screen mode. The contents and bookmarks panel can help you return to sections and saved positions.</p>
+          <p>Related documents are shown beside the reader on wider screens. On a phone, choose <strong>Related documents</strong> in the toolbar to open the full-width drawer; close it with the close button, the backdrop, or the Escape key. Related files are selected from the same subject when that information is available.</p>
+          <p>Reading preferences and bookmarks are stored in your current browser. They are not shared between devices, and clearing browser site data can remove them.</p>
+        </section>
+
+        <section id="ai">
+          <p class="eyebrow">03 / Get an explanation</p>
+          <h2>Ask the AI study companion</h2>
+          <p>When a PDF is open, choose <strong>AI</strong>, wait until the page has rendered, then ask a specific question about the page. You can ask for a worked step, a clearer definition, or help interpreting visible information.</p>
+          <div class="documentation-callout">
+            <strong>Use AI as a study aid, not an authority.</strong>
+            <p>The current page image, your question, and recent chat context are sent to an external AI provider to generate a response. Do not enter personal or confidential information. Check important answers against your teacher’s guidance and trusted course materials.</p>
+          </div>
+          <p>If the service is temporarily unavailable, keep your question and try again later. The tool can take longer on complex pages; an error does not mean the document itself is unavailable.</p>
+        </section>
+
+        <section id="contribute">
+          <p class="eyebrow">04 / Take part</p>
+          <h2>Send a suggestion or contribute a resource</h2>
+          <p>Use the <a href={`${home}/community-chat.html`}>suggestions page</a> to share an idea for a subject, resource, or site improvement. Suggestions are reviewed before they may be shown publicly. Do not include your name, contact details, or other sensitive information in the message.</p>
+          <p>Resource contributions are optional. Choose files accepted by the form, confirm you have permission to share them, and complete the security check. Contributions go through review and are not immediately visible in public search. Do not upload private, restricted, or copyrighted material unless you have the necessary rights.</p>
+        </section>
+
+        <section id="troubleshoot">
+          <p class="eyebrow">05 / Help</p>
+          <h2>Troubleshooting</h2>
+          <dl>
+            <div>
+              <dt>A search has no results</dt>
+              <dd>Try a shorter title or topic, check the spelling, and clear filters such as year or level. Search only matches details provided for the resource.</dd>
+            </div>
+            <div>
+              <dt>A document will not open</dt>
+              <dd>Try reloading the resource and check your connection. If the problem continues, email Study Hub with the subject and resource title.</dd>
+            </div>
+            <div>
+              <dt>The AI companion cannot answer</dt>
+              <dd>Make sure the PDF page is visible and rendered, ask a concise question, and try again later if the service is busy.</dd>
+            </div>
+            <div>
+              <dt>A contribution is not listed</dt>
+              <dd>Submissions are reviewed before publication. Sending a file does not add it to the public library automatically.</dd>
+            </div>
+          </dl>
+          <p>For help or to report a broken resource, contact <a href="mailto:trusteth777@gmail.com">trusteth777@gmail.com</a>. Read the <a href={`${home}/privacy.html`}>Privacy Policy</a>, <a href={`${home}/terms.html`}>Terms of Use</a>, and <a href={`${home}/copyright.html`}>Copyright Information</a> before contributing.</p>
+        </section>
+      </article>
+    </div>
+  </main>
+</SiteLayout>
