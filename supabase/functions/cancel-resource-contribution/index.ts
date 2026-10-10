@@ -43,16 +43,25 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'A batch being submitted cannot be discarded.' }, 409, headers);
   }
 
-  const { data: items, error: itemsError } = await supabase
-    .from('study_hub_contribution_upload_items')
-    .select('storage_path')
-    .eq('session_id', session.id)
-    .eq('user_id', user.id);
-  if (itemsError) return jsonResponse({ error: 'Could not load the staged files.' }, 503, headers);
-
-  const paths = (items || []).map((item) => item.storage_path);
-  if (paths.length) {
-    const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths);
+  const paths: string[] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data: items, error: itemsError } = await supabase
+      .from('study_hub_contribution_upload_items')
+      .select('id, storage_path')
+      .eq('session_id', session.id)
+      .eq('user_id', user.id)
+      .order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (itemsError) return jsonResponse({ error: 'Could not load the staged files.' }, 503, headers);
+    if (!items?.length || items.length < pageSize) {
+      paths.push(...(items || []).map((item) => item.storage_path));
+      break;
+    }
+    paths.push(...items.map((item) => item.storage_path));
+  }
+  for (let offset = 0; offset < paths.length; offset += pageSize) {
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths.slice(offset, offset + pageSize));
     if (removeError) {
       console.error('Could not remove discarded contribution files.', removeError);
       return jsonResponse({ error: 'Could not remove the staged files. Try again later.' }, 503, headers);

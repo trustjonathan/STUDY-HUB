@@ -3,7 +3,6 @@ import {
   ALLOWED_TYPES,
   BUCKET,
   MAX_BATCH_BYTES,
-  MAX_BATCH_FILES,
   MAX_FILE_BYTES,
   authenticateUser,
   corsHeaders,
@@ -45,8 +44,8 @@ Deno.serve(async (request) => {
   }
 
   const files = body.files;
-  if (!Array.isArray(files) || files.length < 1 || files.length > MAX_BATCH_FILES) {
-    return jsonResponse({ error: `Select between 1 and ${MAX_BATCH_FILES} files.` }, 400, headers);
+  if (!Array.isArray(files) || files.length < 1) {
+    return jsonResponse({ error: 'Select at least one file.' }, 400, headers);
   }
   if (body.rightsConfirmed !== true) return jsonResponse({ error: 'Confirm that you have permission to share these materials.' }, 400, headers);
 
@@ -107,14 +106,15 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Could not start the upload session.' }, 500, headers);
   }
 
-  const { error: itemsError } = await supabase.from('study_hub_contribution_upload_items').insert(
-    prepared.map((item) => ({ ...item, session_id: sessionId, user_id: user.id })),
-  );
-  if (itemsError) {
-    const { error: cleanupError } = await supabase.from('study_hub_contribution_upload_sessions').delete().eq('id', sessionId);
-    if (cleanupError) console.error('Could not remove an incomplete contribution upload session.', cleanupError);
-    console.error('Could not create contribution upload items.', itemsError);
-    return jsonResponse({ error: 'Could not prepare the files for upload.' }, 500, headers);
+  for (let offset = 0; offset < prepared.length; offset += 500) {
+    const items = prepared.slice(offset, offset + 500).map((item) => ({ ...item, session_id: sessionId, user_id: user.id }));
+    const { error: itemsError } = await supabase.from('study_hub_contribution_upload_items').insert(items);
+    if (itemsError) {
+      const { error: cleanupError } = await supabase.from('study_hub_contribution_upload_sessions').delete().eq('id', sessionId);
+      if (cleanupError) console.error('Could not remove an incomplete contribution upload session.', cleanupError);
+      console.error('Could not create contribution upload items.', itemsError);
+      return jsonResponse({ error: 'Could not prepare the files for upload.' }, 500, headers);
+    }
   }
 
   return jsonResponse({
@@ -130,6 +130,5 @@ Deno.serve(async (request) => {
       size: size_bytes,
     })),
     maxBatchBytes: MAX_BATCH_BYTES,
-    maxBatchFiles: MAX_BATCH_FILES,
   }, 201, headers);
 });

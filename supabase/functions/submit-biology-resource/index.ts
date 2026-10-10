@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { verifyTurnstile } from '../_shared/contribution.ts';
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const ALLOWED_TYPES = new Map([
@@ -44,22 +45,6 @@ function safeStorageFilename(file: File, extension: string): string {
     .replace(/^[._-]+|[._-]+$/g, '')
     .slice(0, 100);
   return `${stem || 'resource'}${extension}`;
-}
-
-async function verifyTurnstile(token: string, remoteIp: string | null, expectedHostname: string): Promise<boolean> {
-  const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
-  if (!secret) return false;
-
-  const body = new URLSearchParams({ secret, response: token });
-  if (remoteIp) body.set('remoteip', remoteIp);
-  const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-  if (!result.ok) return false;
-  const payload = await result.json();
-  return payload.success === true && payload.hostname === expectedHostname;
 }
 
 async function hashIp(ip: string, salt: string): Promise<string> {

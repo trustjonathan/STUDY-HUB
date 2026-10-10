@@ -739,21 +739,29 @@ import * as tus from 'tus-js-client';
     }
     let { data: { session }, error } = await uploadAuthClient.auth.getSession();
     if (error) throw error;
+    let created = false;
     if (!session) {
       const result = await uploadAuthClient.auth.signInAnonymously({
         options: captchaToken ? { captchaToken } : undefined,
       });
       if (result.error) throw result.error;
       session = result.data.session;
+      created = true;
     }
     if (!session) throw new Error('Could not create a private upload session.');
-    return session;
+    return { session, created };
   }
 
   async function callContributionFunction(functionName, body) {
-    const session = await getUploadAuth(
+    const { session, created } = await getUploadAuth(
       typeof body.turnstileToken === 'string' ? body.turnstileToken : captchaResponse,
     );
+    if (created) {
+      captchaResponse = '';
+      updateSubmitButton();
+      if (window.turnstile && captchaWidgetId !== undefined) window.turnstile.reset(captchaWidgetId);
+      throw new Error('Your secure upload session is ready. Complete verification again to continue.');
+    }
     const apiUrl = new URL(requestedFile).origin;
     const response = await fetch(new URL(`/functions/v1/${functionName}`, apiUrl), {
       method: 'POST',
@@ -771,13 +779,19 @@ import * as tus from 'tus-js-client';
 
   async function refreshStagedFiles() {
     if (!activeBatch) return;
-    const session = await getUploadAuth();
+    const { session } = await getUploadAuth();
     const userId = session.user.id;
-    const { data, error } = await uploadAuthClient.storage
-      .from('study-hub-contributions')
-      .list(`staging/${userId}/${activeBatch.sessionId}`, { limit: 25 });
-    if (error) throw error;
-    const stagedNames = new Set((data || []).map((entry) => entry.name));
+    const folder = `staging/${userId}/${activeBatch.sessionId}`;
+    const stagedNames = new Set();
+    const pageSize = 1000;
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await uploadAuthClient.storage
+        .from('study-hub-contributions')
+        .list(folder, { limit: pageSize, offset, sortBy: { column: 'name', order: 'asc' } });
+      if (error) throw error;
+      for (const entry of data || []) stagedNames.add(entry.name);
+      if (!data || data.length < pageSize) break;
+    }
     for (const file of activeBatch.files) {
       if (stagedNames.has(file.path.split('/').pop())) {
         file.status = 'staged';
@@ -798,7 +812,7 @@ import * as tus from 'tus-js-client';
       ['application/rtf', '.rtf'],
       ['text/plain', '.txt'],
     ]);
-    if (files.length < 1 || files.length > 20) throw new Error('Select between 1 and 20 files.');
+    if (files.length < 1) throw new Error('Select at least one file.');
     let total = 0;
     for (const file of files) {
       const extension = file.name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] || '';
@@ -810,7 +824,7 @@ import * as tus from 'tus-js-client';
   }
 
   async function uploadFile(file, record) {
-    const session = await getUploadAuth();
+    const { session } = await getUploadAuth();
     const apiUrl = new URL(requestedFile);
     const projectId = apiUrl.hostname.split('.')[0];
     const endpoint = apiUrl.hostname.endsWith('.supabase.co')

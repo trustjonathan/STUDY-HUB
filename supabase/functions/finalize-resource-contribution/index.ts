@@ -73,68 +73,79 @@ Deno.serve(async (request) => {
     }
   }
 
-  const { data: items, error: itemsError } = await supabase
-    .from('study_hub_contribution_upload_items')
-    .select('id, title, original_filename, storage_path, contribution_path, mime_type, size_bytes, status')
-    .eq('session_id', session.id)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true });
-  if (itemsError) return jsonResponse({ error: 'Could not load the files in this upload session.' }, 503, headers);
-  if (!items?.length) return jsonResponse({ error: 'This upload session has no files.' }, 409, headers);
-
-  for (const item of items) {
-    if (item.status === 'submitted') continue;
-    const extension = safeExtension(item.original_filename, item.mime_type);
-    if (!extension) return jsonResponse({ error: `The file type for "${item.original_filename}" is no longer supported.` }, 415, headers);
-
-    let stagedFile = await supabase.storage.from(BUCKET).download(item.storage_path);
-    let stagedFromContributionPath = false;
-    if (stagedFile.error) {
-      stagedFile = await supabase.storage.from(BUCKET).download(item.contribution_path);
-      stagedFromContributionPath = !stagedFile.error;
+  const pageSize = 500;
+  let itemCount = 0;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data: items, error: itemsError } = await supabase
+      .from('study_hub_contribution_upload_items')
+      .select('id, title, original_filename, storage_path, contribution_path, mime_type, size_bytes, status')
+      .eq('session_id', session.id)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (itemsError) return jsonResponse({ error: 'Could not load the files in this upload session.' }, 503, headers);
+    if (!items?.length) {
+      if (offset === 0) return jsonResponse({ error: 'This upload session has no files.' }, 409, headers);
+      break;
     }
-    if (stagedFile.error) {
-      return jsonResponse({ error: `"${item.original_filename}" is not fully uploaded yet. Resume the batch and try again.` }, 409, headers);
-    }
-    if (stagedFile.data.size !== Number(item.size_bytes) || !(await matchesFileSignature(stagedFile.data, extension))) {
-      const removePath = stagedFromContributionPath ? item.contribution_path : item.storage_path;
-      const { error: removeError } = await supabase.storage.from(BUCKET).remove([removePath]);
-      if (removeError) console.error('Could not remove a rejected contribution file.', removeError);
-      return jsonResponse({ error: `"${item.original_filename}" does not match its declared file type or size.` }, 415, headers);
-    }
+    itemCount += items.length;
 
-    if (!stagedFromContributionPath) {
-      const { error: moveError } = await supabase.storage.from(BUCKET).move(item.storage_path, item.contribution_path);
-      if (moveError) {
-        console.error('Could not promote a staged contribution file.', moveError);
-        return jsonResponse({ error: `Could not submit "${item.original_filename}". Please retry the batch.` }, 503, headers);
+    for (const item of items) {
+      if (item.status === 'submitted') continue;
+      const extension = safeExtension(item.original_filename, item.mime_type);
+      if (!extension) return jsonResponse({ error: `The file type for "${item.original_filename}" is no longer supported.` }, 415, headers);
+
+      let stagedFile = await supabase.storage.from(BUCKET).download(item.storage_path);
+      let stagedFromContributionPath = false;
+      if (stagedFile.error) {
+        stagedFile = await supabase.storage.from(BUCKET).download(item.contribution_path);
+        stagedFromContributionPath = !stagedFile.error;
+      }
+      if (stagedFile.error) {
+        return jsonResponse({ error: `"${item.original_filename}" is not fully uploaded yet. Resume the batch and try again.` }, 409, headers);
+      }
+      if (stagedFile.data.size !== Number(item.size_bytes) || !(await matchesFileSignature(stagedFile.data, extension))) {
+        const removePath = stagedFromContributionPath ? item.contribution_path : item.storage_path;
+        const { error: removeError } = await supabase.storage.from(BUCKET).remove([removePath]);
+        if (removeError) console.error('Could not remove a rejected contribution file.', removeError);
+        return jsonResponse({ error: `"${item.original_filename}" does not match its declared file type or size.` }, 415, headers);
+      }
+
+      if (!stagedFromContributionPath) {
+        const { error: moveError } = await supabase.storage.from(BUCKET).move(item.storage_path, item.contribution_path);
+        if (moveError) {
+          console.error('Could not promote a staged contribution file.', moveError);
+          return jsonResponse({ error: `Could not submit "${item.original_filename}". Please retry the batch.` }, 503, headers);
+        }
+      }
+
+      const { error: contributionError } = await supabase.from('study_hub_contributions').upsert({
+        id: item.id,
+        title: item.title,
+        original_filename: item.original_filename,
+        storage_bucket: BUCKET,
+        storage_path: item.contribution_path,
+        mime_type: item.mime_type,
+        size_bytes: item.size_bytes,
+        status: 'pending',
+      }, { onConflict: 'id', ignoreDuplicates: true });
+      if (contributionError) {
+        console.error('Could not queue a promoted contribution file.', contributionError);
+        return jsonResponse({ error: `Could not queue "${item.original_filename}" for review. Please retry the batch.` }, 503, headers);
+      }
+
+      const { error: itemUpdateError } = await supabase
+        .from('study_hub_contribution_upload_items')
+        .update({ status: 'submitted', submitted_at: new Date().toISOString() })
+        .eq('id', item.id)
+        .eq('user_id', user.id);
+      if (itemUpdateError) {
+        console.error('Could not mark a contribution upload item as submitted.', itemUpdateError);
+        return jsonResponse({ error: 'Some files were submitted, but the batch could not be fully confirmed. Retry to safely finish.' }, 503, headers);
       }
     }
-
-    const { error: contributionError } = await supabase.from('study_hub_contributions').upsert({
-      id: item.id,
-      title: item.title,
-      original_filename: item.original_filename,
-      storage_bucket: BUCKET,
-      storage_path: item.contribution_path,
-      mime_type: item.mime_type,
-      size_bytes: item.size_bytes,
-      status: 'pending',
-    }, { onConflict: 'id', ignoreDuplicates: true });
-    if (contributionError) {
-      console.error('Could not queue a promoted contribution file.', contributionError);
-      return jsonResponse({ error: `Could not queue "${item.original_filename}" for review. Please retry the batch.` }, 503, headers);
-    }
-
-    const { error: itemUpdateError } = await supabase
-      .from('study_hub_contribution_upload_items')
-      .update({ status: 'submitted', submitted_at: new Date().toISOString() })
-      .eq('id', item.id)
-      .eq('user_id', user.id);
-    if (itemUpdateError) {
-      console.error('Could not mark a contribution upload item as submitted.', itemUpdateError);
-      return jsonResponse({ error: 'Some files were submitted, but the batch could not be fully confirmed. Retry to safely finish.' }, 503, headers);
-    }
+    if (items.length < pageSize) break;
   }
 
   const { error: completeError } = await supabase
@@ -146,5 +157,5 @@ Deno.serve(async (request) => {
     console.error('Could not mark a contribution upload session as submitted.', completeError);
     return jsonResponse({ error: 'The files were queued, but the batch status could not be updated. Retry to confirm.' }, 503, headers);
   }
-  return jsonResponse({ status: 'pending', count: items.length }, 202, headers);
+  return jsonResponse({ status: 'pending', count: itemCount }, 202, headers);
 });
