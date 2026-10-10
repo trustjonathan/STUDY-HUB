@@ -72,6 +72,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <link rel="stylesheet" href={legacyStyles} />
   </head>
   <body data-page={dataPage} class={bodyClass}>
+    {currentSubject && <a class="skip-link" href="#main-content">Skip to main content</a>}
     <header class="site-header" id="top">
       <div class="utility-bar">
         <div class="utility-inner">

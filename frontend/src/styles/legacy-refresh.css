@@ -21,6 +21,26 @@ body[data-page] {
   letter-spacing: 0;
 }
 
+body[data-page] .skip-link {
+  position: fixed;
+  z-index: 10000;
+  top: -100px;
+  left: 8px;
+  transition: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: #173e2e;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+body[data-page] .skip-link:focus {
+  top: 8px;
+  outline: 3px solid #f0b642;
+  outline-offset: 2px;
+}
+
 body[data-page] h1,
 body[data-page] h2,
 body[data-page] h3,
@@ -39,6 +59,9 @@ body[data-page] .site-header {
 }
 
 body[data-page] .site-header nav a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   color: #4f5d55;
   font-size: 0.9rem;
   font-weight: 600;
@@ -258,8 +281,13 @@ body[data-page] select:focus-visible,
 body[data-page] textarea:focus-visible,
 body[data-page] button:focus-visible,
 body[data-page] a:focus-visible {
-  outline: 3px solid rgba(36, 107, 73, 0.3);
+  outline: 3px solid #173e2e;
   outline-offset: 2px;
+}
+
+body[data-page] #main-content:focus {
+  outline: 3px solid #173e2e;
+  outline-offset: 4px;
 }
 
 body[data-page] #pomodoro-container {
@@ -480,7 +508,7 @@ body[data-page] .legacy-site-footer a:not(.brand):hover {
 }
 
 body[data-page] .legacy-site-footer a:focus-visible {
-  outline: 3px solid rgba(36, 107, 73, 0.35);
+  outline: 3px solid #173e2e;
   outline-offset: 3px;
 }
 

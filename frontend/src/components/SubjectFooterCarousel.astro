@@ -15,7 +15,10 @@ const base = import.meta.env.BASE_URL.endsWith("/")
 <nav class="footer-subject-carousel" aria-label="Browse all Study Hub subjects">
   <div class="footer-subject-heading">
     <h2>Keep exploring subjects</h2>
-    <a href={`${base}subjects.html`}>Browse the full directory <span aria-hidden="true">→</span></a>
+    <div class="footer-subject-actions">
+      <button class="footer-subject-motion-toggle" type="button" data-carousel-toggle aria-label="Pause or resume automatic subject movement" aria-pressed="false">Pause movement</button>
+      <a href={`${base}subjects.html`}>Browse the full directory <span aria-hidden="true">→</span></a>
+    </div>
   </div>
   <div class="footer-subject-viewport" data-footer-subject-carousel tabindex="0" role="region" aria-label="Browse all subjects">
     <div class="footer-subject-track">
@@ -44,16 +47,26 @@ const base = import.meta.env.BASE_URL.endsWith("/")
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   carousels.forEach((carousel) => {
-    if (reducedMotion.matches) return;
     const groups = carousel.querySelectorAll<HTMLElement>(".footer-subject-group");
+    const toggle = carousel.closest(".footer-subject-carousel")?.querySelector<HTMLButtonElement>("[data-carousel-toggle]");
     let animationFrame = 0;
     let previousTime = 0;
-    let paused = false;
+    let userPaused = false;
+    let interactionPaused = false;
+    let hovered = false;
+    let focused = false;
     let resumeTimer = 0;
+
+    const isPaused = () => userPaused || interactionPaused || hovered || focused || document.hidden || reducedMotion.matches;
+    const updateToggle = () => {
+      if (!toggle) return;
+      toggle.textContent = userPaused ? "Resume movement" : "Pause movement";
+      toggle.setAttribute("aria-pressed", String(userPaused));
+    };
 
     const animate = (time: number) => {
       if (!previousTime) previousTime = time;
-      if (!paused && groups.length === 2) {
+      if (!isPaused() && groups.length === 2) {
         carousel.scrollLeft += (time - previousTime) * 24 / 1000;
         const loopDistance = groups[1].offsetLeft - groups[0].offsetLeft;
         if (loopDistance > 0 && carousel.scrollLeft >= loopDistance) carousel.scrollLeft -= loopDistance;
@@ -63,45 +76,51 @@ const base = import.meta.env.BASE_URL.endsWith("/")
     };
 
     const pauseForInteraction = () => {
-      paused = true;
+      interactionPaused = true;
       window.clearTimeout(resumeTimer);
       resumeTimer = window.setTimeout(() => {
-        paused = false;
+        interactionPaused = false;
         previousTime = 0;
       }, 1800);
     };
 
+    toggle?.addEventListener("click", () => {
+      userPaused = !userPaused;
+      previousTime = 0;
+      updateToggle();
+    });
     carousel.addEventListener("pointerdown", pauseForInteraction);
     carousel.addEventListener("wheel", pauseForInteraction, { passive: true });
     carousel.addEventListener("touchstart", pauseForInteraction, { passive: true });
     carousel.addEventListener("keydown", pauseForInteraction);
-    carousel.addEventListener("focusin", () => { paused = true; });
+    carousel.addEventListener("focusin", () => { focused = true; });
     carousel.addEventListener("focusout", (event) => {
       if (!carousel.contains(event.relatedTarget as Node | null)) {
-        paused = false;
+        focused = false;
         previousTime = 0;
       }
     });
-    carousel.addEventListener("mouseenter", () => { paused = true; });
+    carousel.addEventListener("mouseenter", () => { hovered = true; });
     carousel.addEventListener("mouseleave", () => {
-      paused = false;
+      hovered = false;
       previousTime = 0;
     });
     document.addEventListener("visibilitychange", () => {
-      paused = document.hidden;
       previousTime = 0;
     });
     reducedMotion.addEventListener("change", () => {
+      window.clearTimeout(resumeTimer);
+      interactionPaused = false;
       if (reducedMotion.matches) {
         cancelAnimationFrame(animationFrame);
-        window.clearTimeout(resumeTimer);
       } else {
         previousTime = 0;
         animationFrame = requestAnimationFrame(animate);
       }
     });
 
-    animationFrame = requestAnimationFrame(animate);
+    updateToggle();
+    if (!reducedMotion.matches) animationFrame = requestAnimationFrame(animate);
   });
 </script>
 
@@ -109,22 +128,31 @@ const base = import.meta.env.BASE_URL.endsWith("/")
   .footer-subject-carousel { max-width: 1180px; margin: 34px auto 0; padding: 20px 28px 0; border-top: 1px solid #dfe4db; color: #24312c; font-family: "DM Sans", Arial, sans-serif; }
   .footer-subject-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
   .footer-subject-heading h2 { margin: 0; color: #293b32; font: 800 1.05rem Manrope, sans-serif; }
-  .footer-subject-heading > a { color: #285c3e; font-size: .8rem; font-weight: 800; text-decoration: none; }
-  .footer-subject-heading > a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .footer-subject-actions { display: flex; align-items: center; gap: 12px; }
+  .footer-subject-actions > a { min-height: 44px; display: inline-flex; align-items: center; color: #285c3e; font-size: .8rem; font-weight: 800; text-decoration: none; }
+  .footer-subject-actions > a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .footer-subject-motion-toggle { min-height: 44px; padding: 8px 10px; border: 1px solid #829489; border-radius: 6px; background: #fffefa; color: #24312c; font: 700 .78rem "DM Sans", Arial, sans-serif; cursor: pointer; }
+  .footer-subject-motion-toggle:hover { border-color: #285c3e; background: #edf4ec; }
+  .footer-subject-motion-toggle:focus-visible,
+  .footer-subject-actions > a:focus-visible,
+  .footer-subject-card:focus-visible { outline: 3px solid #173e2e; outline-offset: 3px; }
   .footer-subject-viewport { overflow-x: auto; padding: 4px 2px 12px; overscroll-behavior-inline: contain; scrollbar-color: #829489 #e4e9e1; scrollbar-width: thin; touch-action: pan-x; }
   .footer-subject-viewport:focus-visible { outline: 3px solid #6b9478; outline-offset: 2px; }
   .footer-subject-track, .footer-subject-group { display: flex; width: max-content; gap: 12px; }
   .footer-subject-card { display: flex; width: 92px; height: 92px; flex: 0 0 92px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px; border: 1px solid #cfdbcf; border-radius: 50%; background: #fffefa; color: #29483a; text-align: center; text-decoration: none; box-shadow: 0 3px 10px rgba(36,49,44,.06); transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease; }
   .footer-subject-card > span { font-size: 1.5rem; line-height: 1; }
   .footer-subject-card strong { display: -webkit-box; max-width: 100%; overflow: hidden; font-size: .62rem; line-height: 1.15; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-  .footer-subject-card:hover, .footer-subject-card:focus-visible, .footer-subject-card.is-current { transform: translateY(-2px); border-color: #6a9676; background: #edf4ec; outline: none; }
+  .footer-subject-card:hover, .footer-subject-card.is-current { transform: translateY(-2px); border-color: #6a9676; background: #edf4ec; }
+  .footer-subject-card strong { font-size: .7rem; }
   @media (max-width: 600px) {
     .footer-subject-carousel { margin-top: 26px; padding: 18px 16px 0; }
     .footer-subject-card { width: 82px; height: 82px; flex-basis: 82px; }
     .footer-subject-track, .footer-subject-group { gap: 9px; }
     .footer-subject-heading { align-items: flex-start; flex-direction: column; }
+    .footer-subject-actions { flex-wrap: wrap; }
   }
   @media (prefers-reduced-motion: reduce) {
     .footer-subject-card { transition: none; }
+    .footer-subject-motion-toggle { display: none; }
   }
 </style>
