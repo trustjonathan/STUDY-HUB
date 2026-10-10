@@ -29,6 +29,16 @@ export function isAllowedOrigin(origin: string | null): origin is string {
   return Boolean(origin && allowedOrigins.includes(origin));
 }
 
+export function getClientIp(request: Request): string | null {
+  const realIp = request.headers.get('x-real-ip')?.trim();
+  if (realIp) return realIp;
+
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (!forwardedFor) return null;
+  const addresses = forwardedFor.split(',').map((address) => address.trim()).filter(Boolean);
+  return addresses.at(-1) || null;
+}
+
 export function jsonResponse(body: unknown, status: number, headers: HeadersInit): Response {
   return new Response(JSON.stringify(body), {
     status,

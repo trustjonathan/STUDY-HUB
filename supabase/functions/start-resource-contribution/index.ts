@@ -6,6 +6,7 @@ import {
   MAX_FILE_BYTES,
   authenticateUser,
   corsHeaders,
+  getClientIp,
   hashIp,
   isAllowedOrigin,
   jsonResponse,
@@ -76,7 +77,7 @@ Deno.serve(async (request) => {
     });
   }
 
-  const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
+  const remoteIp = getClientIp(request) || `user:${user.id}`;
   const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
   if (!remoteIp || !rateLimitSalt) return jsonResponse({ error: 'Upload protection is not configured.' }, 503, headers);
   const supabase = createClient(apiUrl, serviceRoleKey, {

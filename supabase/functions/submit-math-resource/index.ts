@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getClientIp } from '../_shared/contribution.ts';
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const ALLOWED_TYPES = new Map([
@@ -107,7 +108,7 @@ Deno.serve(async (request) => {
   const extension = safeExtension(file);
   if (!extension) return response({ error: 'File type is not supported or does not match its extension.' }, 415, headers);
   if (!(await matchesFileSignature(file, extension))) return response({ error: 'File contents do not match the selected file type.' }, 415, headers);
-  const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
+  const remoteIp = getClientIp(request);
   const supabase = createClient(apiUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
