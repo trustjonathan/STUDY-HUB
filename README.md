@@ -18,6 +18,8 @@ On pushes affecting `supabase/`, `.github/workflows/deploy-supabase.yml` links t
 
 The reader's contents panel uses embedded PDF outlines or rendered document headings when available, saves bookmarks and color preferences in the current browser, and offers warm, grayscale, and night color modes. Resuming a partially transferred file requires reselecting that original file because browsers do not let a page reopen a user's local file automatically.
 
+The PDF reader's optional AI Study Companion can explain the currently displayed PDF page. For local use, run the backend with `GEMINI_API_KEY` set in `backend/.env`, and set `PUBLIC_STUDY_HUB_API_URL=http://localhost:4000` in `frontend/.env` before building or running Astro. For GitHub Pages, deploy the Express backend over HTTPS, set the repository variable `PUBLIC_STUDY_HUB_API_URL` to its public origin, and configure `GEMINI_API_KEY` in that backend's environment. The Gemini key is only read by the backend and must never be added to frontend variables or source. Without a configured API URL the tutor remains unavailable, while the rest of the reader continues to work.
+
 ## Anonymous Suggestions
 
 The suggestions board is available at `/STUDY-HUB/community-chat.html`. Visitors do not need an account and the board does not create or restore a Supabase Auth session. The database stores suggestion text, moderation status, and submission time only; it does not store a name, email, user ID, or IP address.

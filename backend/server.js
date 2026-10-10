@@ -9,6 +9,7 @@ const app = express()
 
 // Middleware
 app.use(cors())
+app.use("/api/ai-study-companion", express.json({ limit: "1mb" }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan("dev"))
@@ -17,6 +18,7 @@ app.use(morgan("dev"))
 const identityRoutes = require("./api/routes/identityRoutes")
 const notesRoutes = require("./api/routes/notesRoutes")
 const aiTutorRoutes = require("./api/routes/aiTutor.routes.js")
+const aiStudyCompanionRoutes = require("./api/routes/aiStudyCompanion.routes.js")
 
 let quizRoutes
 let timetableRoutes
@@ -30,6 +32,7 @@ catch (err) { console.warn("timetableRoutes not found yet") }
 app.use("/api/auth", identityRoutes)
 app.use("/api/notes", notesRoutes)
 app.use("/api/bio-gpt", aiTutorRoutes)
+app.use("/api/ai-study-companion", aiStudyCompanionRoutes)
 
 if (quizRoutes) app.use("/api/quizzes", quizRoutes)
 if (timetableRoutes) app.use("/api/timetable", timetableRoutes)

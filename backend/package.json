@@ -9,7 +9,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "db:link": "supabase link --project-ref ttuxelhyoctyshgvjykj",
     "db:status": "supabase migration list --linked",
     "db:dry-run": "supabase db push --linked --include-all --dry-run",

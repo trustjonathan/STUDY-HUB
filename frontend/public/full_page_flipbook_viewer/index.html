@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#101923" />
+  <meta name="study-hub-api-base" content="" />
   <title>Study Hub reader</title>
   <link rel="stylesheet" href="css/reader-controls.css" />
   <style>
@@ -34,6 +35,9 @@
       </button>
     </div>
     <div class="ela-tools">
+      <button class="ela-btn" id="ai-study-toggle" type="button" title="Ask about this PDF page" aria-label="Open AI study companion" aria-expanded="false" aria-controls="ai-study-companion" hidden>
+        <span aria-hidden="true">AI</span>
+      </button>
       <button class="ela-btn" data-a="contents" title="Contents and bookmarks" aria-label="Open contents and bookmarks" aria-expanded="false" aria-controls="reading-panel">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M3 6h.01M3 12h.01M3 18h.01"></path></svg>
       </button>
@@ -122,6 +126,27 @@
     </section>
   </aside>
 
+  <aside class="ai-study-panel" id="ai-study-companion" aria-labelledby="ai-study-title" aria-hidden="true">
+    <div class="ai-study-heading">
+      <div>
+        <p class="rail-eyebrow">Study Hub learning tool</p>
+        <h2 id="ai-study-title">AI Study Companion</h2>
+      </div>
+      <button class="ela-btn" id="ai-study-close" type="button" aria-label="Close AI study companion">×</button>
+    </div>
+    <p class="ai-study-intro">Ask about the PDF page you are viewing. Check explanations against your notes and teacher’s guidance.</p>
+    <div class="ai-study-messages" id="ai-study-messages" role="log" aria-live="polite" aria-relevant="additions">
+      <p class="ai-study-empty">Ask me to explain a concept, calculation, question, or diagram on this page.</p>
+    </div>
+    <p class="ai-study-status" id="ai-study-status" role="status"></p>
+    <form class="ai-study-form" id="ai-study-form">
+      <label class="sr-only" for="ai-study-prompt">Question about this PDF page</label>
+      <textarea id="ai-study-prompt" maxlength="1500" rows="3" placeholder="Explain Task (a)(i)…" required></textarea>
+      <button class="ai-study-submit" id="ai-study-submit" type="submit">Ask about this page</button>
+    </form>
+    <p class="ai-study-disclaimer">AI can make mistakes. The current PDF page is sent to Study Hub’s AI service to answer your question.</p>
+  </aside>
+
   <script src="js/pdf.min.js"></script>
   <script src="js/jszip.min.js"></script>
   <script src="js/docx-preview.min.js"></script>
@@ -129,5 +154,6 @@
   <script src="js/EMFJS.bundle.min.js"></script>
   <script src="js/RTFJS.bundle.min.js"></script>
   <script src="js/reader.bundle.js" defer></script>
+  <script src="js/ai-study-companion.js" defer></script>
 </body>
 </html>

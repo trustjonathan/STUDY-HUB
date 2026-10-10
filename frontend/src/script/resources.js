@@ -114,11 +114,30 @@
   }
 
   function resourceGroup(item) {
-    if (item.category === 'notes') return 'notes';
-    if (item.category === 'papers') return 'papers';
     if (item.resourceType === 'notes' || item.resourceType === 'guide') return 'notes';
     if (item.resourceType === 'paper') return 'papers';
+    if (item.category === 'notes') return 'notes';
+    if (item.category === 'papers') return 'papers';
     return 'other';
+  }
+
+  function classifyResourceType(item) {
+    const filename = String(item.originalFilename || item.original_filename || item.title || '').toLowerCase();
+    const category = item.category;
+    const existingType = item.resourceType || item.resource_type;
+    if (/(marking guide|marking scheme|answers?|solutions?|\bguides?\b|\bmg\b)/.test(filename)) return 'guide';
+    if (/(coursebook|textbook|encyclopedia|\bbook\b|\bnotes\b|syllabus|curriculum|course outline|handout|summary)/.test(filename)) return 'notes';
+    if (/(paper|\bpp?\s?[1-4]\b|\bp\s?\.?\s?[1-4]\b|mock|exam|test|\beot\b|premock|postmock|seminar|assignment|revision|assessment|scenario|trial|workshop|question bank|sample set|\bitems?\b|end of term|end of year|mid[- ]?term)/.test(filename)) return 'paper';
+    if (existingType && existingType !== 'other') return existingType;
+    if (category === 'notes') return 'notes';
+    if (category === 'papers') return 'paper';
+    return existingType || 'other';
+  }
+
+  function isUsableResource(item) {
+    const storagePath = item.storagePath || item.storage_path || '';
+    return !storagePath.split('/').includes('.emptyFolderPlaceholder') &&
+      Number(item.sizeBytes ?? item.size_bytes) > 0;
   }
 
   function timestamp(value) {
@@ -169,18 +188,22 @@
     if (!catalogUrl || !anonKey) {
       await loadManifestFallback();
       const filtered = MANIFEST.items.filter((item) => {
+        if (!isUsableResource(item)) return false;
         if (!subjects.has(item.subject)) return false;
+        return true;
+      }).map((item) => ({
+        ...item,
+        resourceType: classifyResourceType(item),
+        storagePath: item.storagePath || item.storage_path,
+        publicUrl: item.publicUrl || publicStorageUrl(item.storageBucket || item.storage_bucket, item.storagePath || item.storage_path)
+      })).filter((item) => {
         if (!category) return true;
         if (category === 'notes') return resourceGroup(item) === 'notes';
         if (category === 'papers') return resourceGroup(item) === 'papers';
         return item.category === category;
       });
-      const items = filtered.slice(offset, offset + PAGE_SIZE).map((item) => ({
-        ...item,
-        storagePath: item.storagePath || item.storage_path,
-        publicUrl: item.publicUrl || publicStorageUrl(item.storageBucket || item.storage_bucket, item.storagePath || item.storage_path)
-      }));
-      return { items, total: filtered.length, hasMore: offset + items.length < filtered.length };
+      const page = filtered.slice(offset, offset + PAGE_SIZE);
+      return { items: page, total: filtered.length, scanned: page.length, hasMore: offset + page.length < filtered.length };
     }
 
     const endpoint = new URL(`${catalogUrl}/rest/v1/${SUPABASE_TABLE}`);
@@ -189,8 +212,9 @@
       'subject,category,storage_bucket,storage_path,original_filename,title,extension,size_bytes,level,year,resource_type,uploaded_at,updated_at'
     );
     endpoint.searchParams.set('subject', `in.(${Array.from(subjects).join(',')})`);
-    if (category === 'notes') endpoint.searchParams.set('or', '(category.eq.notes,and(category.is.null,resource_type.in.(notes,guide)))');
-    else if (category === 'papers') endpoint.searchParams.set('or', '(category.eq.papers,and(category.is.null,resource_type.eq.paper))');
+    endpoint.searchParams.set('size_bytes', 'gt.0');
+    if (category === 'notes') endpoint.searchParams.set('or', '(resource_type.in.(notes,guide),and(category.eq.notes,resource_type.eq.other),and(category.eq.notes,resource_type.is.null),resource_type.eq.other,and(category.is.null,resource_type.is.null))');
+    else if (category === 'papers') endpoint.searchParams.set('or', '(resource_type.eq.paper,and(category.eq.papers,resource_type.eq.other),and(category.eq.papers,resource_type.is.null),resource_type.eq.other,and(category.is.null,resource_type.is.null))');
     else if (category) endpoint.searchParams.set('category', `eq.${category}`);
     endpoint.searchParams.set('order', order || 'uploaded_at.desc.nullslast,title.asc,storage_path.asc');
     endpoint.searchParams.set('limit', String(PAGE_SIZE));
@@ -210,24 +234,32 @@
     const contentRange = response.headers.get('content-range') || '';
     const totalFromHeader = Number(contentRange.split('/')[1]);
     const total = Number.isFinite(totalFromHeader) ? totalFromHeader : null;
+    const mappedItems = page.map((item) => ({
+      title: item.title,
+      originalFilename: item.original_filename,
+      storagePath: item.storage_path,
+      subject: item.subject,
+      category: item.category,
+      extension: item.extension,
+      sizeBytes: item.size_bytes,
+      level: item.level,
+      year: item.year,
+      resourceType: classifyResourceType(item),
+      uploadedAt: item.uploaded_at,
+      updatedAt: item.updated_at,
+      publicUrl: publicStorageUrl(item.storage_bucket, item.storage_path, catalogUrl)
+    }));
+    const items = mappedItems.filter((item) => {
+      if (!category) return true;
+      if (category === 'notes') return resourceGroup(item) === 'notes';
+      if (category === 'papers') return resourceGroup(item) === 'papers';
+      return item.category === category;
+    });
 
     return {
-      items: page.map((item) => ({
-        title: item.title,
-        originalFilename: item.original_filename,
-        storagePath: item.storage_path,
-        subject: item.subject,
-        category: item.category,
-        extension: item.extension,
-        sizeBytes: item.size_bytes,
-        level: item.level,
-        year: item.year,
-        resourceType: item.resource_type,
-        uploadedAt: item.uploaded_at,
-        updatedAt: item.updated_at,
-        publicUrl: publicStorageUrl(item.storage_bucket, item.storage_path, catalogUrl)
-      })),
-      total,
+      items,
+      total: category ? null : total,
+      scanned: page.length,
       hasMore: page.length === PAGE_SIZE && (total === null || offset + page.length < total)
     };
   }
@@ -244,7 +276,7 @@
         page.items.forEach((item) => {
           if (!existing.has(item.storagePath)) catalog.items.push(item);
         });
-        catalog.offset += page.items.length;
+        catalog.offset += page.scanned ?? page.items.length;
         catalog.total = page.total ?? catalog.total;
         catalog.hasMore = page.hasMore;
         return catalog;
@@ -730,7 +762,7 @@
         page.items.forEach((item) => {
           if (!existing.has(item.storagePath)) all.push(item);
         });
-        offset += page.items.length;
+        offset += page.scanned ?? page.items.length;
         total = page.total ?? total;
         hasMore = page.hasMore;
         loading = false;
@@ -760,6 +792,9 @@
       })().finally(() => {
         loading = false;
         pageRequest = null;
+        if (hasMore && !all.length && !searchEl?.value.trim() && !filterEl?.value) {
+          window.setTimeout(() => void loadNextPage(), 0);
+        }
       });
       return pageRequest;
     }
@@ -816,6 +851,7 @@
       if (!MANIFEST || !Array.isArray(MANIFEST.items)) return [];
       return MANIFEST.items.filter(
         (item) =>
+          isUsableResource(item) &&
           (!subject || item.subject === subject) &&
           (!category || item.category === category) &&
           matches(item, (opts.search || '').toLowerCase(), opts.level || '')

@@ -119,9 +119,12 @@ async function walk(prefix, found = []) {
       continue;
     }
 
+    const sizeBytes = Number(entry.metadata?.size) || 0;
+    if (entry.name === '.emptyFolderPlaceholder' || sizeBytes <= 0) continue;
+
     found.push({
       key,
-      sizeBytes: Number(entry.metadata?.size) || 0,
+      sizeBytes,
       mimeType: entry.metadata?.mimetype || null,
       createdAt: entry.created_at || null,
       updatedAt: entry.updated_at || entry.created_at || null

@@ -131,9 +131,9 @@ function detectYear(fileName) {
 }
 
 function detectResourceType(lowerName, category) {
-  if (/(marking guide|marking scheme|answers?|solutions?|\bguide\b|\bmg\b)/.test(lowerName)) return 'guide';
-  if (/(coursebook|textbook|encyclopedia|\bbook\b|\bnotes\b)/.test(lowerName)) return 'notes';
-  if (/(paper|\bpp?\s?[1-4]\b|\bp\s?\.?\s?[1-4]\b|mock|exam|test|\beot\b|premock|postmock|seminar|assignment|revision|practical)/.test(lowerName)) return 'paper';
+  if (/(marking guide|marking scheme|answers?|solutions?|\bguides?\b|\bmg\b)/.test(lowerName)) return 'guide';
+  if (/(coursebook|textbook|encyclopedia|\bbook\b|\bnotes\b|syllabus|curriculum|course outline|handout|summary)/.test(lowerName)) return 'notes';
+  if (/(paper|\bpp?\s?[1-4]\b|\bp\s?\.?\s?[1-4]\b|mock|exam|test|\beot\b|premock|postmock|seminar|assignment|revision|assessment|scenario|trial|workshop|question bank|sample set|\bitems?\b|end of term|end of year|mid[- ]?term)/.test(lowerName)) return 'paper';
   if (category === 'notes') return 'notes';
   if (category === 'papers') return 'paper';
   return 'other';
