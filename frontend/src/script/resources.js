@@ -166,6 +166,7 @@
     const readerUrl = new URL(READER_PAGE, window.location.href);
     readerUrl.searchParams.set('file', item.publicUrl);
     readerUrl.searchParams.set('title', item.title || item.originalFilename || 'Study Hub resource');
+    if (item.subject) readerUrl.searchParams.set('subject', item.subject);
     readerUrl.searchParams.set('return', window.location.href);
     if (SUPABASE_CONFIG.anonKey) readerUrl.searchParams.set('anon_key', SUPABASE_CONFIG.anonKey);
     if (TURNSTILE_SITE_KEY) readerUrl.searchParams.set('turnstile_key', TURNSTILE_SITE_KEY);
@@ -362,6 +363,7 @@
           title: item.title || item.originalFilename || 'Study Hub resource',
           return: returnUrl
         });
+        if (item.subject) query.set('subject', item.subject);
         if (anonKey) query.set('anon_key', anonKey);
         if (turnstileKey) query.set('turnstile_key', turnstileKey);
         return `${readerPage}?${query}`;

@@ -13,7 +13,7 @@
     [hidden] { display: none !important; }
   </style>
 </head>
-<body class="contribution-panel-hidden">
+<body>
   <header class="ela-top" id="reader-toolbar" hidden>
     <button class="ela-btn" data-a="back" title="Back to library" aria-label="Back to library">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
@@ -65,6 +65,9 @@
       <button class="ela-btn" data-a="full" title="Full screen" aria-label="Full screen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
       </button>
+      <button class="ela-btn related-toggle" data-a="related" title="Related documents" aria-label="Open related documents" aria-expanded="false" aria-controls="related-documents">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v6h5M4 7v14M10 13h6M10 17h6"></path></svg>
+      </button>
       <button class="ela-btn ela-contribute-toggle" data-a="contribute" title="Share a resource" aria-label="Open resource sharing panel" aria-expanded="false" aria-controls="contribution-rail">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
         <span class="ela-contribute-label">Share resource</span>
@@ -84,34 +87,49 @@
       <div id="reader-error" role="alert" hidden></div>
     </main>
 
-    <button class="reader-drawer-backdrop" type="button" data-a="close-contribution" aria-label="Close resource sharing panel" hidden></button>
-
-    <aside class="contribution-rail" id="contribution-rail" aria-labelledby="contribution-title">
-      <div class="contribution-heading">
+    <aside class="related-rail" id="related-documents" aria-labelledby="related-title">
+      <div class="related-heading">
         <div>
-          <p class="rail-eyebrow">Help grow the library</p>
-          <h2 id="contribution-title">Share a resource</h2>
+          <p class="rail-eyebrow">Keep studying</p>
+          <h2 id="related-title">Related documents</h2>
+          <p class="related-subject" id="related-subject"></p>
         </div>
-        <button class="ela-btn contribution-close" data-a="close-contribution" type="button" aria-label="Close contribution panel">×</button>
+        <button class="ela-btn related-close" data-a="close-related" type="button" aria-label="Close related documents">×</button>
       </div>
-      <p class="contribution-intro">Have a related file? Sharing is optional. Contributions stay private until they are reviewed and sorted into the library.</p>
-      <form id="contribution-form" hidden>
-        <label class="form-field">
-          <span>Choose files</span>
-          <input name="files" type="file" accept=".pdf,.doc,.docx,.rtf,.txt" multiple required />
-          <small>Up to 20 PDF, Word, RTF, or text files · 50 MB each, 250 MB total</small>
-        </label>
-        <div class="upload-queue" id="upload-queue" aria-live="polite"></div>
-        <label class="rights-check">
-          <input name="rights_confirmed" type="checkbox" required />
-          <span>I have permission to share every selected material.</span>
-        </label>
-        <div class="verification" id="turnstile-widget"></div>
-        <button class="contribution-submit" id="submit-contribution" type="submit" disabled>Submit complete batch</button>
-      </form>
-      <p class="upload-status" id="upload-status" role="status" aria-live="polite">Uploads are optional. Selected files stage privately as they transfer and are submitted together when you choose.</p>
+      <div class="related-list" id="related-list" aria-live="polite">
+        <p class="related-status">Finding more from this subject…</p>
+      </div>
+      <button class="related-retry" id="related-retry" type="button" hidden>Try loading again</button>
+      <button class="related-share" data-a="contribute" type="button">Share a resource</button>
     </aside>
   </div>
+
+  <button class="reader-drawer-backdrop" type="button" data-a="close-drawers" aria-label="Close side panels" hidden></button>
+  <aside class="contribution-rail" id="contribution-rail" aria-labelledby="contribution-title" aria-hidden="true">
+    <div class="contribution-heading">
+      <div>
+        <p class="rail-eyebrow">Help grow the library</p>
+        <h2 id="contribution-title">Share a resource</h2>
+      </div>
+      <button class="ela-btn contribution-close" data-a="close-contribution" type="button" aria-label="Close contribution panel">×</button>
+    </div>
+    <p class="contribution-intro">Have a related file? Sharing is optional. Contributions stay private until they are reviewed and sorted into the library.</p>
+    <form id="contribution-form" hidden>
+      <label class="form-field">
+        <span>Choose files</span>
+        <input name="files" type="file" accept=".pdf,.doc,.docx,.rtf,.txt" multiple required />
+        <small>Up to 20 PDF, Word, RTF, or text files · 50 MB each, 250 MB total</small>
+      </label>
+      <div class="upload-queue" id="upload-queue" aria-live="polite"></div>
+      <label class="rights-check">
+        <input name="rights_confirmed" type="checkbox" required />
+        <span>I have permission to share every selected material.</span>
+      </label>
+      <div class="verification" id="turnstile-widget"></div>
+      <button class="contribution-submit" id="submit-contribution" type="submit" disabled>Submit complete batch</button>
+    </form>
+    <p class="upload-status" id="upload-status" role="status" aria-live="polite">Uploads are optional. Selected files stage privately as they transfer and are submitted together when you choose.</p>
+  </aside>
 
   <aside class="reading-panel" id="reading-panel" aria-label="Contents and bookmarks" hidden>
     <div class="reading-panel-heading">

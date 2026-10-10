@@ -24,6 +24,11 @@ import * as tus from 'tus-js-client';
   const colorSelect = document.querySelector('#reader-color');
   const readingPanel = document.querySelector('#reading-panel');
   const contentsButton = document.querySelector('[data-a="contents"]');
+  const relatedList = document.querySelector('#related-list');
+  const relatedSubjectLabel = document.querySelector('#related-subject');
+  const relatedRetry = document.querySelector('#related-retry');
+  const relatedToggle = document.querySelector('[data-a="related"]');
+  const relatedRail = document.querySelector('#related-documents');
   const toc = document.querySelector('#document-toc');
   const bookmarksContainer = document.querySelector('#document-bookmarks');
   const bookmarkButton = document.querySelector('#bookmark-current');
@@ -65,6 +70,227 @@ import * as tus from 'tus-js-client';
   function setUploadMessage(message, stateName = '') {
     uploadStatus.textContent = message;
     uploadStatus.dataset.state = stateName;
+  }
+
+  const subjectNames = {
+    biology: 'Biology',
+    chemistry: 'Chemistry',
+    mathematics: 'Mathematics',
+    physics: 'Physics'
+  };
+
+  function currentSubject() {
+    const requestedSubject = params.get('subject')?.toLowerCase();
+    if (Object.hasOwn(subjectNames, requestedSubject)) return requestedSubject;
+
+    try {
+      const path = new URL(requestedFile).pathname.toLowerCase();
+      const match = path.match(/\/documents\/(bio|biology|chem|chemistry|math|mathematics|physics)\//);
+      if (!match) return '';
+      return ({
+        bio: 'biology',
+        chem: 'chemistry',
+        math: 'mathematics'
+      })[match[1]] || match[1];
+    } catch {
+      return '';
+    }
+  }
+
+  function resourceTitle(item) {
+    return item.title || item.original_filename || item.storage_path?.split('/').pop() || 'Study resource';
+  }
+
+  function resourceType(item) {
+    const type = item.resource_type;
+    if (type === 'notes' || type === 'guide' || type === 'paper') {
+      return type === 'paper' ? 'Practice paper' : type === 'guide' ? 'Marking guide' : 'Study notes';
+    }
+    const category = item.category;
+    if (category === 'notes') return 'Study notes';
+    if (category === 'papers') return 'Practice paper';
+    return String(item.extension || 'document').toUpperCase() + ' resource';
+  }
+
+  function resourcePublicUrl(item) {
+    const sourceUrl = new URL(requestedFile);
+    const storagePath = String(item.storage_path || '').split('/').map(encodeURIComponent).join('/');
+    const bucket = encodeURIComponent(item.storage_bucket || 'study-hub-resources');
+    return `${sourceUrl.origin}/storage/v1/object/public/${bucket}/${storagePath}`;
+  }
+
+  function relatedResourceUrl(item, subject) {
+    const link = new URL(window.location.href);
+    link.search = '';
+    link.searchParams.set('file', resourcePublicUrl(item));
+    link.searchParams.set('title', resourceTitle(item));
+    link.searchParams.set('subject', subject);
+    const returnUrl = params.get('return');
+    if (returnUrl) link.searchParams.set('return', returnUrl);
+    for (const key of ['anon_key', 'turnstile_key']) {
+      const value = params.get(key);
+      if (value) link.searchParams.set(key, value);
+    }
+    return link.href;
+  }
+
+  async function renderRelatedPdfPreview(preview) {
+    if (!window.pdfjsLib) throw new Error('The PDF preview renderer is unavailable.');
+    const pdf = await window.pdfjsLib.getDocument(preview.dataset.previewUrl).promise;
+    const page = await pdf.getPage(1);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(58 / baseViewport.width, 74 / baseViewport.height);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) throw new Error('The PDF preview canvas is unavailable.');
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: context, viewport }).promise;
+    preview.replaceChildren(canvas);
+  }
+
+  const relatedPreviewObserver = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        void renderRelatedPdfPreview(entry.target).catch((error) => {
+          console.warn('Unable to render a related document preview:', error);
+        });
+      }
+    }, { rootMargin: '120px 0px' })
+    : null;
+
+  function renderRelatedDocuments(items, subject) {
+    const currentPath = (() => {
+      try {
+        return decodeURIComponent(new URL(requestedFile).pathname.split('/').pop() || '').toLowerCase();
+      } catch {
+        return '';
+      }
+    })();
+    const related = items.filter((item) => {
+      const path = String(item.storage_path || '').split('/').pop() || '';
+      let normalizedPath = path;
+      try {
+        normalizedPath = decodeURIComponent(path);
+      } catch {
+        normalizedPath = path;
+      }
+      return item.storage_path && normalizedPath.toLowerCase() !== currentPath;
+    });
+
+    if (!related.length) {
+      relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+        className: 'related-status',
+        textContent: `No other ${subjectNames[subject]} documents are available yet.`
+      }));
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    for (const item of related) {
+      const link = document.createElement('a');
+      link.className = 'related-card';
+      link.href = relatedResourceUrl(item, subject);
+      link.setAttribute('aria-label', `Open ${resourceTitle(item)}`);
+
+      const preview = document.createElement('span');
+      preview.className = 'related-preview';
+      preview.setAttribute('aria-hidden', 'true');
+      const extension = String(item.extension || '').toUpperCase();
+      preview.append(Object.assign(document.createElement('span'), {
+        className: 'related-preview-placeholder',
+        textContent: extension || 'FILE'
+      }));
+      if (extension === 'PDF') {
+        preview.dataset.previewUrl = resourcePublicUrl(item);
+        if (relatedPreviewObserver) relatedPreviewObserver.observe(preview);
+        else void renderRelatedPdfPreview(preview).catch((error) => {
+          console.warn('Unable to render a related document preview:', error);
+        });
+      }
+
+      const copy = document.createElement('span');
+      copy.className = 'related-copy';
+      copy.append(Object.assign(document.createElement('span'), {
+        className: 'related-type',
+        textContent: resourceType(item)
+      }));
+      copy.append(Object.assign(document.createElement('span'), {
+        className: 'related-name',
+        textContent: resourceTitle(item)
+      }));
+      const meta = [item.level, item.year].filter(Boolean).join(' · ');
+      if (meta) {
+        copy.append(Object.assign(document.createElement('span'), {
+          className: 'related-meta',
+          textContent: meta
+        }));
+      }
+      link.append(preview, copy);
+      fragment.append(link);
+    }
+    relatedList.replaceChildren(fragment);
+  }
+
+  async function loadRelatedDocuments() {
+    const subject = currentSubject();
+    const subjectName = subjectNames[subject];
+    relatedRetry.hidden = true;
+    relatedSubjectLabel.textContent = subjectName || '';
+    if (!subject || !requestedFile) {
+      relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+        className: 'related-status',
+        textContent: 'Related documents appear here when you open a resource from a subject library.'
+      }));
+      return;
+    }
+
+    const anonKey = params.get('anon_key') || '';
+    if (!anonKey) {
+      relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+        className: 'related-status',
+        textContent: 'Related documents could not be loaded because the library connection is unavailable.'
+      }));
+      relatedRetry.hidden = false;
+      return;
+    }
+
+    relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+      className: 'related-status',
+      textContent: `Loading ${subjectName} documents…`
+    }));
+
+    try {
+      const sourceUrl = new URL(requestedFile);
+      const endpoint = new URL('/rest/v1/study_hub_resources', sourceUrl.origin);
+      endpoint.searchParams.set('select', 'subject,category,storage_bucket,storage_path,original_filename,title,extension,level,year,resource_type,size_bytes');
+      endpoint.searchParams.set('subject', `eq.${subject}`);
+      endpoint.searchParams.set('size_bytes', 'gt.0');
+      endpoint.searchParams.set('order', 'updated_at.desc.nullslast,title.asc,storage_path.asc');
+      endpoint.searchParams.set('limit', '30');
+      const response = await fetch(endpoint, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`
+        }
+      });
+      if (!response.ok) throw new Error(`Related resource request failed (HTTP ${response.status}).`);
+      const items = await response.json();
+      if (!Array.isArray(items)) throw new Error('Related resources returned an invalid response.');
+      renderRelatedDocuments(items, subject);
+    } catch (error) {
+      console.error('Unable to load related subject documents:', error);
+      relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+        className: 'related-status',
+        textContent: 'Related documents could not be loaded right now.'
+      }));
+      relatedRetry.hidden = false;
+    }
   }
 
   function loadReaderState() {
@@ -857,12 +1083,32 @@ import * as tus from 'tus-js-client';
 
   function toggleContributionPanel(open) {
     const shouldOpen = open ?? !document.body.classList.contains('contribution-panel-open');
+    if (shouldOpen) toggleRelatedPanel(false);
     document.body.classList.toggle('contribution-panel-open', shouldOpen);
-    document.body.classList.toggle('contribution-panel-hidden', !shouldOpen);
+    document.querySelector('#contribution-rail').setAttribute('aria-hidden', String(!shouldOpen));
     contributionToggle.setAttribute('aria-expanded', String(shouldOpen));
     contributionToggle.setAttribute('aria-label', shouldOpen ? 'Close resource sharing panel' : 'Open resource sharing panel');
     contributionToggle.title = shouldOpen ? 'Close resource sharing panel' : 'Share a resource';
-    drawerBackdrop.hidden = !shouldOpen || window.matchMedia('(min-width: 761px)').matches;
+    syncDrawerBackdrop();
+  }
+
+  function toggleRelatedPanel(open) {
+    const shouldOpen = open ?? !document.body.classList.contains('related-panel-open');
+    if (shouldOpen) toggleContributionPanel(false);
+    document.body.classList.toggle('related-panel-open', shouldOpen);
+    const isMobile = window.matchMedia('(max-width: 760px)').matches;
+    relatedRail.setAttribute('aria-hidden', String(isMobile && !shouldOpen));
+    relatedToggle.setAttribute('aria-expanded', String(shouldOpen));
+    relatedToggle.setAttribute('aria-label', shouldOpen ? 'Close related documents' : 'Open related documents');
+    relatedToggle.title = shouldOpen ? 'Close related documents' : 'Related documents';
+    syncDrawerBackdrop();
+  }
+
+  function syncDrawerBackdrop() {
+    const isMobile = window.matchMedia('(max-width: 760px)').matches;
+    const relatedOpen = isMobile && document.body.classList.contains('related-panel-open');
+    const contributionOpen = document.body.classList.contains('contribution-panel-open');
+    drawerBackdrop.hidden = !relatedOpen && !contributionOpen;
   }
 
   toolbar.addEventListener('click', (event) => {
@@ -897,7 +1143,17 @@ import * as tus from 'tus-js-client';
       case 'contribute':
         toggleContributionPanel();
         break;
+      case 'related':
+        toggleRelatedPanel();
+        break;
       case 'close-contribution':
+        toggleContributionPanel(false);
+        break;
+      case 'close-related':
+        toggleRelatedPanel(false);
+        break;
+      case 'close-drawers':
+        toggleRelatedPanel(false);
         toggleContributionPanel(false);
         break;
       case 'contents':
@@ -910,10 +1166,16 @@ import * as tus from 'tus-js-client';
         break;
     }
   });
-  document.querySelector('[data-a="close-contribution"]').addEventListener('click', () => toggleContributionPanel(false));
   readingPanel.querySelector('[data-a="close-reading-panel"]').addEventListener('click', () => {
     readingPanel.hidden = true;
     contentsButton.setAttribute('aria-expanded', 'false');
+  });
+  document.querySelector('[data-a="close-contribution"]').addEventListener('click', () => toggleContributionPanel(false));
+  document.querySelector('.related-share').addEventListener('click', () => toggleContributionPanel(true));
+  relatedRetry.addEventListener('click', () => void loadRelatedDocuments());
+  drawerBackdrop.addEventListener('click', () => {
+    toggleRelatedPanel(false);
+    toggleContributionPanel(false);
   });
   bookmarkButton.addEventListener('click', toggleBookmark);
   colorSelect.addEventListener('change', () => applyReadingColor(colorSelect.value));
@@ -939,6 +1201,7 @@ import * as tus from 'tus-js-client';
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
+      toggleRelatedPanel(false);
       toggleContributionPanel(false);
       readingPanel.hidden = true;
       contentsButton.setAttribute('aria-expanded', 'false');
@@ -963,6 +1226,8 @@ import * as tus from 'tus-js-client';
 
     toolbar.hidden = false;
     toggleContributionPanel(false);
+    toggleRelatedPanel(false);
+    void loadRelatedDocuments();
     void initializeTurnstile();
     const extension = fileUrl.pathname.split('.').pop().toLowerCase();
     bookmarkButton.hidden = !['pdf', 'docx', 'rtf'].includes(extension);
