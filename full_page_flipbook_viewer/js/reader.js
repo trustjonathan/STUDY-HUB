@@ -49,8 +49,6 @@ import * as tus from 'tus-js-client';
   let activePage = 1;
   let zoom = 1;
   let renderGeneration = 0;
-  let captchaResponse = '';
-  let captchaWidgetId;
   let searchGeneration = 0;
   let uploadAuthClient = null;
   let selectedFiles = [];
@@ -127,7 +125,7 @@ import * as tus from 'tus-js-client';
     link.searchParams.set('subject', subject);
     const returnUrl = params.get('return');
     if (returnUrl) link.searchParams.set('return', returnUrl);
-    for (const key of ['anon_key', 'turnstile_key']) {
+    for (const key of ['anon_key']) {
       const value = params.get(key);
       if (value) link.searchParams.set(key, value);
     }
@@ -664,7 +662,7 @@ import * as tus from 'tus-js-client';
   }
 
   function updateSubmitButton() {
-    submitButton.disabled = !captchaResponse || !isBatchReady();
+    submitButton.disabled = !isBatchReady();
   }
 
   function renderUploadQueue() {
@@ -725,7 +723,7 @@ import * as tus from 'tus-js-client';
     renderUploadQueue();
   }
 
-  async function getUploadAuth(captchaToken = '') {
+  async function getUploadAuth() {
     const anonKey = params.get('anon_key') || '';
     const apiUrl = new URL(requestedFile).origin;
     if (!uploadAuthClient) {
@@ -739,29 +737,17 @@ import * as tus from 'tus-js-client';
     }
     let { data: { session }, error } = await uploadAuthClient.auth.getSession();
     if (error) throw error;
-    let created = false;
     if (!session) {
-      const result = await uploadAuthClient.auth.signInAnonymously({
-        options: captchaToken ? { captchaToken } : undefined,
-      });
+      const result = await uploadAuthClient.auth.signInAnonymously();
       if (result.error) throw result.error;
       session = result.data.session;
-      created = true;
     }
     if (!session) throw new Error('Could not create a private upload session.');
-    return { session, created };
+    return session;
   }
 
   async function callContributionFunction(functionName, body) {
-    const { session, created } = await getUploadAuth(
-      typeof body.turnstileToken === 'string' ? body.turnstileToken : captchaResponse,
-    );
-    if (created) {
-      captchaResponse = '';
-      updateSubmitButton();
-      if (window.turnstile && captchaWidgetId !== undefined) window.turnstile.reset(captchaWidgetId);
-      throw new Error('Your secure upload session is ready. Complete verification again to continue.');
-    }
+    const session = await getUploadAuth();
     const apiUrl = new URL(requestedFile).origin;
     const response = await fetch(new URL(`/functions/v1/${functionName}`, apiUrl), {
       method: 'POST',
@@ -779,7 +765,7 @@ import * as tus from 'tus-js-client';
 
   async function refreshStagedFiles() {
     if (!activeBatch) return;
-    const { session } = await getUploadAuth();
+    const session = await getUploadAuth();
     const userId = session.user.id;
     const folder = `staging/${userId}/${activeBatch.sessionId}`;
     const stagedNames = new Set();
@@ -824,7 +810,7 @@ import * as tus from 'tus-js-client';
   }
 
   async function uploadFile(file, record) {
-    const { session } = await getUploadAuth();
+    const session = await getUploadAuth();
     const apiUrl = new URL(requestedFile);
     const projectId = apiUrl.hostname.split('.')[0];
     const endpoint = apiUrl.hostname.endsWith('.supabase.co')
@@ -916,7 +902,7 @@ import * as tus from 'tus-js-client';
   }
 
   async function startSelectedBatch() {
-    if (!selectedFiles.length || !captchaResponse || processingQueue || startingBatch) return;
+    if (!selectedFiles.length || processingQueue || startingBatch) return;
     startingBatch = true;
     const rightsConfirmed = contributionForm.querySelector('[name="rights_confirmed"]').checked;
     if (!rightsConfirmed) {
@@ -941,7 +927,6 @@ import * as tus from 'tus-js-client';
         const response = await callContributionFunction('start-resource-contribution', {
           files: selectedFiles.map((file) => ({ name: file.name, size: file.size, type: file.type })),
           rightsConfirmed: true,
-          turnstileToken: captchaResponse,
         });
         activeBatch = {
           sessionId: response.sessionId,
@@ -949,15 +934,11 @@ import * as tus from 'tus-js-client';
           files: response.files.map((file) => ({ ...file, status: 'queued', progress: 0 })),
         };
         persistUploadBatch();
-        if (window.turnstile && captchaWidgetId !== undefined) window.turnstile.reset(captchaWidgetId);
-        captchaResponse = '';
       }
       renderUploadQueue();
       await transferBatch(selectedFiles);
     } catch (error) {
       setUploadMessage(error instanceof Error ? error.message : 'Could not prepare this batch.', 'error');
-      captchaResponse = '';
-      if (window.turnstile && captchaWidgetId !== undefined) window.turnstile.reset(captchaWidgetId);
     } finally {
       startingBatch = false;
       renderUploadQueue();
@@ -979,10 +960,9 @@ import * as tus from 'tus-js-client';
     }
   }
 
-  async function initializeTurnstile() {
+  async function initializeUploads() {
     const anonKey = params.get('anon_key') || '';
-    const siteKey = params.get('turnstile_key') || '';
-    if (!requestedFile || !anonKey || !siteKey) {
+    if (!requestedFile || !anonKey) {
       setUploadMessage('Uploads are not configured for this link yet.');
       return;
     }
@@ -998,36 +978,6 @@ import * as tus from 'tus-js-client';
       }
     }
 
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (!window.turnstile) {
-        setUploadMessage('Verification could not load. Please try again later.', 'error');
-        return;
-      }
-      captchaWidgetId = window.turnstile.render('#turnstile-widget', {
-        sitekey: siteKey,
-        callback(token) {
-          captchaResponse = token;
-          updateSubmitButton();
-          if (selectedFiles.length) void startSelectedBatch();
-        },
-        'expired-callback'() {
-          captchaResponse = '';
-          updateSubmitButton();
-        },
-        'error-callback'() {
-          captchaResponse = '';
-          updateSubmitButton();
-          setUploadMessage('Verification failed to load. Please try again later.', 'error');
-        },
-      });
-    };
-    script.onerror = () => setUploadMessage('Verification could not load. Please try again later.', 'error');
-    document.head.append(script);
-
     fileInput.addEventListener('change', () => {
       selectedFiles = Array.from(fileInput.files || []);
       if (!selectedFiles.length) return;
@@ -1036,23 +986,19 @@ import * as tus from 'tus-js-client';
         if (activeBatch && activeBatch.files.some((item) => item.status === 'staged')) {
           setUploadMessage('Resume the saved batch by reselecting all its original files.');
         }
-        if (!captchaResponse) {
-          setUploadMessage('Complete verification to begin staging the selected files.');
-          return;
-        }
         void startSelectedBatch();
       } catch (error) {
         setUploadMessage(error instanceof Error ? error.message : 'These files cannot be uploaded.', 'error');
       }
     });
     contributionForm.querySelector('[name="rights_confirmed"]').addEventListener('change', () => {
-      if (selectedFiles.length && captchaResponse) void startSelectedBatch();
+      if (selectedFiles.length) void startSelectedBatch();
     });
 
     contributionForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (!captchaResponse || !isBatchReady()) {
-        setUploadMessage('Finish staging every file and complete verification before submitting.', 'error');
+      if (!isBatchReady()) {
+        setUploadMessage('Finish staging every file before submitting.', 'error');
         return;
       }
       submitButton.disabled = true;
@@ -1063,7 +1009,6 @@ import * as tus from 'tus-js-client';
         renderUploadQueue();
         await callContributionFunction('finalize-resource-contribution', {
           sessionId: activeBatch.sessionId,
-          turnstileToken: captchaResponse,
         });
         activeBatch = null;
         selectedFiles = [];
@@ -1071,8 +1016,6 @@ import * as tus from 'tus-js-client';
         contributionForm.querySelector('[name="rights_confirmed"]').checked = false;
         persistUploadBatch();
         renderUploadQueue();
-        captchaResponse = '';
-        if (window.turnstile && captchaWidgetId !== undefined) window.turnstile.reset(captchaWidgetId);
         setUploadMessage('Thank you. The files are private and will be reviewed before they are added to the library.', 'success');
       } catch (error) {
         if (error instanceof Error && error.message.includes('expired')) {
@@ -1080,8 +1023,6 @@ import * as tus from 'tus-js-client';
           persistUploadBatch();
           renderUploadQueue();
         }
-        captchaResponse = '';
-        if (window.turnstile && captchaWidgetId !== undefined) window.turnstile.reset(captchaWidgetId);
         if (error instanceof Error && error.message.includes('not fully uploaded yet')) {
           try {
             await refreshStagedFiles();
@@ -1253,7 +1194,7 @@ import * as tus from 'tus-js-client';
     toggleContributionPanel(false);
     toggleRelatedPanel(false);
     void loadRelatedDocuments();
-    void initializeTurnstile();
+    void initializeUploads();
     const extension = fileUrl.pathname.split('.').pop().toLowerCase();
     bookmarkButton.hidden = !['pdf', 'docx', 'rtf'].includes(extension);
     try {

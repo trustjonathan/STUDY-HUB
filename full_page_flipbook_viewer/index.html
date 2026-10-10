@@ -87,6 +87,8 @@
       <div id="reader-error" role="alert" hidden></div>
     </main>
 
+    <button class="reader-drawer-backdrop" type="button" data-a="close-drawers" aria-label="Close side panels" hidden></button>
+
     <aside class="related-rail" id="related-documents" aria-labelledby="related-title">
       <div class="related-heading">
         <div>
@@ -104,7 +106,6 @@
     </aside>
   </div>
 
-  <button class="reader-drawer-backdrop" type="button" data-a="close-drawers" aria-label="Close side panels" hidden></button>
   <aside class="contribution-rail" id="contribution-rail" aria-labelledby="contribution-title" aria-hidden="true">
     <div class="contribution-heading">
       <div>
@@ -125,7 +126,6 @@
         <input name="rights_confirmed" type="checkbox" required />
         <span>I have permission to share every selected material.</span>
       </label>
-      <div class="verification" id="turnstile-widget"></div>
       <button class="contribution-submit" id="submit-contribution" type="submit" disabled>Submit complete batch</button>
     </form>
     <p class="upload-status" id="upload-status" role="status" aria-live="polite">Uploads are optional. Selected files stage privately as they transfer and are submitted together when you choose.</p>

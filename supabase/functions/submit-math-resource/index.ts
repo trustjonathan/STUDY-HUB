@@ -1,5 +1,4 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { verifyTurnstile } from '../_shared/contribution.ts';
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const ALLOWED_TYPES = new Map([
@@ -96,7 +95,6 @@ Deno.serve(async (request) => {
   const yearInput = String(form.get('year') || '').trim();
   const year = yearInput ? Number(yearInput) : null;
   const rightsConfirmed = form.get('rights_confirmed') === 'on';
-  const turnstileToken = String(form.get('cf-turnstile-response') || '');
   const file = form.get('file');
 
   if (title.length < 3 || title.length > 120) return response({ error: 'Title must be 3 to 120 characters.' }, 400, headers);
@@ -110,11 +108,6 @@ Deno.serve(async (request) => {
   if (!extension) return response({ error: 'File type is not supported or does not match its extension.' }, 415, headers);
   if (!(await matchesFileSignature(file, extension))) return response({ error: 'File contents do not match the selected file type.' }, 415, headers);
   const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
-  const expectedHostname = origin ? new URL(origin).hostname : '';
-  if (!turnstileToken || !expectedHostname || !(await verifyTurnstile(turnstileToken, remoteIp, expectedHostname))) {
-    return response({ error: 'Verification failed. Please try again.' }, 403, headers);
-  }
-
   const supabase = createClient(apiUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

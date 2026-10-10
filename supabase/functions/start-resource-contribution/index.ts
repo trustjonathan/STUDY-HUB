@@ -11,7 +11,6 @@ import {
   jsonResponse,
   safeExtension,
   safeStorageFilename,
-  verifyTurnstile,
 } from '../_shared/contribution.ts';
 
 Deno.serve(async (request) => {
@@ -35,7 +34,6 @@ Deno.serve(async (request) => {
   let body: {
     files?: Array<{ name?: unknown; size?: unknown; type?: unknown }>;
     rightsConfirmed?: unknown;
-    turnstileToken?: unknown;
   };
   try {
     body = await request.json();
@@ -81,10 +79,6 @@ Deno.serve(async (request) => {
   const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
   const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
   if (!remoteIp || !rateLimitSalt) return jsonResponse({ error: 'Upload protection is not configured.' }, 503, headers);
-  if (typeof body.turnstileToken !== 'string' || !(await verifyTurnstile(body.turnstileToken, remoteIp, new URL(origin).hostname))) {
-    return jsonResponse({ error: 'Verification failed. Please try again.' }, 403, headers);
-  }
-
   const supabase = createClient(apiUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

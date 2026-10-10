@@ -1,5 +1,4 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { verifyTurnstile } from '../_shared/contribution.ts';
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const BUCKET = 'study-hub-contributions';
@@ -95,7 +94,6 @@ Deno.serve(async (request) => {
 
   const titleInput = String(form.get('title') || '').trim();
   const rightsConfirmed = form.get('rights_confirmed') === 'on';
-  const turnstileToken = String(form.get('cf-turnstile-response') || '');
   const file = form.get('file');
 
   if (!(file instanceof File)) return jsonResponse({ error: 'Choose a resource file.' }, 400, headers);
@@ -109,11 +107,6 @@ Deno.serve(async (request) => {
   if (!(await matchesFileSignature(file, extension))) return jsonResponse({ error: 'File contents do not match the selected file type.' }, 415, headers);
 
   const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
-  const expectedHostname = new URL(origin).hostname;
-  if (!turnstileToken || !(await verifyTurnstile(turnstileToken, remoteIp, expectedHostname))) {
-    return jsonResponse({ error: 'Verification failed. Please try again.' }, 403, headers);
-  }
-
   const rateLimitSalt = Deno.env.get('SUBMISSION_RATE_LIMIT_SALT');
   if (!remoteIp || !rateLimitSalt) return jsonResponse({ error: 'Upload protection is not configured.' }, 503, headers);
 

@@ -7,7 +7,6 @@ import {
   jsonResponse,
   matchesFileSignature,
   safeExtension,
-  verifyTurnstile,
 } from '../_shared/contribution.ts';
 
 Deno.serve(async (request) => {
@@ -27,7 +26,7 @@ Deno.serve(async (request) => {
   const user = await authenticateUser(request, apiUrl, anonKey);
   if (!user) return jsonResponse({ error: 'A valid anonymous upload session is required.' }, 401, headers);
 
-  let body: { sessionId?: unknown; turnstileToken?: unknown };
+  let body: { sessionId?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -35,11 +34,6 @@ Deno.serve(async (request) => {
   }
   if (typeof body.sessionId !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.sessionId)) {
     return jsonResponse({ error: 'The upload session is invalid.' }, 400, headers);
-  }
-
-  const remoteIp = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null;
-  if (typeof body.turnstileToken !== 'string' || !(await verifyTurnstile(body.turnstileToken, remoteIp, new URL(origin).hostname))) {
-    return jsonResponse({ error: 'Verification failed. Please try again.' }, 403, headers);
   }
 
   const supabase = createClient(apiUrl, serviceRoleKey, {

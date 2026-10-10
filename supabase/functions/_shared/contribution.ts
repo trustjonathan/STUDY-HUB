@@ -51,53 +51,6 @@ export function safeStorageFilename(filename: string, extension: string): string
   return `${stem || 'resource'}${extension}`;
 }
 
-export async function verifyTurnstile(token: string, remoteIp: string | null, expectedHostname: string): Promise<boolean> {
-  const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
-  if (!secret) {
-    console.error('Turnstile verification is not configured.');
-    return false;
-  }
-
-  const body = new URLSearchParams({ secret, response: token });
-  if (remoteIp) body.set('remoteip', remoteIp);
-  let result: Response;
-  try {
-    result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-      signal: AbortSignal.timeout(10_000),
-    });
-  } catch (error) {
-    console.error('Cloudflare Turnstile verification request failed.', error);
-    return false;
-  }
-  if (!result.ok) {
-    console.error(`Cloudflare Turnstile verification returned HTTP ${result.status}.`);
-    return false;
-  }
-  let payload: unknown;
-  try {
-    payload = await result.json();
-  } catch (error) {
-    console.error('Cloudflare Turnstile returned an invalid verification response.', error);
-    return false;
-  }
-  if (!payload || typeof payload !== 'object') {
-    console.error('Cloudflare Turnstile returned an invalid verification response.');
-    return false;
-  }
-  const verification = payload as { success?: unknown; hostname?: unknown; ['error-codes']?: unknown };
-  if (verification.success !== true || verification.hostname !== expectedHostname) {
-    console.error('Cloudflare Turnstile rejected the token.', {
-      errorCodes: verification['error-codes'],
-      hostnameMatched: verification.hostname === expectedHostname,
-    });
-    return false;
-  }
-  return true;
-}
-
 export async function authenticateUser(request: Request, apiUrl: string, anonKey: string): Promise<{ id: string; accessToken: string } | null> {
   const accessToken = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!accessToken) return null;
