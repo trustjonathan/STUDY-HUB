@@ -51,21 +51,6 @@ const levelLabel = subject.levels.join(", ");
         <p>Search notes and past papers stored in the Study Hub Supabase library, or filter by study level.</p>
       </div>
 
-      <div class="resources-layout">
-        <div class="resources-side">
-          <div class="resource-card">
-            <h3>{subject.name} Notes</h3>
-            <p>Review concepts, key ideas, and worked examples.</p>
-            <button class="btn toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-          </div>
-          <div class="resource-card">
-            <h3>Past Papers</h3>
-            <p>Practice exam questions and strengthen your understanding.</p>
-            <button class="btn toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Browse papers</button>
-          </div>
-        </div>
-      </div>
-
       <div id="notes-content" class="resource-content" aria-labelledby={`${subject.slug}-notes-heading`}>
         <h3 id={`${subject.slug}-notes-heading`}>{subject.name} Notes</h3>
         <div class="resource-toolbar">

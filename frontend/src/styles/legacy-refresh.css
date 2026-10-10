@@ -145,7 +145,7 @@ body[data-page] .subject-btn.secondary {
 body[data-page] .resources-section {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 68px 32px 76px;
+  padding: 32px 32px 56px;
   background: transparent;
   text-align: left;
 }
@@ -425,7 +425,7 @@ body[data-page] .legacy-site-footer {
 
 body[data-page] .legacy-footer-inner {
   display: grid;
-  grid-template-columns: minmax(190px, 1.1fr) minmax(130px, 0.7fr) minmax(300px, 1.8fr) minmax(150px, 0.9fr);
+  grid-template-columns: minmax(190px, 1fr) minmax(180px, 0.8fr) minmax(240px, 1fr);
   gap: 28px;
   max-width: 1240px;
   margin: 0 auto;
@@ -459,32 +459,6 @@ body[data-page] .legacy-footer-contact h2 {
   margin: 0 0 10px;
   color: var(--legacy-ink);
   font-size: 0.95rem;
-}
-
-body[data-page] .legacy-footer-subjects { min-width: 0; }
-body[data-page] .legacy-footer-subjects .footer-subjects {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-body[data-page] .legacy-footer-subjects .footer-subjects > summary {
-  min-height: 36px;
-  color: var(--legacy-ink);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-body[data-page] .footer-subject-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2px 12px;
-  margin-top: 8px;
-}
-body[data-page] .legacy-footer-inner .footer-subject-grid a {
-  min-height: 30px;
-  font-size: 0.78rem;
-  line-height: 1.3;
 }
 
 body[data-page] .legacy-site-footer a:not(.brand) {
@@ -588,8 +562,7 @@ body[data-page] .card {
     gap: 20px 24px;
     padding: 28px 20px 16px;
   }
-  body[data-page] .legacy-footer-brand,
-  body[data-page] .legacy-footer-subjects { grid-column: 1 / -1; }
+  body[data-page] .legacy-footer-brand { grid-column: 1 / -1; }
 }
 
 @media (max-width: 420px) {
@@ -610,9 +583,6 @@ body[data-page] .card {
     gap: 18px;
     padding: 24px 14px 14px;
   }
-
-  body[data-page] .legacy-footer-subjects { grid-column: auto; }
-  body[data-page] .footer-subject-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   body[data-page] .legacy-footer-bottom {
     grid-column: auto;
@@ -655,14 +625,14 @@ body[data-page] .site-header .utility-note { color: var(--legacy-muted); font-si
 body[data-page] .header-main {
   display: grid;
   min-height: 82px;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  grid-template-areas: "primary brand actions";
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "brand primary";
   align-items: center;
   gap: 22px;
   padding: 10px 32px;
 }
-body[data-page] .site-header .site-nav { grid-area: primary; display: flex; align-items: center; justify-content: flex-start; gap: 22px; }
-body[data-page] .site-header .brand { grid-area: brand; justify-self: center; white-space: nowrap; }
+body[data-page] .site-header .site-nav { grid-area: primary; display: flex; align-items: center; justify-content: flex-end; gap: 22px; }
+body[data-page] .site-header .brand { grid-area: brand; justify-self: start; white-space: nowrap; }
 body[data-page] .site-header .header-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-end; gap: 18px; }
 body[data-page] .site-header .site-nav a,
 body[data-page] .site-header .header-actions a,
@@ -699,7 +669,7 @@ body[data-page] .site-header .mega-nav a { font-size: 0.78rem; }
 
 @media (max-width: 980px) {
   body[data-page] .utility-inner { padding: 0 20px; }
-  body[data-page] .header-main { grid-template-columns: 1fr; grid-template-areas: "brand" "primary" "actions"; gap: 10px; padding: 12px 20px; }
+  body[data-page] .header-main { grid-template-columns: 1fr; grid-template-areas: "brand" "primary"; gap: 10px; padding: 12px 20px; }
   body[data-page] .site-header .brand { justify-self: center; }
   body[data-page] .site-header .site-nav,
   body[data-page] .site-header .header-actions { justify-content: center; flex-wrap: wrap; gap: 8px 16px; }

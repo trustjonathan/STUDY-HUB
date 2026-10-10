@@ -5,10 +5,42 @@
   if (!previews.length) return;
 
   const documents = new Map();
-  const pdfjs = window.pdfjsLib;
-  if (pdfjs) pdfjs.GlobalWorkerOptions.workerSrc = previews[0].dataset.previewWorker;
+  const scripts = new Map();
 
-  function loadDocument(url) {
+  function loadScript(url) {
+    if (!scripts.has(url)) {
+      scripts.set(url, new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Unable to load preview library: ${url}`));
+        document.head.append(script);
+      }));
+    }
+    return scripts.get(url);
+  }
+
+  async function getPdfJs(preview) {
+    const workerUrl = preview.dataset.previewWorker;
+    if (!workerUrl) throw new Error('PDF preview worker URL is missing.');
+    if (!window.pdfjsLib) await loadScript(workerUrl.replace(/pdf\.worker\.min\.js$/, 'pdf.min.js'));
+    if (!window.pdfjsLib) throw new Error('PDF preview renderer is unavailable.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+    return window.pdfjsLib;
+  }
+
+  async function getDocxRenderer(preview) {
+    const workerUrl = preview.dataset.previewWorker;
+    if (!workerUrl) throw new Error('Document preview asset path is missing.');
+    const assetRoot = workerUrl.replace(/pdf\.worker\.min\.js$/, '');
+    await loadScript(`${assetRoot}jszip.min.js`);
+    await loadScript(`${assetRoot}docx-preview.min.js`);
+    if (!window.docx?.renderAsync) throw new Error('Word preview renderer is unavailable.');
+    return window.docx;
+  }
+
+  function loadDocument(url, pdfjs) {
     if (!documents.has(url)) {
       documents.set(url, pdfjs.getDocument({ url }).promise);
     }
@@ -16,12 +48,12 @@
   }
 
   async function renderPdfPreview(preview) {
-    if (!pdfjs) throw new Error('PDF preview renderer is unavailable.');
+    const pdfjs = await getPdfJs(preview);
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d', { alpha: false });
     if (!context) throw new Error('Canvas rendering is unavailable.');
 
-    const pdf = await loadDocument(preview.dataset.previewUrl);
+    const pdf = await loadDocument(preview.dataset.previewUrl, pdfjs);
     const page = await pdf.getPage(1);
     const baseViewport = page.getViewport({ scale: 1 });
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
@@ -40,15 +72,23 @@
   }
 
   async function renderDocxPreview(preview) {
-    if (!window.docx?.renderAsync) throw new Error('Word preview renderer is unavailable.');
+    const docx = await getDocxRenderer(preview);
     const response = await fetch(preview.dataset.previewUrl);
     if (!response.ok) throw new Error(`Document request failed (HTTP ${response.status}).`);
 
     const content = document.createElement('div');
     content.className = 'dashboard-preview-document';
-    await window.docx.renderAsync(await response.arrayBuffer(), content, content);
+    await docx.renderAsync(await response.arrayBuffer(), content, content);
     preview.insertBefore(content, preview.firstChild);
     preview.classList.add('has-preview');
+    const resizeDocument = () => {
+      const scale = Math.min(preview.clientWidth / 816, preview.clientHeight / 1056);
+      content.style.transform = `translateX(-50%) scale(${scale})`;
+    };
+    resizeDocument();
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(resizeDocument).observe(preview);
+    }
 
     const caption = preview.querySelector('.dashboard-preview-caption');
     if (caption) caption.textContent = 'First page preview';

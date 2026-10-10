@@ -24,21 +24,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 
   <!-- FAVICON -->
 
-  <!-- OPEN GRAPH -->
-  <meta property="og:title" content="Biology Notes – Free Study Hub">
-  <meta property="og:description"
-    content="Access free Biology notes, diagrams, and explanations for faster learning and exam preparation.">
-  <meta property="og:image" content="https://trustjonathan.github.io/STUDY-HUB/social-preview.png">
-  <meta property="og:url" content="https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/biology.html">
-  <meta property="og:type" content="website">
-
-  <!-- TWITTER CARDS -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Biology Notes – Free Study Hub">
-  <meta name="twitter:description"
-    content="Access free Biology notes, diagrams, and explanations for faster learning and exam preparation.">
-  <meta name="twitter:image" content="https://trustjonathan.github.io/STUDY-HUB/social-preview.png">
-
   <!-- JSON-LD STRUCTURED DATA -->
   <script is:inline type="application/ld+json">
   {
@@ -82,7 +67,7 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
   <div id="container">
     <div id="navbar">
       <div class="logo">
-        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Study Hub logo">
+        <img src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/favicon.svg`} alt="Study Hub logo">
         <h7>STUDY HUB::: BIOLOGY</h7>
       </div>
       <div class="home">
@@ -96,9 +81,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
           <a href="https://trustjonathan.github.io/BIOLOGY/archive.html">🧬 Biology archive</a><br>
           <a href="chemistry.html">⚗️ Chemistry</a><br>
           <a href="mathematics.html">📐 Mathematics</a><br>
-          <a href="https://youtube.com/playlist?list=PLszahHibLDAKjMwaEDXLpg2UZlMyNlnTp">🎵 Music</a><br>
-          <a
-            href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">💪Motivacity</a>
         </nav>
       </div>
       <div class="display" style="display: none;">
@@ -123,104 +105,11 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
     <section class="resources-section biology-library" id="biology-library">
       <div class="library-heading">
         <p class="subject-badge">Study library</p>
-        <h2>Choose a resource type</h2>
-        <p>Open a collection, then search or filter it. Long lists are shown in manageable batches.</p>
+        <h2>Browse notes and past papers</h2>
+        <p>Use the collection links above to open your notes or exam papers, then search by topic or study level.</p>
       </div>
 
-      <div class="resources-layout">
-
-        <!-- SIDE BAR (Left on PC, Top on Mobile) -->
-        <div class="resources-side">
-          <!-- Biology Notes -->
-          <div class="resource-card">
-            <h3>Biology Notes</h3>
-            <p>Clear explanations and worked examples for all topics.</p>
-            <button class="btn toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-          </div>
-
-          <!-- Biology Past Papers -->
-          <div class="resource-card">
-            <h3>Past Papers</h3>
-            <p>Practice past questions for effective exam preparation.</p>
-            <button class="btn toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Browse papers</button>
-          </div>
-        </div>
-
-        <!-- MAIN CONTENT (Right on PC, Bottom on Mobile) -->
-        <div class="resources-main">
-          <div class="resource-card video-bg-card biology-video-card">
-            <div class="content-overlay">
-              <p class="video-kicker">Watch & review</p>
-              <h3>Video tutorials</h3>
-              <p>Use a guided explanation when a topic needs another angle.</p>
-              <button class="btn toggle-btn" id="open-videos" type="button" aria-controls="biology-videos">Browse videos</button>
-            </div>
-          </div>
-          <!-- Study Hub Pomodoro Timer -->
-          <div id="pomodoro-container"
-            style="background: #ffffff; border: 2px solid #2e7d32; border-radius: 12px; padding: 20px; max-width: 350px; text-align: center; font-family: sans-serif; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 20px auto;">
-            <h3 id="timer-label" style="color: #2e7d32; margin-top: 0;">🧠 Focus Session (25m)</h3>
-            <div id="timer-display" style="font-size: 48px; font-weight: bold; color: #333; margin: 15px 0;">25:00</div>
-            <div>
-              <button onclick="startTimer()"
-                style="background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 5px;">Start</button>
-              <button onclick="pauseTimer()"
-                style="background: #f57c00; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 5px;">Pause</button>
-              <button onclick="resetTimer()"
-                style="background: #757575; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Reset</button>
-            </div>
-          </div>
-          
-          <script is:inline>
-            let timeLeft = 25 * 60;
-            let timerInterval = null;
-            let isWorkMode = true;
-
-            function updateDisplay() {
-              const minutes = Math.floor(timeLeft / 60);
-              const seconds = timeLeft % 60;
-              document.getElementById('timer-display').textContent =
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-
-            function startTimer() {
-              if (timerInterval !== null) return;
-              timerInterval = setInterval(() => {
-                if (timeLeft > 0) {
-                  timeLeft--;
-                  updateDisplay();
-                } else {
-                  clearInterval(timerInterval);
-                  timerInterval = null;
-                  isWorkMode = !isWorkMode;
-                  timeLeft = isWorkMode ? 25 * 60 : 5 * 60;
-                  document.getElementById('timer-label').textContent = isWorkMode ? '🧠 Focus Session (25m)' : '☕ Short Break (5m)';
-                  alert(isWorkMode ? 'Break over! Time to get into Beast Mode!' : 'Great job! Take a 5-minute break.');
-                  updateDisplay();
-                }
-              }, 1000);
-            }
-
-            function pauseTimer() {
-              clearInterval(timerInterval);
-              timerInterval = null;
-            }
-
-            function resetTimer() {
-              pauseTimer();
-              isWorkMode = true;
-              timeLeft = 25 * 60;
-              document.getElementById('timer-label').textContent = '🧠 Focus Session (25m)';
-              updateDisplay();
-            }
-          </script>
-
-        </div>
-        <div class="updates">
-          <p>Stay updated with the latest biology <a href="bio-notes-html/bio-updates.html">resources.</a></p>
-        </div>
-
-      </div>
+      <p class="updates">Stay updated with the latest Biology <a href="bio-notes-html/bio-updates.html">resources.</a></p>
     </section>
 
     <section>
@@ -250,30 +139,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 
 
     <hr>
-  <div id="inline">
-    <div id="music">
-      <img src="../assets/images/music.png" alt="music">
-      <div>
-        <p>
-          Are you Exhausted?<br>
-          Make music your second companion <br>in this struggle.
-          <a href="https://youtube.com/playlist?list=PLszahHibLDAK-Wn4MnBwd4VehZhoMvcWX&si=I3GeX9rfOghHAIK_">get in</a>
-          🎧
-        </p>
-      </div>
-    </div>
-
-    <div id="grind">
-      <img src="../assets/images/grit.jpg" alt="grind">
-      <p>
-        Find the right academic motivation<br>
-        Here on STUDY HUB
-        <a
-          href="https://youtube.com/playlist?list=PLr5CENbugJAioiB9v2DdPjrfcd9ikJ6OS&si=nvX-YbqiwaBTrr0h">check_out</a>🔥
-      </p>
-    </div>
-  </div>
-
   <br><br>
   </div>
 
@@ -306,17 +171,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
             <li><a href="#chemistry">⚗️ Chemistry Notes</a></li>
             <li><a href="#math">📐 Mathematics Solutions</a></li>
             <li><a href="#past-papers">📄 NCDC Sample Items</a></li>
-          </ul>
-        </div>
-  
-        <!-- Column 3: Interactive Tools & Vibes -->
-        <div class="footer-col">
-          <h3>Study Tools & Extras</h3>
-          <ul>
-            <li><a href="#pomodoro-container">⏱️ Pomodoro Focus Timer</a></li>
-            <li><a href="#quiz-container">🧪 Self-Assessment Quizzes</a></li>
-            <li><a href="#music">🎵 Focus Music & Beats</a></li>
-            <li><a href="#motivacity">🔥 Motivacity (Beast Mode)</a></li>
           </ul>
         </div>
   
@@ -531,89 +385,5 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 
 
   
-
-  <!-- BIOLOGY HIDDEN VIDEO PANEL -->
-  <div id="videos-content" class="video-panel">
-    <button id="bio-back-btn" class="back-btn">✖</button>
-
-    <h3>Biology Video Tutorials</h3>
-    <div id="videos-content-container"></div>
-  </div>
-
- <script is:inline>
-  const API_KEY = "AIzaSyDl6qH2viYqcDiCVyUQ8kT7TsiWNcmyRjU";
-  const PLAYLIST_ID = "PLszahHibLDAL9Yb07tAFeoGIVFmd4NxC5";
-
-  document.addEventListener("DOMContentLoaded", () => {
-
-    const btn = document.getElementById("open-videos");
-    const panel = document.getElementById("videos-content");
-    const container = document.getElementById("videos-content-container");
-    const backBtn = document.getElementById("bio-back-btn");
-
-    btn.addEventListener("click", () => {
-      panel.classList.remove("hidden");
-      setTimeout(() => panel.classList.add("show"), 20);
-      loadAllVideos();
-    });
-
-    backBtn.addEventListener("click", closePanel);
-
-    document.addEventListener("click", (e) => {
-      if (window.innerWidth > 768) {
-        if (!panel.contains(e.target) && e.target !== btn) {
-          closePanel();
-        }
-      }
-    });
-
-    function closePanel() {
-      panel.classList.remove("show");
-      setTimeout(() => panel.classList.add("hidden"), 300);
-    }
-
-    // 🔥 NEW FUNCTION — Fetch ALL playlist pages
-    async function loadAllVideos(pageToken = "") {
-      if (!pageToken) {
-        container.innerHTML = "<p>Loading videos...</p>";
-      }
-
-      try {
-        const url =
-          `https://www.googleapis.com/youtube/v3/playlistItems?` +
-          `part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}` +
-          (pageToken ? `&pageToken=${pageToken}` : "");
-
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (pageToken === "") container.innerHTML = ""; // reset only on first page
-
-        data.items.forEach(item => {
-          const videoId = item.snippet.resourceId.videoId;
-
-          container.innerHTML += `
-            <div class="video-item">
-              <iframe 
-                src="https://www.youtube.com/embed/${videoId}"
-                allowfullscreen>
-              </iframe>
-              <p>${item.snippet.title}</p>
-            </div>
-          `;
-        });
-
-        // ▶️ If more pages exist, load the next one
-        if (data.nextPageToken) {
-          await loadAllVideos(data.nextPageToken);
-        }
-
-      } catch (err) {
-        container.innerHTML = "<p>Error loading videos.</p>";
-      }
-    }
-
-  });
-</script>
 
 </LegacyPageLayout>
