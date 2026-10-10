@@ -28,6 +28,7 @@ import * as tus from 'tus-js-client';
   const bookmarksContainer = document.querySelector('#document-bookmarks');
   const bookmarkButton = document.querySelector('#bookmark-current');
   const contributionForm = document.querySelector('#contribution-form');
+  const drawerBackdrop = document.querySelector('.reader-drawer-backdrop');
   const fileInput = contributionForm.querySelector('input[type="file"]');
   const contributionToggle = document.querySelector('[data-a="contribute"]');
   const submitButton = document.querySelector('#submit-contribution');
@@ -859,6 +860,9 @@ import * as tus from 'tus-js-client';
     document.body.classList.toggle('contribution-panel-open', shouldOpen);
     document.body.classList.toggle('contribution-panel-hidden', !shouldOpen);
     contributionToggle.setAttribute('aria-expanded', String(shouldOpen));
+    contributionToggle.setAttribute('aria-label', shouldOpen ? 'Close resource sharing panel' : 'Open resource sharing panel');
+    contributionToggle.title = shouldOpen ? 'Close resource sharing panel' : 'Share a resource';
+    drawerBackdrop.hidden = !shouldOpen || window.matchMedia('(min-width: 761px)').matches;
   }
 
   toolbar.addEventListener('click', (event) => {
@@ -958,8 +962,7 @@ import * as tus from 'tus-js-client';
     }
 
     toolbar.hidden = false;
-    const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
-    toggleContributionPanel(!isSmallScreen);
+    toggleContributionPanel(false);
     void initializeTurnstile();
     const extension = fileUrl.pathname.split('.').pop().toLowerCase();
     bookmarkButton.hidden = !['pdf', 'docx', 'rtf'].includes(extension);

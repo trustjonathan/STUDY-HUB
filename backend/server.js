@@ -16,12 +16,15 @@ app.use(morgan("dev"))
 
 // Routes
 const identityRoutes = require("./api/routes/identityRoutes")
-const notesRoutes = require("./api/routes/notesRoutes")
-const aiTutorRoutes = require("./api/routes/aiTutor.routes.js")
+const aiTutorRoutes = require("./api/routes/aiRoutes.js")
 const aiStudyCompanionRoutes = require("./api/routes/aiStudyCompanion.routes.js")
 
+let notesRoutes
 let quizRoutes
 let timetableRoutes
+
+try { notesRoutes = require("./api/routes/notesRoutes") }
+catch (err) { console.warn(`notesRoutes could not be loaded: ${err.message}`) }
 
 try { quizRoutes = require("./api/routes/quizRoutes") }
 catch (err) { console.warn("quizRoutes not found yet") }
@@ -30,10 +33,10 @@ try { timetableRoutes = require("./api/routes/timetableRoutes") }
 catch (err) { console.warn("timetableRoutes not found yet") }
 
 app.use("/api/auth", identityRoutes)
-app.use("/api/notes", notesRoutes)
 app.use("/api/bio-gpt", aiTutorRoutes)
 app.use("/api/ai-study-companion", aiStudyCompanionRoutes)
 
+if (notesRoutes) app.use("/api/notes", notesRoutes)
 if (quizRoutes) app.use("/api/quizzes", quizRoutes)
 if (timetableRoutes) app.use("/api/timetable", timetableRoutes)
 

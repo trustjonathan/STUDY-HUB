@@ -69,6 +69,7 @@ test("sends the page and conversation to Gemini without returning credentials", 
 
   assert.equal(res.statusCode, 200);
   assert.deepEqual(res.body, { reply: "Here is the explanation." });
+  assert.equal(new URL(requestUrl).pathname, "/v1beta/models/gemini-3.8-flash:generateContent");
   assert.equal(new URL(requestUrl).searchParams.has("key"), false);
   assert.equal(requestHeaders["x-goog-api-key"], "test-key");
   assert.equal(requestBody.contents.at(-1).parts[1].inline_data.mime_type, "image/jpeg");

@@ -47,6 +47,120 @@
     else toggle.focus();
   }
 
+  function appendInlineMarkdown(container, text) {
+    const pattern = /(\*\*|__)(.+?)\1|(\*|_)([^*_]+?)\3|`([^`]+)`/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = pattern.exec(text))) {
+      container.append(document.createTextNode(text.slice(lastIndex, match.index)));
+      const element = document.createElement(match[5] ? "code" : match[1] ? "strong" : "em");
+      element.textContent = match[5] || match[2] || match[4];
+      container.append(element);
+      lastIndex = pattern.lastIndex;
+    }
+
+    container.append(document.createTextNode(text.slice(lastIndex)));
+  }
+
+  function appendParagraph(container, lines) {
+    const paragraph = document.createElement("p");
+    appendInlineMarkdown(paragraph, lines.join(" "));
+    container.append(paragraph);
+  }
+
+  function renderMarkdown(container, text) {
+    const lines = text.replace(/\r\n?/g, "\n").split("\n");
+    let paragraphLines = [];
+    let list = null;
+    let codeLines = null;
+
+    function flushParagraph() {
+      if (paragraphLines.length) appendParagraph(container, paragraphLines);
+      paragraphLines = [];
+    }
+
+    function closeList() {
+      list = null;
+    }
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      const fence = trimmed.match(/^```/);
+
+      if (fence) {
+        flushParagraph();
+        closeList();
+        if (codeLines) {
+          const pre = document.createElement("pre");
+          const code = document.createElement("code");
+          code.textContent = codeLines.join("\n");
+          pre.append(code);
+          container.append(pre);
+          codeLines = null;
+        } else {
+          codeLines = [];
+        }
+        continue;
+      }
+
+      if (codeLines) {
+        codeLines.push(line);
+        continue;
+      }
+
+      const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+      if (heading) {
+        flushParagraph();
+        closeList();
+        const element = document.createElement(`h${heading[1].length}`);
+        appendInlineMarkdown(element, heading[2]);
+        container.append(element);
+        continue;
+      }
+
+      const quote = trimmed.match(/^>\s?(.*)$/);
+      if (quote) {
+        flushParagraph();
+        closeList();
+        const element = document.createElement("blockquote");
+        appendInlineMarkdown(element, quote[1]);
+        container.append(element);
+        continue;
+      }
+
+      const item = trimmed.match(/^([-*+]|\d+[.)])\s+(.+)$/);
+      if (item) {
+        flushParagraph();
+        const ordered = /^\d/.test(item[1]);
+        if (!list || list.tagName !== (ordered ? "OL" : "UL")) {
+          list = document.createElement(ordered ? "ol" : "ul");
+          container.append(list);
+        }
+        const listItem = document.createElement("li");
+        appendInlineMarkdown(listItem, item[2]);
+        list.append(listItem);
+        continue;
+      }
+
+      closeList();
+      if (!trimmed) {
+        flushParagraph();
+      } else {
+        paragraphLines.push(trimmed);
+      }
+    }
+
+    flushParagraph();
+    if (codeLines) {
+      const pre = document.createElement("pre");
+      const code = document.createElement("code");
+      code.textContent = codeLines.join("\n");
+      pre.append(code);
+      container.append(pre);
+    }
+  }
+
   function addMessage(text, role) {
     messages.querySelector(".ai-study-empty")?.remove();
     const message = document.createElement("div");
@@ -56,7 +170,8 @@
       "aria-label",
       role === "user" ? "Your question" : role === "model" ? "AI tutor response" : "Study companion error"
     );
-    message.textContent = text;
+    if (role === "model") renderMarkdown(message, text);
+    else message.textContent = text;
     messages.appendChild(message);
     messages.scrollTop = messages.scrollHeight;
     return message;

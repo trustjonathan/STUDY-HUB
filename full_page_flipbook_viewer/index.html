@@ -9,11 +9,11 @@
   <link rel="stylesheet" href="css/reader-controls.css" />
   <style>
     html, body { width: 100%; height: 100%; margin: 0; }
-    body { overflow: hidden; background: #111923; font-family: Arial, sans-serif; }
+    body { overflow: hidden; background: #0b0f19; font-family: Arial, sans-serif; }
     [hidden] { display: none !important; }
   </style>
 </head>
-<body>
+<body class="contribution-panel-hidden">
   <header class="ela-top" id="reader-toolbar" hidden>
     <button class="ela-btn" data-a="back" title="Back to library" aria-label="Back to library">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
@@ -65,8 +65,9 @@
       <button class="ela-btn" data-a="full" title="Full screen" aria-label="Full screen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
       </button>
-      <button class="ela-btn ela-contribute-toggle" data-a="contribute" title="Contribute a resource" aria-label="Open contribution panel" aria-expanded="false" aria-controls="contribution-rail">
+      <button class="ela-btn ela-contribute-toggle" data-a="contribute" title="Share a resource" aria-label="Open resource sharing panel" aria-expanded="false" aria-controls="contribution-rail">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        <span class="ela-contribute-label">Share resource</span>
       </button>
     </div>
   </header>
@@ -82,6 +83,8 @@
       </div>
       <div id="reader-error" role="alert" hidden></div>
     </main>
+
+    <button class="reader-drawer-backdrop" type="button" data-a="close-contribution" aria-label="Close resource sharing panel" hidden></button>
 
     <aside class="contribution-rail" id="contribution-rail" aria-labelledby="contribution-title">
       <div class="contribution-heading">
