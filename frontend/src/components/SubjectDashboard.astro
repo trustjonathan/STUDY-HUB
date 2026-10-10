@@ -18,35 +18,10 @@ const base = import.meta.env.BASE_URL.endsWith("/")
   : `${import.meta.env.BASE_URL}/`;
 const libraryId = `${subject}-library`;
 const subjectSlugs = [subject, subjectInfo.storageFolder, ...subjectInfo.folderAliases];
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "";
 const allResources = resourceManifest.items.filter((item) => subjectSlugs.includes(item.subject));
-const notes = allResources.filter((item) => item.category === "notes");
-const papers = allResources.filter((item) => item.category === "papers");
-const recentlyAdded = [...allResources]
-  .sort((left, right) => Date.parse(right.updatedAt || "") - Date.parse(left.updatedAt || ""))
-  .slice(0, 4);
-const featured = (notes.length ? notes : papers).slice(0, 4);
+const notes = allResources.filter((item) => item.category === "notes" || item.resourceType === "notes" || item.resourceType === "guide");
+const papers = allResources.filter((item) => item.category === "papers" || item.resourceType === "paper");
 const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
-
-function readerHref(item: (typeof allResources)[number]) {
-  const query = new URLSearchParams({
-    file: item.publicUrl,
-    title: item.title || item.originalFilename || `${name} resource`,
-    return: `${base}frontend/src/html/${subject}.html`,
-  });
-  if (supabaseAnonKey) query.set("anon_key", supabaseAnonKey);
-  if (turnstileSiteKey) query.set("turnstile_key", turnstileSiteKey);
-  return `${base}full_page_flipbook_viewer/index.html?${query}`;
-}
-
-function itemLabel(item: (typeof allResources)[number]) {
-  return [item.level, item.year, item.resourceType === "guide" ? "Guide" : item.category === "notes" ? "Notes" : "Study resource"]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-const subjects = subjectCatalog;
 ---
 
 <main class="subject-dashboard" data-subject={subject}>
@@ -69,19 +44,19 @@ const subjects = subjectCatalog;
   <section class="dashboard-stats" aria-label={`${name} library statistics`}>
     <div class="dashboard-stat">
       <span class="dashboard-stat-icon">▤</span>
-      <div><strong>{allResources.length}</strong><span>Resources</span></div>
+      <div><strong data-dashboard-stat="resources">{allResources.length}</strong><span>Resources</span></div>
     </div>
     <div class="dashboard-stat">
       <span class="dashboard-stat-icon">✎</span>
-      <div><strong>{notes.length}</strong><span>Study notes</span></div>
+      <div><strong data-dashboard-stat="notes">{notes.length}</strong><span>Notes &amp; guides</span></div>
     </div>
     <div class="dashboard-stat">
       <span class="dashboard-stat-icon">✓</span>
-      <div><strong>{papers.length}</strong><span>Past papers</span></div>
+      <div><strong data-dashboard-stat="papers">{papers.length}</strong><span>Past papers</span></div>
     </div>
     <div class="dashboard-stat">
       <span class="dashboard-stat-icon">⌂</span>
-      <div><strong>{levels.size}</strong><span>Study levels</span></div>
+      <div><strong data-dashboard-stat="levels">{levels.size}</strong><span>Study levels</span></div>
     </div>
   </section>
 
@@ -99,192 +74,117 @@ const subjects = subjectCatalog;
     </div>
   </section>
 
-  <nav class="dashboard-library-links" aria-label={`${name} resource collections`}>
-    <button class="toggle-btn" type="button" data-target="notes-content" aria-controls="notes-content" aria-expanded="false">Browse notes</button>
-    <button class="toggle-btn" type="button" data-target="papers-content" aria-controls="papers-content" aria-expanded="false">Browse past papers</button>
-  </nav>
-
-  {recentlyAdded.length > 0 && (
-    <section class="dashboard-section" aria-labelledby={`${subject}-recent-heading`}>
-      <div class="dashboard-section-heading">
-        <div><p class="dashboard-eyebrow">Fresh from the library</p><h2 id={`${subject}-recent-heading`}>Recently added</h2></div>
-        <a href={`#${libraryId}`}>Browse all <span aria-hidden="true">→</span></a>
-        <div class="dashboard-carousel-controls" aria-label="Recently added resource controls">
-          <button type="button" data-carousel-target={`${subject}-recent-carousel`} data-carousel-direction="-1" aria-label="Scroll recently added resources left" title="Scroll left">←</button>
-          <button type="button" data-carousel-target={`${subject}-recent-carousel`} data-carousel-direction="1" aria-label="Scroll recently added resources right" title="Scroll right">→</button>
-        </div>
-      </div>
-      <div class="dashboard-resource-grid dashboard-carousel-track" id={`${subject}-recent-carousel`} tabindex="0" aria-label={`Recently added ${name} resources`}>
-        {recentlyAdded.map((item) => (
-          <a class="dashboard-resource-card" href={readerHref(item)} aria-label={`Open ${item.title || item.originalFilename}`}>
-            <span class="dashboard-preview" data-preview-url={["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") ? item.publicUrl : undefined} data-preview-format={item.extension} data-preview-worker={`${base}full_page_flipbook_viewer/js/pdf.worker.min.js`} aria-hidden="true">
-              <span class="dashboard-preview-placeholder">{item.resourceType === "paper" ? "✍" : icon}</span>
-              {["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">Loading page preview…</span>}
-              {!["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">{item.extension?.toUpperCase() || "FILE"} · Open to view</span>}
-            </span>
-            <span class="dashboard-resource-copy">
-              <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
-              <span class="dashboard-card-meta">{itemLabel(item)}</span>
-            </span>
-          </a>
-        ))}
-      </div>
-    </section>
-  )}
-
-  {featured.length > 0 && (
-    <section class="dashboard-section" aria-labelledby={`${subject}-featured-heading`}>
-      <div class="dashboard-section-heading">
-        <div><p class="dashboard-eyebrow">{notes.length ? "Start with the essentials" : "Practice and prepare"}</p><h2 id={`${subject}-featured-heading`}>{notes.length ? "Study notes" : "Explore past papers"}</h2></div>
-        <button class="dashboard-text-button toggle-btn" type="button" data-target={notes.length ? "notes-content" : "papers-content"} aria-controls={notes.length ? "notes-content" : "papers-content"} aria-expanded="false">
-          View collection <span aria-hidden="true">→</span>
-        </button>
-        <div class="dashboard-carousel-controls" aria-label={`${notes.length ? "Study notes" : "Past paper"} controls`}>
-          <button type="button" data-carousel-target={`${subject}-featured-carousel`} data-carousel-direction="-1" aria-label={`Scroll ${notes.length ? "study notes" : "past papers"} left`} title="Scroll left">←</button>
-          <button type="button" data-carousel-target={`${subject}-featured-carousel`} data-carousel-direction="1" aria-label={`Scroll ${notes.length ? "study notes" : "past papers"} right`} title="Scroll right">→</button>
-        </div>
-      </div>
-      <div class="dashboard-resource-grid dashboard-carousel-track" id={`${subject}-featured-carousel`} tabindex="0" aria-label={`Featured ${notes.length ? "study notes" : "past papers"} for ${name}`}>
-        {featured.map((item) => (
-          <a class="dashboard-resource-card" href={readerHref(item)} aria-label={`Open ${item.title || item.originalFilename}`}>
-            <span class="dashboard-preview" data-preview-url={["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") ? item.publicUrl : undefined} data-preview-format={item.extension} data-preview-worker={`${base}full_page_flipbook_viewer/js/pdf.worker.min.js`} aria-hidden="true">
-              <span class="dashboard-preview-placeholder">{item.resourceType === "paper" ? "✍" : icon}</span>
-              {["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">Loading page preview…</span>}
-              {!["pdf", "docx", "png", "jpg", "jpeg", "webp"].includes(item.extension || "") && <span class="dashboard-preview-caption">{item.extension?.toUpperCase() || "FILE"} · Open to view</span>}
-            </span>
-            <span class="dashboard-resource-copy">
-              <span class="dashboard-card-title">{item.title || item.originalFilename}</span>
-              <span class="dashboard-card-meta">{itemLabel(item)}</span>
-            </span>
-          </a>
-        ))}
-      </div>
-    </section>
-  )}
-
-  <section class="dashboard-section dashboard-subjects" id="subjects" aria-labelledby={`${subject}-subjects-heading`}>
+  <section class="dashboard-section dashboard-learning-path" aria-labelledby={`${subject}-learning-heading`}>
     <div class="dashboard-section-heading">
-      <div><p class="dashboard-eyebrow">Keep exploring</p><h2 id={`${subject}-subjects-heading`}>Browse by subject</h2></div>
-      <a href={`${base}subjects.html`}>All subjects <span aria-hidden="true">→</span></a>
+      <div><p class="dashboard-eyebrow">A practical way to learn</p><h2 id={`${subject}-learning-heading`}>Turn {name} study into steady progress</h2></div>
     </div>
-    <div class="dashboard-subject-carousel" data-subject-carousel tabindex="0" role="region" aria-label="Browse all Study Hub subjects">
-      <div class="dashboard-subject-track">
-        <div class="dashboard-subject-group">
-          {subjects.map((entry) => (
-            <a class={`dashboard-subject-chip ${entry.slug}`} href={`${base}frontend/src/html/${entry.slug}.html`} aria-label={`Explore ${entry.name}`}>
-              <span aria-hidden="true">{entry.icon}</span><strong>{entry.name}</strong>
-            </a>
-          ))}
-        </div>
-        <div class="dashboard-subject-group" aria-hidden="true">
-          {subjects.map((entry) => (
-            <a class={`dashboard-subject-chip ${entry.slug}`} href={`${base}frontend/src/html/${entry.slug}.html`} tabindex="-1">
-              <span aria-hidden="true">{entry.icon}</span><strong>{entry.name}</strong>
-            </a>
-          ))}
-        </div>
-      </div>
+    <div class="dashboard-learning-copy">
+      <p>Strong understanding grows in stages. Start by looking over the {subjectInfo.levels.join(" and ")} topics and noting what you already know, what needs another explanation, and which ideas connect to one another. In {name}, this is especially useful when working through {subjectInfo.focus.toLowerCase()}: pause to explain each idea in your own words instead of moving on as soon as a page is finished.</p>
+      <p>Use a set of notes to build a clear picture of one topic at a time. Read actively, mark unfamiliar terms, and turn headings, diagrams, or worked examples into questions you can answer without looking. When an explanation is difficult, return to its earlier steps and identify the exact point where your understanding breaks down. Small, specific questions are easier to solve than trying to reread an entire book from the beginning.</p>
+      <p>Once the main ideas make sense, practise applying them. Attempt questions before checking a solution, show your working where relevant, and keep a short record of mistakes or topics to revisit. Past papers help you practise interpreting exam questions and managing a complete task; they work best after you have built some understanding, not as a substitute for it.</p>
+      <p>Study Hub brings the reading and practice stages together. Browse the latest additions for new material, search the notes for a topic or year, and use the past-paper collection to test your progress. Choose a manageable task, finish it carefully, then return to the next topic with a clearer sense of what to do.</p>
     </div>
+    <nav class="dashboard-learning-links" aria-label={`${name} study links`}>
+      <a class="toggle-btn" href="#notes-content" data-target="notes-content" data-dashboard-jump="notes-content" aria-controls="notes-content" aria-expanded="false">Start with study notes <span aria-hidden="true">↓</span></a>
+      <a class="toggle-btn" href="#papers-content" data-target="papers-content" data-dashboard-jump="papers-content" aria-controls="papers-content" aria-expanded="false">Practise with past papers <span aria-hidden="true">↓</span></a>
+      <a href="#recently-added">See what was added recently <span aria-hidden="true">↓</span></a>
+    </nav>
+  </section>
+
+  <section class="dashboard-resource-search" aria-labelledby={`${subject}-search-heading`}
+    data-dashboard-library
+    data-dashboard-subject={subject}
+    data-dashboard-aliases={subjectSlugs.join(",")}
+    data-dashboard-reader={`${base}full_page_flipbook_viewer/index.html`}
+    data-dashboard-return={`${base}frontend/src/html/${subject}.html`}
+  >
+    <div class="dashboard-section-heading">
+      <div><p class="dashboard-eyebrow">Find the right resource</p><h2 id={`${subject}-search-heading`}>Search the {name} collection</h2></div>
+      <span class="dashboard-library-total" data-dashboard-total>{allResources.length} resources</span>
+    </div>
+    <div class="dashboard-search-controls">
+      <label>
+        <span>Search by topic, title, level, or year</span>
+        <input type="search" data-dashboard-query placeholder={`Try a topic, title, ${name}, or year…`} autocomplete="off">
+      </label>
+      <label>
+        <span>Study level</span>
+        <select data-dashboard-level><option value="">All levels</option></select>
+      </label>
+      <label>
+        <span>Year</span>
+        <select data-dashboard-year><option value="">All years</option></select>
+      </label>
+    </div>
+    <p class="dashboard-search-status" data-dashboard-status aria-live="polite">Loading the resource index…</p>
+  </section>
+
+  <section class="dashboard-section dashboard-resource-section" id="recently-added" aria-labelledby={`${subject}-recent-heading`}
+    data-dashboard-collection="recent"
+    data-dashboard-parent={subject}
+  >
+    <div class="dashboard-section-heading">
+      <div><p class="dashboard-eyebrow">Fresh from the library</p><h2 id={`${subject}-recent-heading`}>Recently added</h2></div>
+      <a href={`#${libraryId}`}>Open full library <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="dashboard-resource-rows" data-dashboard-rows="recent" aria-label={`Recently added ${name} resources`}>
+      {[0, 1].map((row) => (
+        <div class="dashboard-resource-row-wrap">
+          <button class="dashboard-row-control" type="button" data-dashboard-scroll="recent" data-row={row} data-direction="-1" aria-label={`Scroll recently added row ${row + 1} left`}>←</button>
+          <div class="dashboard-resource-row" data-dashboard-row="recent" data-row={row} tabindex="0" aria-label={`Recently added ${name} resources, row ${row + 1}`}></div>
+          <button class="dashboard-row-control" type="button" data-dashboard-scroll="recent" data-row={row} data-direction="1" aria-label={`Scroll recently added row ${row + 1} right`}>→</button>
+        </div>
+      ))}
+    </div>
+    <p class="dashboard-collection-status" data-dashboard-collection-status="recent" aria-live="polite"></p>
+  </section>
+
+  <section class="dashboard-section dashboard-resource-section" aria-labelledby={`${subject}-notes-heading`}
+    data-dashboard-collection="notes"
+    data-dashboard-parent={subject}
+  >
+    <div class="dashboard-section-heading">
+      <div><p class="dashboard-eyebrow">Read, understand, recall</p><h2 id={`${subject}-notes-heading`}>Study notes and guides</h2></div>
+      <a class="toggle-btn" href="#notes-content" data-target="notes-content" data-dashboard-jump="notes-content" aria-controls="notes-content" aria-expanded="false">Open notes collection <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="dashboard-resource-rows" data-dashboard-rows="notes" aria-label={`${name} notes and study guides`}>
+      {[0, 1].map((row) => (
+        <div class="dashboard-resource-row-wrap">
+          <button class="dashboard-row-control" type="button" data-dashboard-scroll="notes" data-row={row} data-direction="-1" aria-label={`Scroll study notes row ${row + 1} left`}>←</button>
+          <div class="dashboard-resource-row" data-dashboard-row="notes" data-row={row} tabindex="0" aria-label={`${name} notes, row ${row + 1}`}></div>
+          <button class="dashboard-row-control" type="button" data-dashboard-scroll="notes" data-row={row} data-direction="1" aria-label={`Scroll study notes row ${row + 1} right`}>→</button>
+        </div>
+      ))}
+    </div>
+    <p class="dashboard-collection-status" data-dashboard-collection-status="notes" aria-live="polite"></p>
   </section>
 </main>
 
 <script is:inline src={`${base}scripts/dashboard-previews.js`} defer></script>
 <script>
-  const updateCarouselControls = (track: HTMLElement) => {
-    const controls = document.querySelectorAll<HTMLButtonElement>(`[data-carousel-target="${track.id}"]`);
-    const maxScroll = track.scrollWidth - track.clientWidth;
-    controls.forEach((control) => {
-      const direction = Number(control.dataset.carouselDirection);
-      control.disabled = direction < 0 ? track.scrollLeft <= 1 : track.scrollLeft >= maxScroll - 1;
-    });
-  };
-
-  document.querySelectorAll<HTMLElement>(".dashboard-carousel-track").forEach((track) => {
-    updateCarouselControls(track);
-    track.addEventListener("scroll", () => updateCarouselControls(track), { passive: true });
-    window.addEventListener("resize", () => updateCarouselControls(track));
-  });
-
   document.addEventListener("click", (event) => {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-carousel-target]");
-    if (!button) return;
-    const track = document.getElementById(button.dataset.carouselTarget || "");
-    if (!track) return;
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("[data-dashboard-jump]");
+    if (!link) return;
 
-    const direction = Number(button.dataset.carouselDirection);
-    const card = track.querySelector<HTMLElement>(".dashboard-resource-card");
-    const distance = card ? card.offsetWidth + 12 : track.clientWidth;
-    track.scrollBy({
-      left: direction * distance,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
-  });
+    const targetId = link.dataset.dashboardJump;
+    const panel = targetId ? document.getElementById(targetId) : null;
+    if (!panel) return;
 
-  const subjectCarousel = document.querySelector<HTMLElement>("[data-subject-carousel]");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-  if (subjectCarousel && !reducedMotion.matches) {
-    const groups = subjectCarousel.querySelectorAll<HTMLElement>(".dashboard-subject-group");
-    let animationFrame = 0;
-    let previousTime = 0;
-    let resumeTimer = 0;
-    let paused = false;
-    const speed = 24;
-
-    const animateSubjects = (time: number) => {
-      if (!previousTime) previousTime = time;
-      if (!paused && groups.length === 2) {
-        subjectCarousel.scrollLeft += (time - previousTime) * speed / 1000;
-        const loopDistance = groups[1].offsetLeft - groups[0].offsetLeft;
-        if (loopDistance > 0 && subjectCarousel.scrollLeft >= loopDistance) {
-          subjectCarousel.scrollLeft -= loopDistance;
-        }
-      }
-      previousTime = time;
-      animationFrame = requestAnimationFrame(animateSubjects);
-    };
-
-    const pauseForInteraction = () => {
-      paused = true;
-      window.clearTimeout(resumeTimer);
-      resumeTimer = window.setTimeout(() => {
-        paused = false;
-        previousTime = 0;
-      }, 1800);
-    };
-
-    subjectCarousel.addEventListener("pointerdown", pauseForInteraction);
-    subjectCarousel.addEventListener("wheel", pauseForInteraction, { passive: true });
-    subjectCarousel.addEventListener("touchstart", pauseForInteraction, { passive: true });
-    subjectCarousel.addEventListener("keydown", pauseForInteraction);
-    subjectCarousel.addEventListener("focusin", () => { paused = true; });
-    subjectCarousel.addEventListener("focusout", (event) => {
-      if (!subjectCarousel.contains(event.relatedTarget as Node | null)) {
-        paused = false;
-        previousTime = 0;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    document.querySelectorAll<HTMLElement>(".resource-content").forEach((candidate) => {
+      const isTarget = candidate === panel;
+      candidate.style.display = isTarget ? "block" : "none";
+      candidate.classList.toggle("expanded", isTarget);
+      if (candidate.id) {
+        document.querySelectorAll<HTMLElement>(`[aria-controls="${candidate.id}"]`).forEach((control) => {
+          control.setAttribute("aria-expanded", String(isTarget && control === link));
+        });
       }
     });
-    subjectCarousel.addEventListener("mouseenter", () => { paused = true; });
-    subjectCarousel.addEventListener("mouseleave", () => {
-      paused = false;
-      previousTime = 0;
-    });
-    document.addEventListener("visibilitychange", () => {
-      paused = document.hidden;
-      previousTime = 0;
-    });
-    reducedMotion.addEventListener("change", () => {
-      if (reducedMotion.matches) {
-        cancelAnimationFrame(animationFrame);
-        window.clearTimeout(resumeTimer);
-      } else {
-        previousTime = 0;
-        animationFrame = requestAnimationFrame(animateSubjects);
-      }
-    });
-
-    animationFrame = requestAnimationFrame(animateSubjects);
-  }
+    history.replaceState(null, "", `#${targetId}`);
+    panel.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }, true);
 </script>
 
 <style>
@@ -330,8 +230,6 @@ const subjects = subjectCatalog;
   .dashboard-stat div { display: grid; gap: 1px; }
   .dashboard-stat strong { font-size: 1.25rem; line-height: 1.2; }
   .dashboard-stat div span { color: #657483; font-size: .78rem; }
-  .dashboard-library-links { display: flex; flex-wrap: wrap; gap: 10px 20px; margin: 18px 0 30px; }
-  .dashboard-library-links button { padding: 0; border: 0; background: transparent; color: var(--dashboard-accent); font: inherit; font-size: .86rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
   .dashboard-section { margin: 28px 0; }
   .curriculum-overview { padding: 20px 22px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; }
   .curriculum-overview .dashboard-section-heading { margin-bottom: 12px; }
@@ -340,50 +238,61 @@ const subjects = subjectCatalog;
   .curriculum-details strong { color: #213448; font-size: .76rem; }
   .curriculum-details code { color: var(--dashboard-accent); font-size: .82rem; }
   .curriculum-details .curriculum-note { flex-basis: 100%; margin-top: 4px; }
+  .dashboard-learning-path { padding: 22px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; }
+  .dashboard-learning-copy { display: grid; max-width: 920px; gap: 14px; color: #4f5f6c; font-size: .93rem; line-height: 1.75; }
+  .dashboard-learning-copy p { margin: 0; }
+  .dashboard-learning-links { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 18px; }
+  .dashboard-learning-links a { color: var(--dashboard-accent); font-size: .84rem; font-weight: 800; text-decoration: none; }
+  .dashboard-learning-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
   .dashboard-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
   .dashboard-section-heading .dashboard-eyebrow { margin-bottom: 4px; }
   .dashboard-section-heading h2 { margin: 0; font-family: Manrope, Arial, sans-serif; font-size: clamp(1.3rem, 2vw, 1.7rem); }
   .dashboard-section-heading > a, .dashboard-text-button { padding: 0; border: 0; background: none; color: var(--dashboard-accent); font: inherit; font-size: .82rem; font-weight: 800; text-decoration: none; white-space: nowrap; cursor: pointer; }
   .dashboard-section-heading > a:hover, .dashboard-text-button:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .dashboard-resource-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-  .dashboard-carousel-track { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 12px; scroll-snap-type: x mandatory; overscroll-behavior-inline: contain; scrollbar-color: #9aa9a2 #e9eeeb; scrollbar-width: thin; }
-  .dashboard-carousel-track:focus-visible { outline: 3px solid color-mix(in srgb, var(--dashboard-accent) 45%, transparent); outline-offset: 3px; }
-  .dashboard-resource-card { display: flex; min-width: 0; min-height: 252px; flex: 0 0 clamp(220px, 26%, 280px); flex-direction: column; overflow: hidden; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; color: #213448; text-decoration: none; scroll-snap-align: start; transition: border-color .15s, transform .15s, box-shadow .15s; }
-  .dashboard-resource-card:hover { transform: translateY(-2px); border-color: var(--dashboard-accent); box-shadow: 0 8px 20px rgba(25,43,59,.08); }
-  .dashboard-preview { position: relative; display: grid; width: 100%; height: 158px; flex: 0 0 158px; place-items: center; overflow: hidden; background: linear-gradient(145deg, var(--dashboard-accent-soft), #f5f7f7); }
-  .dashboard-preview :global(canvas) { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0; transition: opacity .2s; }
+  .dashboard-library-total, .dashboard-search-status, .dashboard-collection-status { color: #657483; font-size: .78rem; }
+  .dashboard-search-controls { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(140px, .8fr)); gap: 12px; padding: 16px; border: 1px solid #dfe6e2; border-radius: 12px; background: #fff; }
+  .dashboard-search-controls label { display: grid; gap: 6px; color: #435465; font-size: .76rem; font-weight: 700; }
+  .dashboard-search-controls input, .dashboard-search-controls select { width: 100%; min-width: 0; min-height: 44px; padding: 8px 11px; border: 1px solid #cbd5d1; border-radius: 7px; background: #fff; color: #213448; font: inherit; font-size: .88rem; }
+  .dashboard-search-controls input:focus-visible, .dashboard-search-controls select:focus-visible { outline: 3px solid color-mix(in srgb, var(--dashboard-accent) 28%, transparent); border-color: var(--dashboard-accent); }
+  .dashboard-search-status { margin: 8px 2px 0; }
+  :global(.dashboard-retry) { min-height: 32px; margin-left: 8px; padding: 4px 10px; border: 1px solid #cbd5d1; border-radius: 6px; background: #fff; color: #24394c; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; }
+  :global(.dashboard-retry:hover) { border-color: var(--dashboard-accent); color: var(--dashboard-accent); }
+  .dashboard-resource-section { scroll-margin-top: 24px; }
+  .dashboard-resource-rows { display: grid; gap: 12px; }
+  .dashboard-resource-row-wrap { display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; gap: 8px; }
+  .dashboard-row-control { display: grid; width: 36px; height: 36px; min-height: 36px !important; place-items: center; padding: 0 !important; border: 1px solid #cbd5d1 !important; border-radius: 50% !important; background: #fff !important; color: #24394c !important; font: inherit !important; cursor: pointer; }
+  .dashboard-row-control:hover:not(:disabled) { border-color: var(--dashboard-accent) !important; color: var(--dashboard-accent) !important; }
+  .dashboard-row-control:disabled { opacity: .45; cursor: not-allowed; }
+  .dashboard-resource-row { display: flex; min-width: 0; gap: 12px; overflow-x: auto; padding: 4px 2px 10px; scroll-snap-type: x proximity; overscroll-behavior-inline: contain; scrollbar-color: #9aa9a2 #e9eeeb; scrollbar-width: thin; touch-action: pan-x; }
+  .dashboard-resource-row:focus-visible { outline: 3px solid color-mix(in srgb, var(--dashboard-accent) 45%, transparent); outline-offset: 2px; }
+  :global(.dashboard-resource-card) { display: flex; width: 220px; min-width: 220px; min-height: 170px; flex: 0 0 220px; flex-direction: column; overflow: hidden; border: 1px solid #e0e6e9; border-radius: 11px; background: #fff; color: #213448; text-decoration: none; scroll-snap-align: start; transition: border-color .15s, transform .15s, box-shadow .15s; }
+  :global(.dashboard-resource-card:hover) { transform: translateY(-2px); border-color: var(--dashboard-accent); box-shadow: 0 8px 20px rgba(25,43,59,.08); }
+  :global(.dashboard-preview) { position: relative; display: grid; width: 100%; height: 96px; flex: 0 0 96px; place-items: center; overflow: hidden; background: linear-gradient(145deg, var(--dashboard-accent-soft), #f5f7f7); }
+  :global(.dashboard-preview canvas) { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0; transition: opacity .2s; }
   :global(.dashboard-preview-image) { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; }
   :global(.dashboard-preview-document) { position: absolute; top: 0; left: 50%; width: 816px; height: 1056px; overflow: hidden; transform-origin: top center; pointer-events: none; }
   :global(.dashboard-preview-document .docx-wrapper) { width: 816px !important; margin: 0 !important; padding: 0 !important; background: white !important; }
   :global(.dashboard-preview-document .docx-wrapper > section.docx) { width: 816px !important; min-height: 1056px !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box; }
-  .dashboard-preview.has-preview :global(canvas) { opacity: 1; }
-  .dashboard-preview.has-preview .dashboard-preview-placeholder,
-  .dashboard-preview.has-preview .dashboard-preview-caption { display: none; }
-  .dashboard-preview-placeholder { color: var(--dashboard-accent); font-size: 2.5rem; }
-  .dashboard-preview-caption { position: absolute; right: 8px; bottom: 7px; left: 8px; overflow: hidden; color: #526273; font-size: .67rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-  .dashboard-preview.preview-error .dashboard-preview-caption { color: #667583; }
-  .dashboard-resource-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: flex-start; padding: 12px 14px; }
-  .dashboard-card-title { display: -webkit-box; overflow: hidden; width: 100%; font-size: .88rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-  .dashboard-card-meta { margin-top: auto; padding-top: 7px; color: #526273; font-size: .73rem; }
-  .dashboard-carousel-controls { display: flex; gap: 6px; margin-left: auto; }
-  .dashboard-carousel-controls button { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #cbd5d1; border-radius: 50%; background: #fff; color: #24394c; font: inherit; font-size: 1rem; cursor: pointer; }
-  .dashboard-carousel-controls button:hover:not(:disabled) { border-color: var(--dashboard-accent); color: var(--dashboard-accent); }
-  .dashboard-carousel-controls button:disabled { color: #82909b; cursor: not-allowed; opacity: .55; }
-  .dashboard-carousel-controls button:focus-visible { outline: 3px solid color-mix(in srgb, var(--dashboard-accent) 45%, transparent); outline-offset: 2px; }
-  .dashboard-subject-carousel { overflow-x: auto; padding: 5px 3px 12px; scroll-behavior: auto; scrollbar-color: #9aa9a2 #e9eeeb; scrollbar-width: thin; overscroll-behavior-inline: contain; touch-action: pan-x; }
-  .dashboard-subject-carousel:focus-visible { outline: 3px solid color-mix(in srgb, var(--dashboard-accent) 45%, transparent); outline-offset: 2px; }
-  .dashboard-subject-track, .dashboard-subject-group { display: flex; width: max-content; gap: 12px; }
-  .dashboard-subject-track { gap: 12px; }
-  .dashboard-subject-chip { display: flex; width: 88px; height: 88px; flex: 0 0 88px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px; border: 1px solid #d5dedb; border-radius: 50%; background: #fff; color: #24394c; text-align: center; text-decoration: none; box-shadow: 0 3px 10px rgba(25,43,59,.05); transition: border-color .15s, transform .15s, background-color .15s; }
-  .dashboard-subject-chip > span { font-size: 1.45rem; line-height: 1; }
-  .dashboard-subject-chip strong { display: -webkit-box; max-width: 100%; overflow: hidden; font-size: .63rem; line-height: 1.15; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-  .dashboard-subject-chip:hover, .dashboard-subject-chip:focus-visible { transform: translateY(-2px); border-color: var(--dashboard-accent); background: var(--dashboard-accent-soft); outline: none; }
+  :global(.dashboard-preview.has-preview canvas) { opacity: 1; }
+  :global(.dashboard-preview.has-preview .dashboard-preview-placeholder),
+  :global(.dashboard-preview.has-preview .dashboard-preview-caption) { display: none; }
+  :global(.dashboard-preview-placeholder) { color: var(--dashboard-accent); font-size: 2rem; }
+  :global(.dashboard-preview-caption) { position: absolute; right: 6px; bottom: 5px; left: 6px; overflow: hidden; color: #526273; font-size: .62rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+  :global(.dashboard-resource-type) { display: flex; min-height: 72px; align-items: center; justify-content: center; gap: 9px; background: linear-gradient(145deg, var(--dashboard-accent-soft), #f5f7f7); color: var(--dashboard-accent); font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  :global(.dashboard-resource-type span:first-child) { font-size: 1.65rem; }
+  :global(.dashboard-resource-copy) { display: flex; min-width: 0; flex: 1; flex-direction: column; padding: 10px 12px; }
+  :global(.dashboard-card-title) { display: -webkit-box; overflow: hidden; width: 100%; font-size: .83rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  :global(.dashboard-card-meta) { margin-top: auto; padding-top: 7px; color: #526273; font-size: .7rem; }
+  .dashboard-collection-status { margin: 5px 2px 0; }
+  :global(.dashboard-resource-empty) { padding: 18px; border: 1px dashed #cbd5d1; border-radius: 10px; color: #526273; font-size: .86rem; }
   @media (max-width: 760px) {
     .subject-dashboard { margin-top: 16px; padding: 0 16px; }
     .dashboard-hero { min-height: 215px; padding: 28px 24px; }
     .dashboard-subject-mark { width: 92px; height: 92px; margin-left: 12px; }
     .dashboard-subject-mark span { font-size: 2.6rem; }
     .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-search-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-search-controls label:first-child { grid-column: 1 / -1; }
   }
   @media (max-width: 480px) {
     .dashboard-hero { align-items: flex-start; padding: 24px 18px; }
@@ -397,13 +306,15 @@ const subjects = subjectCatalog;
     .dashboard-stat-icon { width: 34px; height: 34px; }
     .dashboard-stat strong { font-size: 1.1rem; }
     .dashboard-stat div span { font-size: .7rem; }
-    .dashboard-resource-card { min-height: 224px; flex-basis: min(78vw, 280px); }
-    .dashboard-preview { height: 136px; flex-basis: 136px; }
-    .dashboard-resource-copy { padding: 10px; }
     .dashboard-section-heading { align-items: center; flex-wrap: wrap; }
-    .dashboard-carousel-controls { margin-left: 0; }
+    .dashboard-search-controls { grid-template-columns: 1fr; padding: 12px; }
+    .dashboard-search-controls label:first-child { grid-column: auto; }
+    .dashboard-resource-row-wrap { grid-template-columns: 30px minmax(0, 1fr) 30px; gap: 4px; }
+    .dashboard-row-control { width: 30px; height: 30px; min-height: 30px !important; }
+    :global(.dashboard-resource-card) { width: min(70vw, 220px); min-width: min(70vw, 220px); flex-basis: min(70vw, 220px); }
+    .dashboard-learning-path { padding: 18px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .dashboard-resource-card { transition: none; }
+    :global(.dashboard-resource-card) { transition: none; }
   }
 </style>

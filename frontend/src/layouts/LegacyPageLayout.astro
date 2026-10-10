@@ -1,6 +1,8 @@
 ---
 import sharedStyles from '../styles/astro-site.css?url';
 import legacyStyles from '../styles/legacy-refresh.css?url';
+import SubjectFooterCarousel from '../components/SubjectFooterCarousel.astro';
+import subjectCatalog from '../data/subjects.json';
 
 interface Props {
   title: string;
@@ -10,6 +12,7 @@ interface Props {
 }
 
 const { title, description, dataPage, bodyClass } = Astro.props;
+const currentSubject = subjectCatalog.find((subject) => subject.slug === dataPage);
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
@@ -86,6 +89,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
       </div>
     </header>
     <slot />
+    {currentSubject && <SubjectFooterCarousel subject={currentSubject.slug} />}
     <footer class="legacy-site-footer">
       <div class="legacy-footer-inner">
         <div class="legacy-footer-brand">

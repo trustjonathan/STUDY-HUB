@@ -48,7 +48,7 @@ const levelLabel = subject.levels.join(", ");
       <div class="library-heading">
         <p class="subject-badge">UNEB / NCDC study library</p>
         <h2>{subject.name} resources</h2>
-        <p>Search notes and past papers stored in the Study Hub Supabase library, or filter by study level.</p>
+        <p>Search notes and past papers by title, topic, study level, or year.</p>
       </div>
 
       <div id="notes-content" class="resource-content" aria-labelledby={`${subject.slug}-notes-heading`}>
@@ -58,7 +58,7 @@ const levelLabel = subject.levels.join(", ");
           <select data-resource-filter={`${subject.slug}|notes`} aria-label={`Filter ${subject.name} notes by level`}></select>
         </div>
         <p class="resource-status" data-resource-status={`${subject.slug}|notes`} aria-live="polite"></p>
-        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="notes" data-limit="12" data-resource-source="supabase"></div>
+        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="notes" data-limit="12"></div>
       </div>
 
       <div id="papers-content" class="resource-content" aria-labelledby={`${subject.slug}-papers-heading`}>
@@ -68,7 +68,7 @@ const levelLabel = subject.levels.join(", ");
           <select data-resource-filter={`${subject.slug}|papers`} aria-label={`Filter ${subject.name} past papers by level`}></select>
         </div>
         <p class="resource-status" data-resource-status={`${subject.slug}|papers`} aria-live="polite"></p>
-        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="papers" data-limit="20" data-resource-source="supabase"></div>
+        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="papers" data-limit="20"></div>
       </div>
     </section>
   </div>

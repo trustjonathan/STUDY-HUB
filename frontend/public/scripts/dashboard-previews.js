@@ -1,11 +1,9 @@
 (function () {
   'use strict';
 
-  const previews = Array.from(document.querySelectorAll('.dashboard-preview[data-preview-url]'));
-  if (!previews.length) return;
-
   const documents = new Map();
   const scripts = new Map();
+  const observedPreviews = new WeakSet();
 
   function loadScript(url) {
     if (!scripts.has(url)) {
@@ -125,20 +123,35 @@
     if (caption) caption.textContent = 'Preview unavailable · Open to view';
   }
 
-  if (!('IntersectionObserver' in window)) {
+  const observer = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, currentObserver) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        currentObserver.unobserve(entry.target);
+        renderPreview(entry.target).catch((error) => handlePreviewError(entry.target, error));
+      });
+    }, { rootMargin: '180px 0px' })
+    : null;
+
+  function observePreviews(root) {
+    const previews = [];
+    if (root instanceof Element && root.matches('.dashboard-preview[data-preview-url]')) {
+      previews.push(root);
+    }
+    if ('querySelectorAll' in root) {
+      previews.push(...root.querySelectorAll('.dashboard-preview[data-preview-url]'));
+    }
+
     previews.forEach((preview) => {
-      renderPreview(preview).catch((error) => handlePreviewError(preview, error));
+      if (observedPreviews.has(preview)) return;
+      observedPreviews.add(preview);
+      if (observer) observer.observe(preview);
+      else renderPreview(preview).catch((error) => handlePreviewError(preview, error));
     });
-    return;
   }
 
-  const observer = new IntersectionObserver((entries, currentObserver) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      currentObserver.unobserve(entry.target);
-      renderPreview(entry.target).catch((error) => handlePreviewError(entry.target, error));
-    });
-  }, { rootMargin: '180px 0px' });
-
-  previews.forEach((preview) => observer.observe(preview));
+  observePreviews(document);
+  new MutationObserver((records) => {
+    records.forEach((record) => record.addedNodes.forEach(observePreviews));
+  }).observe(document.body, { childList: true, subtree: true });
 })();
