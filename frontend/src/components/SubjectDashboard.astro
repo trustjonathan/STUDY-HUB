@@ -1,6 +1,13 @@
 ---
 import resourceManifest from "../data/resources.json";
 import subjectCatalog from "../data/subjects.json";
+import subjectGuides from "../data/subjectGuides.json";
+
+interface SubjectGuide {
+  overview: string;
+  topicAreas: string[];
+  levelGuides: Record<string, { focus: string; example: string }>;
+}
 
 interface Props {
   subject: string;
@@ -13,14 +20,24 @@ interface Props {
 const { subject, name, headline, description, icon } = Astro.props;
 const subjectInfo = subjectCatalog.find((entry) => entry.slug === subject);
 if (!subjectInfo) throw new Error(`Unknown Study Hub subject: ${subject}`);
+const subjectGuide = (subjectGuides as Record<string, SubjectGuide>)[subject];
+if (!subjectGuide) throw new Error(`Missing subject revision guide: ${subject}`);
 const base = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : `${import.meta.env.BASE_URL}/`;
 const libraryId = `${subject}-library`;
 const subjectSlugs = [subject, subjectInfo.storageFolder, ...subjectInfo.folderAliases];
 const allResources = resourceManifest.items.filter((item) => subjectSlugs.includes(item.subject));
-const notes = allResources.filter((item) => item.category === "notes" || item.resourceType === "notes" || item.resourceType === "guide");
-const papers = allResources.filter((item) => item.category === "papers" || item.resourceType === "paper");
+type ResourceManifestItem = (typeof resourceManifest.items)[number];
+const resourceGroup = (item: ResourceManifestItem) => {
+  if (item.category === "notes") return "notes";
+  if (item.category === "papers") return "papers";
+  if (item.resourceType === "notes" || item.resourceType === "guide") return "notes";
+  if (item.resourceType === "paper") return "papers";
+  return "other";
+};
+const notes = allResources.filter((item) => resourceGroup(item) === "notes");
+const papers = allResources.filter((item) => resourceGroup(item) === "papers");
 const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
 ---
 
@@ -62,27 +79,41 @@ const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
 
   <section class="dashboard-section curriculum-overview" aria-labelledby={`${subject}-curriculum-heading`}>
     <div class="dashboard-section-heading">
-      <div><p class="dashboard-eyebrow">UNEB / NCDC curriculum</p><h2 id={`${subject}-curriculum-heading`}>Subject overview</h2></div>
+      <div><p class="dashboard-eyebrow">Revision map · {subjectInfo.levels.join(" · ")}</p><h2 id={`${subject}-curriculum-heading`}>A guide to {name}</h2></div>
     </div>
     <div class="curriculum-details">
-      <p><strong>Study levels</strong><span>{subjectInfo.levels.join(" · ")}</span></p>
+      <p class="curriculum-summary">{subjectGuide.overview}</p>
+      <div class="curriculum-topic-list" aria-label={`${name} topic areas`}>
+        {subjectGuide.topicAreas.map((topic) => <span>{topic}</span>)}
+      </div>
       <p><strong>Curriculum track</strong><span>{subjectInfo.tracks.join(" · ")}</span></p>
       {subjectInfo.codes.length > 0 && (
         <p><strong>UNEB subject code</strong><span>{subjectInfo.codes.map(({ level, code }) => `${level}: ${code}`).join(" · ")}</span></p>
       )}
-      <p class="curriculum-note">Resources are added as they become available. Check back for notes and exam papers.</p>
+      <p class="curriculum-note">This is a practical revision map, not a complete or official syllabus. Follow your current school scheme of work and check the latest guidance from your teacher.</p>
     </div>
   </section>
 
   <section class="dashboard-section dashboard-learning-path" aria-labelledby={`${subject}-learning-heading`}>
     <div class="dashboard-section-heading">
-      <div><p class="dashboard-eyebrow">A practical way to learn</p><h2 id={`${subject}-learning-heading`}>Turn {name} study into steady progress</h2></div>
+      <div><p class="dashboard-eyebrow">Study with purpose</p><h2 id={`${subject}-learning-heading`}>How to make progress in {name}</h2></div>
     </div>
     <div class="dashboard-learning-copy">
-      <p>Strong understanding grows in stages. Start by looking over the {subjectInfo.levels.join(" and ")} topics and noting what you already know, what needs another explanation, and which ideas connect to one another. In {name}, this is especially useful when working through {subjectInfo.focus.toLowerCase()}: pause to explain each idea in your own words instead of moving on as soon as a page is finished.</p>
-      <p>Use a set of notes to build a clear picture of one topic at a time. Read actively, mark unfamiliar terms, and turn headings, diagrams, or worked examples into questions you can answer without looking. When an explanation is difficult, return to its earlier steps and identify the exact point where your understanding breaks down. Small, specific questions are easier to solve than trying to reread an entire book from the beginning.</p>
-      <p>Once the main ideas make sense, practise applying them. Attempt questions before checking a solution, show your working where relevant, and keep a short record of mistakes or topics to revisit. Past papers help you practise interpreting exam questions and managing a complete task; they work best after you have built some understanding, not as a substitute for it.</p>
-      <p>Study Hub brings the reading and practice stages together. Browse the latest additions for new material, search the notes for a topic or year, and use the past-paper collection to test your progress. Choose a manageable task, finish it carefully, then return to the next topic with a clearer sense of what to do.</p>
+      <p>Use the topic map above to choose one area that matches your current class work. Read an explanation actively, note the step or idea that is least clear, and try to restate it in your own words before moving on.</p>
+      <p>For a practical check, try the example below for your study level without looking at a worked answer first. Show your reasoning, then compare it with your notes. Keep a short list of errors or questions to revisit; a specific gap is easier to address than rereading a whole unit.</p>
+      <p>When you are ready, use past-paper questions to practise applying what you have learned. Exam materials and classroom schemes can change, so use your teacher’s current guidance when deciding which topics and requirements to prioritise.</p>
+    </div>
+    <div class="dashboard-level-guides">
+      {subjectInfo.levels.map((level) => {
+        const levelGuide = subjectGuide.levelGuides[level];
+        return levelGuide && (
+          <article class="dashboard-level-guide">
+            <h3>{level} study focus</h3>
+            <p>{levelGuide.focus}</p>
+            <p><strong>Try this:</strong> {levelGuide.example}</p>
+          </article>
+        );
+      })}
     </div>
     <nav class="dashboard-learning-links" aria-label={`${name} study links`}>
       <a class="toggle-btn" href="#notes-content" data-target="notes-content" data-dashboard-jump="notes-content" aria-controls="notes-content" aria-expanded="false">Start with study notes <span aria-hidden="true">↓</span></a>
@@ -104,7 +135,7 @@ const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
     </div>
     <div class="dashboard-search-controls">
       <label>
-        <span>Search by topic, title, level, or year</span>
+        <span>Search topic words, title, filename, level, type, or year</span>
         <input type="search" data-dashboard-query placeholder={`Try a topic, title, ${name}, or year…`} autocomplete="off">
       </label>
       <label>
@@ -116,7 +147,8 @@ const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
         <select data-dashboard-year><option value="">All years</option></select>
       </label>
     </div>
-    <p class="dashboard-search-status" data-dashboard-status aria-live="polite">Loading the resource index…</p>
+    <p class="dashboard-search-hint">Topic keywords are matched from resource titles, filenames, and folder names.</p>
+    <p class="dashboard-search-status" data-dashboard-status role="status">Loading the resource index…</p>
   </section>
 
   <section class="dashboard-section dashboard-resource-section" id="recently-added" aria-labelledby={`${subject}-recent-heading`}
@@ -235,12 +267,21 @@ const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
   .curriculum-overview .dashboard-section-heading { margin-bottom: 12px; }
   .curriculum-details { display: flex; flex-wrap: wrap; gap: 12px 28px; }
   .curriculum-details > p { display: grid; gap: 2px; margin: 0; color: #657483; font-size: .82rem; }
+  .curriculum-details > .curriculum-summary { display: block; flex-basis: 100%; color: #435465; font-size: .94rem; line-height: 1.65; }
+  .curriculum-topic-list { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 8px; }
+  .curriculum-topic-list span { padding: 7px 10px; border-radius: 999px; background: var(--dashboard-accent-soft); color: var(--dashboard-accent); font-size: .76rem; font-weight: 700; }
   .curriculum-details strong { color: #213448; font-size: .76rem; }
   .curriculum-details code { color: var(--dashboard-accent); font-size: .82rem; }
   .curriculum-details .curriculum-note { flex-basis: 100%; margin-top: 4px; }
   .dashboard-learning-path { padding: 22px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; }
   .dashboard-learning-copy { display: grid; max-width: 920px; gap: 14px; color: #4f5f6c; font-size: .93rem; line-height: 1.75; }
   .dashboard-learning-copy p { margin: 0; }
+  .dashboard-level-guides { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; margin-top: 18px; }
+  .dashboard-level-guide { padding: 16px; border: 1px solid #e0e6e9; border-radius: 10px; background: #f8faf9; }
+  .dashboard-level-guide h3 { margin: 0 0 8px; color: #213448; font-size: .95rem; }
+  .dashboard-level-guide p { margin: 0; color: #4f5f6c; font-size: .86rem; line-height: 1.6; }
+  .dashboard-level-guide p + p { margin-top: 10px; }
+  .dashboard-level-guide p strong { color: #213448; }
   .dashboard-learning-links { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 18px; }
   .dashboard-learning-links a { color: var(--dashboard-accent); font-size: .84rem; font-weight: 800; text-decoration: none; }
   .dashboard-learning-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -255,6 +296,7 @@ const levels = new Set(allResources.map((item) => item.level).filter(Boolean));
   .dashboard-search-controls input, .dashboard-search-controls select { width: 100%; min-width: 0; min-height: 44px; padding: 8px 11px; border: 1px solid #cbd5d1; border-radius: 7px; background: #fff; color: #213448; font: inherit; font-size: .88rem; }
   .dashboard-search-controls input:focus-visible, .dashboard-search-controls select:focus-visible { outline: 3px solid color-mix(in srgb, var(--dashboard-accent) 28%, transparent); border-color: var(--dashboard-accent); }
   .dashboard-search-status { margin: 8px 2px 0; }
+  .dashboard-search-hint { margin: 8px 2px 0; color: #657483; font-size: .76rem; }
   :global(.dashboard-retry) { min-height: 32px; margin-left: 8px; padding: 4px 10px; border: 1px solid #cbd5d1; border-radius: 6px; background: #fff; color: #24394c; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; }
   :global(.dashboard-retry:hover) { border-color: var(--dashboard-accent); color: var(--dashboard-accent); }
   .dashboard-resource-section { scroll-margin-top: 24px; }

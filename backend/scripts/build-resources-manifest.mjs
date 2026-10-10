@@ -123,6 +123,7 @@ async function walk(prefix, found = []) {
       key,
       sizeBytes: Number(entry.metadata?.size) || 0,
       mimeType: entry.metadata?.mimetype || null,
+      createdAt: entry.created_at || null,
       updatedAt: entry.updated_at || entry.created_at || null
     });
   }
@@ -166,7 +167,8 @@ async function indexDatabase(items) {
     size_bytes: item.sizeBytes,
     level: item.level,
     year: item.year,
-    resource_type: item.resourceType
+    resource_type: item.resourceType,
+    ...(item.uploadedAt ? { uploaded_at: item.uploadedAt } : {})
   }));
 
   const chunkSize = 200;
@@ -234,6 +236,7 @@ async function main() {
       extension: info.extension.replace(/^\./, ''),
       mimeType: file.mimeType || info.mimeType,
       sizeBytes: file.sizeBytes,
+      uploadedAt: file.createdAt,
       updatedAt: file.updatedAt,
       publicUrl: publicUrlFor(file.key)
     };

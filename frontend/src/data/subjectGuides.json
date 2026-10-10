@@ -1,0 +1,378 @@
+{
+  "biology": {
+    "overview": "Biology connects the structures of living things with the processes that keep organisms alive, allow them to reproduce, and link them to their environments.",
+    "topicAreas": ["Cell structure and life processes", "Nutrition, transport and gas exchange", "Reproduction, inheritance and variation", "Ecology, adaptation and conservation"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Build clear explanations of how body systems and organisms work, then connect those ideas to health and the environment.",
+        "example": "Trace how a named nutrient moves from food through digestion and absorption to its use by body cells."
+      },
+      "A-Level": {
+        "focus": "Connect cell and molecular processes to organism-level functions, inheritance, evolution and ecological evidence.",
+        "example": "Use a genetic cross to predict offspring outcomes, state the assumptions, and explain how the results relate to inheritance."
+      }
+    }
+  },
+  "chemistry": {
+    "overview": "Chemistry explains how the structure of matter affects its properties and how particles rearrange during physical and chemical change.",
+    "topicAreas": ["Particles, atomic structure and the periodic table", "Bonding, formulae and quantitative chemistry", "Acids, bases, salts and reaction patterns", "Energy, rates, equilibrium and organic chemistry"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Move between observations, word equations, symbol equations and particle explanations; practise safe interpretation of simple experiments.",
+        "example": "Describe the observations when a reactive metal is added to dilute acid, then write and balance the equation for a specified metal."
+      },
+      "A-Level": {
+        "focus": "Use quantitative relationships and particle-level models to explain reaction energetics, kinetics, equilibrium and organic transformations.",
+        "example": "Calculate an equilibrium quantity from supplied data, show the steps, and explain how a stated change affects the equilibrium position."
+      }
+    }
+  },
+  "mathematics": {
+    "overview": "Mathematics develops precise reasoning by representing quantities and relationships, choosing suitable methods, and checking whether answers make sense.",
+    "topicAreas": ["Number, algebra and functions", "Geometry, measurement and trigonometry", "Statistics, probability and data", "Sequences, graphs and mathematical modelling"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Strengthen fluency in algebra, number, geometry and data while writing enough working for another learner to follow each method.",
+        "example": "Form and solve a linear equation from a short everyday situation, then substitute the result back to check it."
+      },
+      "A-Level": {
+        "focus": "Link algebraic methods to functions, calculus, vectors and statistical reasoning, and state the conditions behind a result.",
+        "example": "Differentiate a supplied function, use the derivative to locate a stationary point, and classify it using appropriate evidence."
+      }
+    }
+  },
+  "physics": {
+    "overview": "Physics uses models, measurements and mathematics to explain motion, forces, energy, matter, waves and electrical phenomena.",
+    "topicAreas": ["Mechanics, forces and energy", "Thermal physics and properties of matter", "Waves, light and sound", "Electricity, magnetism and modern physics"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Identify the physical principle in a situation, select a relevant relationship, use consistent units and interpret the result.",
+        "example": "Draw a distance-time graph from a simple journey and explain what the gradient says about the motion."
+      },
+      "A-Level": {
+        "focus": "Combine mathematical models with diagrams, experimental evidence and units; make assumptions explicit when solving multi-step problems.",
+        "example": "Resolve forces on an inclined plane, state the chosen direction convention, and use the result to discuss the motion."
+      }
+    }
+  },
+  "english-language": {
+    "overview": "English Language develops accurate, purposeful communication through reading, listening, speaking and writing for different audiences.",
+    "topicAreas": ["Comprehension and inference", "Grammar, vocabulary and sentence control", "Summary and note-making", "Composition, argument and communication"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Read closely, support interpretations with evidence, and plan writing around audience, purpose, register and clear paragraph structure.",
+        "example": "Write a short formal letter for a stated audience, then revise it for tone, paragraph order, grammar and clarity."
+      }
+    }
+  },
+  "geography": {
+    "overview": "Geography explores the relationships between people, places and environments, using maps, field evidence and spatial patterns.",
+    "topicAreas": ["Map skills and geographical enquiry", "Physical landscapes, weather and climate", "Population, settlement and economic activity", "Resources, environment and sustainable development"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Describe patterns accurately, use maps and diagrams as evidence, and connect physical processes with people’s activities.",
+        "example": "Describe a pattern shown on a map, support the description with locations, and suggest a geographical reason for it."
+      },
+      "A-Level": {
+        "focus": "Evaluate interacting processes at local and wider scales, distinguish evidence from explanation, and assess possible responses.",
+        "example": "Compare two approaches to managing a named environmental pressure, using benefits, limitations and evidence in your judgement."
+      }
+    }
+  },
+  "history": {
+    "overview": "History and Political Education examine change over time, the causes and consequences of events, and how institutions and citizenship shape society.",
+    "topicAreas": ["Evidence, chronology and historical interpretation", "Uganda and East African historical change", "Political ideas, institutions and citizenship", "Causes, consequences and comparison across periods"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Place events in context, distinguish causes from consequences, and support explanations with specific examples rather than lists of dates.",
+        "example": "Explain two connected causes of a studied change and show how each contributed to the outcome."
+      },
+      "A-Level": {
+        "focus": "Compare interpretations, weigh political and historical factors, and construct a sustained argument supported by relevant evidence.",
+        "example": "Assess the relative importance of two factors in a historical outcome, explaining why one carries greater weight."
+      }
+    }
+  },
+  "entrepreneurship": {
+    "overview": "Entrepreneurship turns needs and opportunities into workable ideas through planning, resource choices, customer understanding and evaluation.",
+    "topicAreas": ["Opportunity recognition and idea development", "Customers, markets and value propositions", "Business planning, finance and resource management", "Enterprise operations, responsibility and growth"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Connect an identified need to a realistic product or service, a clear customer group and the resources required to begin.",
+        "example": "Outline a small school-based enterprise, identify its customers and costs, and explain how you would test demand."
+      },
+      "A-Level": {
+        "focus": "Evaluate business choices using evidence about markets, costs, cash flow, risk and responsible operations.",
+        "example": "Compare two ways a small enterprise could finance expansion and recommend one using its likely costs and risks."
+      }
+    }
+  },
+  "agriculture": {
+    "overview": "Agriculture brings together biological knowledge, land and water management, production choices and the systems that move food from farm to consumer.",
+    "topicAreas": ["Soil, water and crop production", "Livestock health, nutrition and management", "Farm planning, records and agricultural economics", "Post-harvest handling, environment and food systems"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Relate practical farm decisions to local conditions, explain production steps in order, and consider soil, animal welfare and sustainability.",
+        "example": "Recommend a suitable soil-conservation measure for a described farm slope and explain how it reduces soil loss."
+      },
+      "A-Level": {
+        "focus": "Analyse production systems and constraints, interpret farm records, and justify improvements in terms of productivity and sustainability.",
+        "example": "Use a short farm scenario to identify a production constraint and justify a practical intervention with its likely trade-offs."
+      }
+    }
+  },
+  "ict": {
+    "overview": "ICT combines confident use of digital tools with an understanding of how information is created, stored, communicated and protected.",
+    "topicAreas": ["Computer systems, files and operating environments", "Word processing, spreadsheets and presentations", "Networks, communication and online information", "Digital citizenship, security and problem-solving"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Practise complete digital tasks, explain the steps taken, organise files carefully and apply safe, responsible use of technology.",
+        "example": "Plan a spreadsheet for a small class activity, choose suitable headings and formulas, and explain how you would check the results."
+      },
+      "Subsidiary": {
+        "focus": "Apply digital tools to communicate, organise and analyse information for a stated task, while explaining limitations and safe practice.",
+        "example": "Choose an appropriate digital tool for presenting a small dataset, justify the choice, and identify one risk in sharing the result online."
+      }
+    }
+  },
+  "kiswahili": {
+    "overview": "Kiswahili study develops language accuracy and confidence in understanding, speaking and writing for real purposes and audiences.",
+    "topicAreas": ["Listening, speaking and pronunciation", "Vocabulary, grammar and sentence construction", "Reading comprehension and interpretation", "Writing, translation and communication"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Build vocabulary through context, practise accurate sentence patterns, and support comprehension answers with details from the passage.",
+        "example": "Write a short message for a specified audience, then check word choice, agreement, spelling and clarity."
+      },
+      "A-Level": {
+        "focus": "Develop extended, coherent communication and analyse how vocabulary, grammar and context shape meaning.",
+        "example": "Summarise the main argument of a supplied passage in Kiswahili while preserving its key ideas and using your own wording."
+      }
+    }
+  },
+  "literature-in-english": {
+    "overview": "Literature study asks how writers use form, language, character and context to shape meaning and invite different interpretations.",
+    "topicAreas": ["Close reading and literary language", "Character, voice and relationships", "Theme, setting and social context", "Poetry, prose, drama and critical response"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Build interpretations from specific moments in a text, explaining how a writer’s choices affect a reader rather than retelling the plot.",
+        "example": "Choose a brief passage and explain how two language choices help establish a character or mood."
+      },
+      "A-Level": {
+        "focus": "Develop a sustained interpretation that weighs textual evidence, form and context while acknowledging complexity in the text.",
+        "example": "Compare how two studied texts present a shared theme, using precise evidence and discussion of each writer’s methods."
+      }
+    }
+  },
+  "cre": {
+    "overview": "CRE study explores biblical texts and Christian thought, considering their historical setting, interpretation and relevance to ethical and social questions.",
+    "topicAreas": ["Biblical texts, context and interpretation", "Christian beliefs, practices and traditions", "Ethics, community and contemporary questions", "Evidence-based explanation and evaluation"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Explain the meaning of a studied teaching in context, then distinguish the teaching itself from a reasoned example of its application.",
+        "example": "Explain a selected biblical teaching and give a clearly connected example of how it could guide a community decision."
+      },
+      "A-Level": {
+        "focus": "Interpret texts with attention to context and compare theological or ethical viewpoints using balanced evidence.",
+        "example": "Evaluate two Christian responses to a stated ethical issue, supporting each account with relevant teaching before reaching a reasoned conclusion."
+      }
+    }
+  },
+  "ire": {
+    "overview": "IRE study explores the Qur’an, Islamic teachings and practice, and how Muslim ethical principles inform personal and community life.",
+    "topicAreas": ["Qur’anic teachings and interpretation", "Prophetic example and Islamic sources", "Worship, belief and Muslim practice", "Ethics, society and reasoned application"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Explain a studied teaching accurately, relate it to Muslim belief or practice, and use respectful, relevant examples.",
+        "example": "Explain the purpose of a named act of worship and describe one way it can shape an individual’s conduct."
+      },
+      "A-Level": {
+        "focus": "Connect Islamic sources and principles to more complex questions, compare interpretations carefully and support evaluation with evidence.",
+        "example": "Assess how a stated Islamic principle may guide a community response to an ethical issue, using relevant sources and reasoning."
+      }
+    }
+  },
+  "art-and-design": {
+    "overview": "Art and Design combines observation, visual research, experimentation and purposeful choices of materials to communicate ideas.",
+    "topicAreas": ["Observation, drawing and visual recording", "Elements and principles of design", "Materials, techniques and experimentation", "Developing, presenting and evaluating a resolved idea"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Keep evidence of visual exploration, test materials before committing, and explain how design choices support the intended message.",
+        "example": "Develop two thumbnail designs for a stated audience, annotate the differences and refine one using a chosen design principle."
+      },
+      "A-Level": {
+        "focus": "Build a coherent body of research and experimentation, make independent refinements, and evaluate how the final work communicates the intention.",
+        "example": "Show how observations and material tests informed a final composition, then evaluate its strengths against the original intention."
+      }
+    }
+  },
+  "performing-arts-and-music": {
+    "overview": "Performing Arts and Music develop practical performance alongside listening, interpretation, rehearsal choices and understanding of how work is created for an audience.",
+    "topicAreas": ["Performance skills and expressive choices", "Listening, musical elements and interpretation", "Rehearsal, composition and creative development", "Ensemble work, stagecraft and reflection"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Practise a short performance deliberately, identify one expressive choice, and use feedback to make a specific improvement.",
+        "example": "Plan a brief group performance and explain how timing, dynamics or movement helps communicate its intended mood."
+      },
+      "A-Level": {
+        "focus": "Connect performance or composition decisions to style, structure and audience, and evaluate development using rehearsal evidence.",
+        "example": "Compare two interpretations of a musical passage and explain how a change in tempo or dynamics alters its effect."
+      }
+    }
+  },
+  "physical-education": {
+    "overview": "Physical Education links movement and physical activity with health, skill development, safe participation and reflection on performance.",
+    "topicAreas": ["Movement skills and physical performance", "Fitness components and training principles", "Health, wellbeing, safety and participation", "Rules, tactics, teamwork and performance review"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Describe a movement or training choice accurately, connect it to a fitness or skill goal, and apply safe participation principles.",
+        "example": "Suggest a simple practice progression for improving one movement skill and explain how you would observe improvement."
+      }
+    }
+  },
+  "technology-and-design": {
+    "overview": "Technology and Design uses research, technical drawing and practical decision-making to develop and communicate solutions to defined needs.",
+    "topicAreas": ["Design briefs, needs and constraints", "Technical drawing, dimensioning and visualisation", "Materials, tools, processes and safety", "Prototyping, testing and design improvement"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Translate a clearly stated need into a labelled design, choose appropriate materials and explain how the proposed solution can be tested.",
+        "example": "Sketch and annotate a simple storage solution for a given space, showing key dimensions and explaining one material choice."
+      },
+      "A-Level": {
+        "focus": "Develop a design from research through technical communication and prototyping, evaluating constraints and evidence from testing.",
+        "example": "Compare two design options against a brief, identify a trade-off and justify which option should be developed further."
+      }
+    }
+  },
+  "nutrition-and-food-technology": {
+    "overview": "Nutrition and Food Technology connect food choices and nutrients with preparation methods, safety, household decisions and wider food systems.",
+    "topicAreas": ["Nutrients, dietary needs and meal planning", "Food preparation, preservation and hygiene", "Consumer choices, budgeting and food quality", "Food production, storage and nutrition-related wellbeing"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Relate food choices to stated needs, explain safe preparation steps and consider cost, availability and minimal waste.",
+        "example": "Plan a balanced meal for a given situation, justify the food choices and note safe handling steps for one ingredient."
+      },
+      "A-Level": {
+        "focus": "Evaluate nutrition and food technology decisions using evidence about needs, processing, safety, cost and social context.",
+        "example": "Assess a proposed food-preservation method for a stated product, considering safety, quality and practical limitations."
+      }
+    }
+  },
+  "french": {
+    "overview": "French develops the ability to understand and communicate meaning across everyday, social and educational contexts with growing accuracy.",
+    "topicAreas": ["Listening and spoken interaction", "Vocabulary, grammar and pronunciation", "Reading for detail and inference", "Writing for audience, purpose and context"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Learn useful language in context, practise core sentence patterns and build confidence responding to familiar prompts.",
+        "example": "Write a short introduction in French for a stated audience, then check verb forms, agreement and whether each detail is clear."
+      },
+      "A-Level": {
+        "focus": "Develop connected spoken and written responses, interpret less familiar material, and choose language suited to context and register.",
+        "example": "Summarise a short French text for a specified audience and explain the main point using your own words."
+      }
+    }
+  },
+  "german": {
+    "overview": "German study builds comprehension and communication through vocabulary, sentence structure, listening practice and writing for clear purposes.",
+    "topicAreas": ["Listening, speaking and pronunciation", "Vocabulary, cases and sentence structure", "Reading comprehension and inference", "Writing and interaction for different contexts"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Practise common sentence patterns in meaningful situations, notice word order and use context to infer unfamiliar vocabulary.",
+        "example": "Write a short message in German about a familiar activity and check word order, verb position and key vocabulary."
+      },
+      "A-Level": {
+        "focus": "Interpret longer material and produce connected responses with appropriate register, accurate structures and supporting detail.",
+        "example": "Present a reasoned response to a familiar issue in German, supporting the view with two clear points."
+      }
+    }
+  },
+  "arabic": {
+    "overview": "Arabic study develops reading, listening, speaking and writing while building control of vocabulary, script and language structures.",
+    "topicAreas": ["Arabic script, reading and pronunciation", "Vocabulary and grammatical patterns", "Listening and spoken communication", "Comprehension and purposeful writing"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Build accurate script recognition and vocabulary, then use familiar structures to communicate simple meanings clearly.",
+        "example": "Read a short familiar passage, identify its main idea and support the answer with a detail from the text."
+      },
+      "A-Level": {
+        "focus": "Develop comprehension of connected texts and communicate ideas with attention to structure, vocabulary and context.",
+        "example": "Write a connected response in Arabic on a familiar issue, organising the main point and supporting details coherently."
+      }
+    }
+  },
+  "chinese": {
+    "overview": "Chinese study develops listening, speaking, reading and writing through vocabulary, pronunciation, characters and meaningful communication.",
+    "topicAreas": ["Pronunciation, tones and spoken interaction", "Characters, vocabulary and reading", "Sentence patterns and grammar", "Writing and communication in context"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Practise pronunciation and useful expressions alongside character recognition, using short, regular review to reinforce recall.",
+        "example": "Create a short dialogue for a familiar situation and check that the chosen expressions fit the speakers and context."
+      },
+      "A-Level": {
+        "focus": "Understand connected communication and produce responses that combine appropriate vocabulary, sentence patterns and context.",
+        "example": "Read a short Chinese text, identify its central idea and write a brief response supported by details from it."
+      }
+    }
+  },
+  "luganda": {
+    "overview": "Luganda develops confident communication and cultural understanding through language structure, oral use, comprehension and writing.",
+    "topicAreas": ["Listening, speaking and oral expression", "Vocabulary, grammar and sentence patterns", "Reading and comprehension", "Writing and communication in context"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Practise accurate expression in familiar contexts, build vocabulary from reading and use evidence from a passage in comprehension.",
+        "example": "Write a short account of a familiar event in Luganda, then revise it for clear sequence, suitable vocabulary and accuracy."
+      },
+      "A-Level": {
+        "focus": "Develop extended communication and analyse how language choices and context shape meaning in spoken and written texts.",
+        "example": "Summarise the viewpoint in a supplied Luganda passage and support the summary with two relevant details."
+      }
+    }
+  },
+  "runyankole-rukiga": {
+    "overview": "Runyankole-Rukiga study strengthens communication, comprehension and appreciation of language use in familiar and wider contexts.",
+    "topicAreas": ["Listening, speaking and oral expression", "Vocabulary, grammar and sentence patterns", "Reading and comprehension", "Writing and communication in context"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Build accurate expression through regular speaking and writing, and use context and passage details to support comprehension.",
+        "example": "Prepare a short spoken description in Runyankole-Rukiga and organise it so a listener can follow the main points."
+      },
+      "A-Level": {
+        "focus": "Communicate connected ideas with precision and interpret how language and context contribute to meaning.",
+        "example": "Explain the main viewpoint in a supplied text and support your explanation with relevant details."
+      }
+    }
+  },
+  "luo": {
+    "overview": "Luo study develops meaningful communication, comprehension and writing through language patterns and use in everyday and cultural contexts.",
+    "topicAreas": ["Listening, speaking and oral expression", "Vocabulary, grammar and sentence patterns", "Reading and comprehension", "Writing and communication in context"],
+    "levelGuides": {
+      "O-Level": {
+        "focus": "Strengthen familiar vocabulary and sentence construction, then use clear examples to communicate ideas orally and in writing.",
+        "example": "Write a short description in Luo for a familiar audience, checking that the sequence and word choices make the meaning clear."
+      },
+      "A-Level": {
+        "focus": "Develop sustained communication and interpret ideas in longer texts, supporting conclusions with details from the material.",
+        "example": "Summarise a supplied Luo passage and explain how two details support its main idea."
+      }
+    }
+  },
+  "general-paper": {
+    "overview": "General Paper develops informed, balanced argument by connecting current and enduring public issues with clear reasoning and relevant examples.",
+    "topicAreas": ["Society, culture and education", "Governance, citizenship and international affairs", "Science, technology and the environment", "Planning, evidence and essay argument"],
+    "levelGuides": {
+      "Subsidiary": {
+        "focus": "Choose a question you understand, define its key terms, plan a clear line of argument and use relevant examples rather than unsupported claims.",
+        "example": "Plan a balanced response to a supplied question by stating a position, selecting two supporting reasons and considering a counterpoint."
+      }
+    }
+  },
+  "economics": {
+    "overview": "Economics studies how individuals, firms and societies make choices with limited resources, and how those choices shape markets and public outcomes.",
+    "topicAreas": ["Scarcity, choice and resource allocation", "Demand, supply and market outcomes", "Production, firms and economic performance", "Public policy, development and international trade"],
+    "levelGuides": {
+      "A-Level": {
+        "focus": "Use economic concepts and diagrams precisely, distinguish positive claims from value judgements, and evaluate effects across different groups and time periods.",
+        "example": "Use a demand-and-supply diagram to analyse a stated market change, then discuss who may gain or lose and why."
+      }
+    }
+  }
+}

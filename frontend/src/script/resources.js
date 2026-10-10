@@ -78,6 +78,9 @@
     return resources.map((item) => ({
       title: item.title,
       originalFilename: item.original_filename,
+      storagePath: item.storage_path,
+      subject: item.subject,
+      category: item.category,
       sizeBytes: item.size_bytes,
       level: item.level,
       year: item.year,
@@ -104,6 +107,61 @@
     return labels[type] || 'Document';
   }
 
+  function normalizeSearchText(value) {
+    return String(value || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  function searchKeywords(item) {
+    return normalizeSearchText([
+      item.title,
+      item.originalFilename,
+      item.storagePath || item.storage_path,
+      item.subject,
+      item.category,
+      item.level,
+      item.year,
+      item.resourceType || item.resource_type,
+      item.extension
+    ].filter(Boolean).join(' '));
+  }
+
+  function matchesSearch(item, query) {
+    const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
+    if (!terms.length) return true;
+    const keywords = searchKeywords(item).split(/\s+/).filter(Boolean);
+    return terms.every((term) => keywords.some((keyword) => keyword.startsWith(term)));
+  }
+
+  function searchRelevance(item, query) {
+    const normalizedQuery = normalizeSearchText(query);
+    if (!normalizedQuery) return 0;
+    const title = normalizeSearchText(item.title || '');
+    const filename = normalizeSearchText(item.originalFilename || '');
+    if (title === normalizedQuery) return 3;
+    if (title.startsWith(normalizedQuery)) return 2;
+    if (filename.startsWith(normalizedQuery)) return 1;
+    return 0;
+  }
+
+  function resourceGroup(item) {
+    if (item.category === 'notes') return 'notes';
+    if (item.category === 'papers') return 'papers';
+    if (item.resourceType === 'notes' || item.resourceType === 'guide') return 'notes';
+    if (item.resourceType === 'paper') return 'papers';
+    return 'other';
+  }
+
+  function timestamp(value) {
+    if (!value) return 0;
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
   function metaLine(item) {
     return [item.level, item.year, typeLabel(item.resourceType), formatBytes(item.sizeBytes)]
       .filter(Boolean)
@@ -112,9 +170,7 @@
 
   function matches(item, query, level) {
     if (level && item.level !== level) return false;
-    if (!query) return true;
-    const haystack = `${item.title} ${item.originalFilename} ${item.year || ''}`.toLowerCase();
-    return haystack.includes(query);
+    return matchesSearch(item, query);
   }
 
   function buildItem(item) {
@@ -163,7 +219,7 @@
         'subject,category,storage_bucket,storage_path,original_filename,title,extension,size_bytes,level,year,resource_type,uploaded_at,updated_at'
       );
       endpoint.searchParams.set('subject', `in.(${Array.from(subjects).join(',')})`);
-      endpoint.searchParams.set('order', 'updated_at.desc,title.asc');
+      endpoint.searchParams.set('order', 'uploaded_at.desc,title.asc');
       endpoint.searchParams.set('limit', String(pageSize));
       endpoint.searchParams.set('offset', String(offset));
 
@@ -177,13 +233,15 @@
       resources.push(...page.map((item) => ({
         title: item.title,
         originalFilename: item.original_filename,
+        storagePath: item.storage_path,
         extension: item.extension,
         sizeBytes: item.size_bytes,
         level: item.level,
         year: item.year,
         category: item.category,
         resourceType: item.resource_type,
-        updatedAt: item.updated_at || item.uploaded_at,
+        uploadedAt: item.uploaded_at,
+        updatedAt: item.updated_at,
         publicUrl: publicStorageUrl(item.storage_bucket, item.storage_path, catalogUrl)
       })));
       if (page.length < pageSize) break;
@@ -230,8 +288,8 @@
       function updateDashboardStats() {
         const counts = {
           resources: all.length,
-          notes: all.filter((item) => item.category === 'notes' || item.resourceType === 'notes' || item.resourceType === 'guide').length,
-          papers: all.filter((item) => item.category === 'papers' || item.resourceType === 'paper').length,
+          notes: all.filter((item) => resourceGroup(item) === 'notes').length,
+          papers: all.filter((item) => resourceGroup(item) === 'papers').length,
           levels: new Set(all.map((item) => item.level).filter(Boolean)).size
         };
         Object.entries(counts).forEach(([key, value]) => {
@@ -308,9 +366,7 @@
       function matchesDashboardSearch(item, query, level, year) {
         if (level && item.level !== level) return false;
         if (year && String(item.year || '') !== year) return false;
-        if (!query) return true;
-        const haystack = `${item.title || ''} ${item.originalFilename || ''} ${item.year || ''} ${item.level || ''} ${item.resourceType || ''} ${item.category || ''}`.toLocaleLowerCase();
-        return haystack.includes(query);
+        return matchesSearch(item, query);
       }
 
       function setEmpty(row, message) {
@@ -361,10 +417,17 @@
         const level = levelSelect?.value || '';
         const year = yearSelect?.value || '';
         const filtered = all.filter((item) => matchesDashboardSearch(item, query, level, year));
-        const recent = [...filtered].sort((left, right) => Date.parse(right.updatedAt || '') - Date.parse(left.updatedAt || ''));
+        const recent = [...filtered].sort((left, right) =>
+          timestamp(right.uploadedAt || right.createdAt || right.updatedAt) -
+            timestamp(left.uploadedAt || left.createdAt || left.updatedAt) ||
+          (left.title || left.originalFilename || '').localeCompare(right.title || right.originalFilename || '')
+        );
         const notes = filtered
-          .filter((item) => item.category === 'notes' || item.resourceType === 'notes' || item.resourceType === 'guide')
-          .sort((left, right) => (left.title || left.originalFilename || '').localeCompare(right.title || right.originalFilename || ''));
+          .filter((item) => resourceGroup(item) === 'notes')
+          .sort((left, right) =>
+            searchRelevance(right, query) - searchRelevance(left, query) ||
+            (left.title || left.originalFilename || '').localeCompare(right.title || right.originalFilename || '')
+          );
         if (globalStatus) {
           globalStatus.textContent = `${filtered.length} matching resource${filtered.length === 1 ? '' : 's'} found. Recently added and study notes are shown below.`;
         }
