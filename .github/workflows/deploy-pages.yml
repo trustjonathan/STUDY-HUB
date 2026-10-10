@@ -35,21 +35,17 @@ jobs:
         working-directory: frontend
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://ttuxelhyoctyshgvjykj.supabase.co' }}
-          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAFStrxuDKWZOfPbf' }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0dXhlbGh5b2N0eXNoZ3ZqeWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4MTUxMjAsImV4cCI6MjEwNTM5MTEyMH0.pHHm2jWhaWNMUkMR5wpUEFGf7kwk3wFJ_2Wr4oG1xrY' }}
       - name: Verify public upload configuration
         run: |
-          if [ -z "$PUBLIC_TURNSTILE_SITE_KEY" ]; then
-            echo "::error::Set the PUBLIC_TURNSTILE_SITE_KEY repository variable before deploying the reader."
-            exit 1
-          fi
           if [ -z "$PUBLIC_SUPABASE_ANON_KEY" ]; then
             echo "::error::Set PUBLIC_SUPABASE_ANON_KEY before deploying the reader."
             exit 1
           fi
         env:
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || '******' }}
-          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAFStrxuDKWZOfPbf' }}
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
