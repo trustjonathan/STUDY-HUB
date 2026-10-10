@@ -498,7 +498,7 @@ import * as tus from 'tus-js-client';
     renderUploadQueue();
   }
 
-  async function getUploadAuth() {
+  async function getUploadAuth(captchaToken = '') {
     const anonKey = params.get('anon_key') || '';
     const apiUrl = new URL(requestedFile).origin;
     if (!uploadAuthClient) {
@@ -513,7 +513,9 @@ import * as tus from 'tus-js-client';
     let { data: { session }, error } = await uploadAuthClient.auth.getSession();
     if (error) throw error;
     if (!session) {
-      const result = await uploadAuthClient.auth.signInAnonymously();
+      const result = await uploadAuthClient.auth.signInAnonymously({
+        options: captchaToken ? { captchaToken } : undefined,
+      });
       if (result.error) throw result.error;
       session = result.data.session;
     }
@@ -522,7 +524,9 @@ import * as tus from 'tus-js-client';
   }
 
   async function callContributionFunction(functionName, body) {
-    const session = await getUploadAuth();
+    const session = await getUploadAuth(
+      typeof body.turnstileToken === 'string' ? body.turnstileToken : captchaResponse,
+    );
     const apiUrl = new URL(requestedFile).origin;
     const response = await fetch(new URL(`/functions/v1/${functionName}`, apiUrl), {
       method: 'POST',
