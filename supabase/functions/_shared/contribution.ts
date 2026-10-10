@@ -18,7 +18,7 @@ const allowedOrigins = (Deno.env.get('STUDY_HUB_ALLOWED_ORIGINS') || 'https://tr
 export function corsHeaders(origin: string | null): HeadersInit {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'apikey, authorization, content-type',
+    'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-client-info',
     'Vary': 'Origin',
   };
   if (origin && allowedOrigins.includes(origin)) headers['Access-Control-Allow-Origin'] = origin;

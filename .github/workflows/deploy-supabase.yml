@@ -25,14 +25,14 @@ jobs:
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       SUBMISSION_RATE_LIMIT_SALT: ${{ secrets.SUBMISSION_RATE_LIMIT_SALT }}
       CONTRIBUTION_CLEANUP_SECRET: ${{ secrets.CONTRIBUTION_CLEANUP_SECRET }}
-      STUDY_HUB_ALLOWED_ORIGINS: ${{ vars.STUDY_HUB_ALLOWED_ORIGINS }}
+      STUDY_HUB_ALLOWED_ORIGINS: ${{ vars.STUDY_HUB_ALLOWED_ORIGINS || 'https://trustjonathan.github.io,http://localhost:4321,http://127.0.0.1:4321' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Verify deployment configuration
         run: |
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF SUBMISSION_RATE_LIMIT_SALT CONTRIBUTION_CLEANUP_SECRET STUDY_HUB_ALLOWED_ORIGINS; do
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF SUBMISSION_RATE_LIMIT_SALT CONTRIBUTION_CLEANUP_SECRET; do
             if [ -z "${!name}" ]; then
               echo "::error::Configure the $name GitHub secret or variable before deploying Supabase."
               exit 1
@@ -70,3 +70,26 @@ jobs:
             cleanup-contribution-staging; do
             supabase functions deploy "$function" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
           done
+
+      - name: Verify upload function preflight
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          response=$(curl --silent --show-error --include --request OPTIONS \
+            "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/start-resource-contribution" \
+            --header "Origin: https://trustjonathan.github.io" \
+            --header "Access-Control-Request-Method: POST" \
+            --header "Access-Control-Request-Headers: apikey,authorization,content-type,x-client-info")
+          printf '%s\n' "$response"
+          if ! printf '%s' "$response" | grep -Eiq '^HTTP/[^ ]+ 204'; then
+            echo "::error::Upload function preflight did not return HTTP 204."
+            exit 1
+          fi
+          if ! printf '%s' "$response" | grep -Fiq 'access-control-allow-origin: https://trustjonathan.github.io'; then
+            echo "::error::Upload function preflight did not allow the production site origin."
+            exit 1
+          fi
+          if ! printf '%s' "$response" | grep -Eiq 'access-control-allow-headers:.*x-client-info'; then
+            echo "::error::Upload function preflight did not allow the Supabase client-info header."
+            exit 1
+          fi
