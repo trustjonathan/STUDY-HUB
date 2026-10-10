@@ -14,7 +14,6 @@ export function getStaticPaths() {
 }
 
 const { subject } = Astro.props;
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
 const levelLabel = subject.levels.join(", ");
 ---
@@ -25,14 +24,12 @@ const levelLabel = subject.levels.join(", ");
   dataPage={subject.slug}
 >
   <Fragment slot="head">
-    <meta name="study-hub-supabase-url" content={supabaseUrl}>
     <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
     <meta name="keywords" content={`${subject.name}, UNEB, NCDC, ${levelLabel}, study notes, past papers`}>
     <link rel="stylesheet" href="../styles/home.css">
     <link rel="stylesheet" href="../styles/themes.css">
     <link rel="stylesheet" href="../styles/mathematics.css">
     <link rel="stylesheet" href="../styles/resources.css">
-    <script is:inline src="../data/resources.js" defer></script>
     <script is:inline src="../script/resources.js" defer></script>
   </Fragment>
 
