@@ -38,6 +38,10 @@ jobs:
               exit 1
             fi
           done
+          if [[ "$SUPABASE_ACCESS_TOKEN" != sbp_* ]]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN must be a Supabase Personal Access Token beginning with sbp_. Replace the repository secret; do not use an anon/service-role API key, JWT, or database password."
+            exit 1
+          fi
 
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
