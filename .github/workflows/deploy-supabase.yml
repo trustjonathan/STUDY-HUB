@@ -74,6 +74,7 @@ jobs:
             cleanup-contribution-staging; do
             supabase functions deploy "$function" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
           done
+          supabase functions deploy study-hub-admin --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Verify upload function preflight
         env:

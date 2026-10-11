@@ -28,6 +28,9 @@ verify_jwt = false
 [functions.cleanup-contribution-staging]
 verify_jwt = false
 
+[functions.study-hub-admin]
+verify_jwt = true
+
 [api]
 enabled = true
 # Port to use for the API URL.
