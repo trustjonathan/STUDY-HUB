@@ -483,7 +483,9 @@ import * as tus from 'tus-js-client';
     if (!pdfDocument || renderedPages.has(pageNumber)) return;
     const generation = renderGeneration;
     const existing = renderEntries.get(pageNumber);
-    if (existing?.generation === generation) return existing.promise;
+    if (existing?.generation === generation) {
+      return existing.promise?.catch(() => {});
+    }
     const element = pageElements.get(pageNumber);
     if (!element) return;
 
@@ -597,7 +599,17 @@ import * as tus from 'tus-js-client';
     }, { passive: true });
 
     if ('ResizeObserver' in window) {
-      const resizeObserver = new ResizeObserver(resetRenderedPages);
+      let previousWidth = 0;
+      const resizeObserver = new ResizeObserver(([entry]) => {
+        const width = Math.round(entry.contentRect.width);
+        if (!previousWidth) {
+          previousWidth = width;
+          return;
+        }
+        if (width === previousWidth) return;
+        previousWidth = width;
+        resetRenderedPages();
+      });
       resizeObserver.observe(pdfReader);
     } else {
       window.addEventListener('resize', resetRenderedPages);
