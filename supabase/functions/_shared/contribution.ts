@@ -26,7 +26,7 @@ export function corsHeaders(origin: string | null): HeadersInit {
 }
 
 export function isAllowedOrigin(origin: string | null): origin is string {
-  return Boolean(origin && allowedOrigins.includes(origin));
+  return origin === null || allowedOrigins.includes(origin);
 }
 
 export function getClientIp(request: Request): string | null {
