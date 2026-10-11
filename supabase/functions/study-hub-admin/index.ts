@@ -72,22 +72,40 @@ Deno.serve(async (request) => {
       return json({ error: 'Could not load the moderation queue.' }, 503);
     }
 
-    const contributions = [];
-    for (const contribution of contributionsResult.data || []) {
-      const { data: signedFile, error: signedFileError } = await admin.storage
-        .from(CONTRIBUTION_BUCKET)
-        .createSignedUrl(contribution.storage_path, 300);
-      if (signedFileError) {
-        console.error('Could not create a private review link.', signedFileError);
-        return json({ error: `Could not prepare "${contribution.original_filename}" for review.` }, 503);
-      }
-      contributions.push({ ...contribution, review_url: signedFile.signedUrl });
-    }
     return json({
-      contributions,
+      contributions: contributionsResult.data || [],
       suggestions: suggestionsResult.data || [],
       activity: activityResult.data || [],
     });
+  }
+
+  if (body.action === 'create_review_link') {
+    if (typeof body.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.id)) {
+      return json({ error: 'Choose a valid upload to review.' }, 400);
+    }
+    const { data: contribution, error: readError } = await admin.from('study_hub_contributions')
+      .select('storage_bucket,storage_path,status')
+      .eq('id', body.id)
+      .maybeSingle();
+    if (readError) {
+      console.error('Could not load an upload for review.', readError);
+      return json({ error: 'Could not prepare this upload for review.' }, 503);
+    }
+    if (!contribution || contribution.status !== 'pending') {
+      return json({ error: 'This upload is no longer pending.' }, 409);
+    }
+    if (contribution.storage_bucket !== CONTRIBUTION_BUCKET ||
+        !contribution.storage_path.startsWith('contribution/')) {
+      return json({ error: 'This upload has invalid private file metadata.' }, 415);
+    }
+    const { data: signedFile, error: signedFileError } = await admin.storage
+      .from(CONTRIBUTION_BUCKET)
+      .createSignedUrl(contribution.storage_path, 300);
+    if (signedFileError || !signedFile?.signedUrl) {
+      console.error('Could not create a private review link.', signedFileError);
+      return json({ error: 'Could not prepare this upload for review.' }, 503);
+    }
+    return json({ review_url: signedFile.signedUrl });
   }
 
   if (body.action === 'moderate_suggestion') {

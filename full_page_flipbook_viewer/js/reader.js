@@ -7,6 +7,7 @@ import * as tus from 'tus-js-client';
   const params = new URLSearchParams(window.location.search);
   const requestedFile = params.get('file');
   const title = params.get('title') || 'Study Hub resource';
+  const reviewMode = params.get('mode') === 'review';
   const storagePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
   const toolbar = document.querySelector('#reader-toolbar');
   const pdfReader = document.querySelector('#pdf-reader');
@@ -1184,7 +1185,14 @@ import * as tus from 'tus-js-client';
         return;
       }
 
-      if (!fileUrl.href.startsWith(storagePrefix)) {
+      const storageOrigin = new URL(storagePrefix).origin;
+      const isPublicResource = fileUrl.href.startsWith(storagePrefix);
+      const isPrivateReviewResource = reviewMode &&
+        fileUrl.protocol === 'https:' &&
+        fileUrl.origin === storageOrigin &&
+        /^\/storage\/v1\/object\/sign\/study-hub-contributions\/contribution\//i.test(fileUrl.pathname) &&
+        Boolean(fileUrl.searchParams.get('token'));
+      if (!isPublicResource && !isPrivateReviewResource) {
         showError('This resource is not hosted in the public Study Hub library. Return to the library and try again.');
         return;
       }
@@ -1193,8 +1201,17 @@ import * as tus from 'tus-js-client';
     toolbar.hidden = false;
     toggleContributionPanel(false);
     toggleRelatedPanel(false);
-    void loadRelatedDocuments();
-    void initializeUploads();
+    if (reviewMode) {
+      document.querySelector('[data-a="back"]').hidden = true;
+      relatedToggle.hidden = true;
+      contributionToggle.hidden = true;
+      relatedRail.hidden = true;
+      document.querySelector('#contribution-rail').hidden = true;
+      document.querySelector('#ai-study-toggle').hidden = true;
+    } else {
+      void loadRelatedDocuments();
+      void initializeUploads();
+    }
     const extension = fileUrl.pathname.split('.').pop().toLowerCase();
     bookmarkButton.hidden = !['pdf', 'docx', 'rtf'].includes(extension);
     try {
