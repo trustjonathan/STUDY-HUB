@@ -1,5 +1,5 @@
 ---
-import subjectCatalog from "../data/subjects.json";
+import { availableSubjects } from "../data/availableSubjects";
 
 interface Props {
   subject: string;
@@ -12,19 +12,19 @@ const base = import.meta.env.BASE_URL.endsWith("/")
 ---
 ---
 
-<nav class="footer-subject-carousel" aria-label="Browse all Study Hub subjects">
+<nav class="footer-subject-carousel" aria-label="Browse available Study Hub subjects">
   <div class="footer-subject-heading">
-    <h2>Keep exploring subjects</h2>
+    <h2>Keep exploring available subjects</h2>
     <div class="footer-subject-actions">
       <button class="footer-subject-motion-toggle" type="button" data-carousel-toggle aria-label="Pause or resume automatic subject movement" aria-pressed="false">Pause movement</button>
-      <a href={`${base}subjects.html`}>Browse the full directory <span aria-hidden="true">→</span></a>
+      <a href={`${base}subjects.html`}>Browse available subjects <span aria-hidden="true">→</span></a>
     </div>
   </div>
-  <div class="footer-subject-viewport" data-footer-subject-carousel tabindex="0" role="region" aria-label="Browse all subjects">
+  <div class="footer-subject-viewport" data-footer-subject-carousel tabindex="0" role="region" aria-label="Browse available subjects">
     <div class="footer-subject-track">
       {[0, 1].map((copy) => (
         <div class="footer-subject-group" aria-hidden={copy === 1 ? "true" : undefined}>
-          {subjectCatalog.map((entry) => (
+          {availableSubjects.map((entry) => (
             <a
               class={`footer-subject-card ${entry.slug === subject ? "is-current" : ""}`}
               href={`${base}frontend/src/html/${entry.slug}.html`}

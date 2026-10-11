@@ -1,16 +1,13 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
 import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
-import subjectCatalog from "../../../../data/subjects.json";
+import { availableSubjects } from "../../../../data/availableSubjects";
 
 export function getStaticPaths() {
-  const existingSubjectSlugs = new Set(["biology", "chemistry", "mathematics", "physics"]);
-  return subjectCatalog
-    .filter((subject) => !existingSubjectSlugs.has(subject.slug))
-    .map((subject) => ({
-      params: { subject: subject.slug },
-      props: { subject },
-    }));
+  return availableSubjects.map((subject) => ({
+    params: { subject: subject.slug },
+    props: { subject },
+  }));
 }
 
 const { subject } = Astro.props;

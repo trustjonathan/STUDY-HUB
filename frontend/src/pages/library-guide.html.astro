@@ -6,7 +6,7 @@ import chemistryImage from '../assets/images/chemistry.jpg';
 import mathematicsImage from '../assets/images/mathematics.jpg';
 import studentsImage from '../assets/images/students_studying.jpeg';
 import studyImage from '../assets/images/study_pic.png';
-import subjectCatalog from '../data/subjects.json';
+import { availableSubjects } from '../data/availableSubjects';
 
 const home = import.meta.env.BASE_URL.replace(/\/$/, '');
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
@@ -46,7 +46,7 @@ const subjects = [
       <div class="guide-intro-copy">
         <p class="eyebrow">Study Hub reference</p>
         <h1 id="guide-title">The library, explained.</h1>
-        <p class="guide-lede">Find the right subject page, browse the shared collection, and learn how contributed files are reviewed before they become public.</p>
+        <p class="guide-lede">Find resources in the four active subject libraries and learn how contributed files are reviewed before they become public.</p>
         <p class="guide-updated">Resource counts are read live from the public catalog.</p>
       </div>
       <img class="guide-hero-image" src={studentsImage.src} alt="Learners studying together" />
@@ -87,7 +87,7 @@ const subjects = [
         <section class="guide-section" id="how-it-works" aria-labelledby="how-title">
           <p class="eyebrow">01 / The library</p>
           <h2 id="how-title">How the library works</h2>
-          <p>Study Hub organises learning materials by subject, resource type, and the details available for each file. Public subject pages show items that have been reviewed and added to the library. Titles, levels, years, and other descriptions help you decide whether a resource fits your study needs.</p>
+          <p>Study Hub currently publishes learning libraries for Biology, Chemistry, Mathematics, and Physics. Materials are organised by subject, resource type, and the details available for each file. Other subject pages are under development and are not part of the public resource directory yet.</p>
           <div class="guide-callout">
             <strong>From submission to library</strong>
             <p>Contributed files are reviewed before they can appear in public search. Sending a form does not publish a resource automatically.</p>
@@ -109,7 +109,7 @@ const subjects = [
                 <tr><td colspan="5" role="status">Loading live resource counts…</td></tr>
               </tbody>
               <tfoot data-resource-totals>
-                <tr><th scope="row">All subjects</th><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><th scope="row">Available subjects</th><td>—</td><td>—</td><td>—</td><td>—</td></tr>
               </tfoot>
             </table>
           </div>
@@ -118,7 +118,7 @@ const subjects = [
             <button class="guide-count-refresh" type="button" data-resource-count-refresh>Refresh counts</button>
           </div>
           <template data-subject-rows>
-                {subjectCatalog.map((subject) => (
+                {availableSubjects.map((subject) => (
                   <tr>
                     <th
                       scope="row"
@@ -138,7 +138,7 @@ const subjects = [
           <p class="eyebrow">03 / Browse and study</p>
           <h2 id="find-title">Search the library</h2>
           <ol class="guide-steps">
-            <li><strong>Choose a subject.</strong> Use Browse subjects in the header or the full directory below to open a subject page.</li>
+            <li><strong>Choose a subject.</strong> Use Browse subjects in the header or the directory below to open one of the four available subject libraries.</li>
             <li><strong>Choose a collection.</strong> Subject pages provide separate study-note and recently added sections; past papers and other resources appear where they are available.</li>
             <li><strong>Search and filter.</strong> Search matches words in resource titles, filenames, subject, type, level, year, and other indexed details. Use available level or year filters to narrow the list.</li>
             <li><strong>Load more results.</strong> Recent and notes collections scroll independently and request additional catalog pages as you continue. Search can also check the full matching collection.</li>
@@ -171,9 +171,9 @@ const subjects = [
         <section class="guide-section" id="page-map" aria-labelledby="map-title">
           <p class="eyebrow">06 / Page directory</p>
           <h2 id="map-title">Explore subjects and site pages</h2>
-          <p>Browse the complete subject directory, or open one of the available subject archives for additional collections:</p>
+          <p>Browse the four subject libraries currently available. More subjects are being prepared; see <a href={`${home}/under-development.html`}>Pages under development</a> for the current status.</p>
           <div class="guide-directory">
-            {subjectCatalog.map((subject) => (
+            {availableSubjects.map((subject) => (
               <section class="directory-row subject-directory-row" aria-label={`${subject.name} subject page`}>
                 <span class="guide-directory-icon" aria-hidden="true">{subject.icon}</span>
                 <div>

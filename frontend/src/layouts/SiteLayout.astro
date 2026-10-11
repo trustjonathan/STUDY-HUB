@@ -1,6 +1,6 @@
 ---
 import '../styles/astro-site.css';
-import subjectCatalog from '../data/subjects.json';
+import { availableSubjects } from '../data/availableSubjects';
 import { subjectCategories } from '../data/subjectCategories';
 
 interface Props {
@@ -25,10 +25,13 @@ const canonicalPath = routePath === 'index.html' ? '' : routePath.replace(/\.htm
 const siteUrl = Astro.site ?? Astro.url.origin;
 const canonicalUrl = new URL(`${base}${canonicalPath}`, siteUrl);
 const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
-const popularSlugs = ['biology', 'chemistry', 'mathematics', 'physics', 'ict'];
-const popularSubjects = popularSlugs
-  .map((slug) => subjectCatalog.find((subject) => subject.slug === slug))
-  .filter((subject) => subject !== undefined);
+const availableCategories = subjectCategories
+  .map((category) => ({
+    ...category,
+    subjects: availableSubjects.filter((subject) => subject.category === category.id),
+  }))
+  .filter((category) => category.subjects.length > 0);
+const popularSubjects = availableSubjects;
 ---
 
 <!doctype html>
@@ -89,23 +92,24 @@ const popularSubjects = popularSlugs
       </div>
       <nav class="mega-nav" aria-label="Study Hub sections">
         <details class="mega-nav-group">
-          <summary>Browse subjects ({subjectCatalog.length})</summary>
+          <summary>Browse subjects ({availableSubjects.length})</summary>
           <div class="mega-nav-panel mega-nav-category-panel">
-            {subjectCategories.map((category) => (
+            {availableCategories.map((category) => (
               <details class="mega-nav-category">
                 <summary>
                   {category.label}
-                  <span>{subjectCatalog.filter((subject) => subject.category === category.id).length}</span>
+                  <span>{category.subjects.length}</span>
                 </summary>
                 <ul>
                   <li><a class="mega-nav-category-directory" href={`${home}/subjects.html?category=${category.id}`}>Browse {category.label}</a></li>
-                  {subjectCatalog.filter((subject) => subject.category === category.id).map((subject) => (
+                  {category.subjects.map((subject) => (
                     <li><a href={`${home}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></li>
                   ))}
                 </ul>
               </details>
             ))}
-            <a class="mega-nav-all" href={`${home}/subjects.html`}>Search and filter all subjects</a>
+            <a class="mega-nav-all" href={`${home}/subjects.html`}>Browse available subjects</a>
+            <a class="mega-nav-all" href={`${home}/under-development.html`}>Pages under development</a>
           </div>
         </details>
         <details class="mega-nav-group">
@@ -117,6 +121,7 @@ const popularSubjects = popularSlugs
             <a href={`${home}/privacy.html`}>Privacy</a>
             <a href={`${home}/terms.html`}>Terms</a>
             <a href={`${home}/copyright.html`}>Copyright</a>
+            <a href={`${home}/under-development.html`}>Pages under development</a>
           </div>
         </details>
       </nav>

@@ -1,24 +1,24 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import subjectCatalog from '../data/subjects.json';
+import { availableSubjects } from '../data/availableSubjects';
 import { subjectCategories } from '../data/subjectCategories';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const categories = subjectCategories.map((category) => ({
   ...category,
-  subjects: subjectCatalog.filter((subject) => subject.category === category.id)
-}));
+  subjects: availableSubjects.filter((subject) => subject.category === category.id)
+})).filter((category) => category.subjects.length > 0);
 ---
 
 <SiteLayout
   title="Browse Subjects | Study Hub"
-  description="Search and browse all Study Hub subjects by category."
+  description="Browse Study Hub's available Biology, Chemistry, Mathematics, and Physics learning resources."
 >
   <main class="subjects-directory">
     <header class="directory-intro">
       <p class="eyebrow">Find a subject</p>
-      <h1>Browse all {subjectCatalog.length} subjects</h1>
-      <p>Search by subject or choose a category to find the right place to start.</p>
+      <h1>Browse available subjects</h1>
+      <p>Explore the four subject libraries currently available. Other subject pages are being prepared.</p>
     </header>
 
     <section class="directory-controls" aria-label="Filter subjects">
@@ -26,7 +26,7 @@ const categories = subjectCategories.map((category) => ({
       <input id="subject-search" type="search" placeholder="Search subjects..." autocomplete="off" data-subject-search />
       <div class="category-filters" role="group" aria-label="Subject category filters">
         <button type="button" class="category-filter is-active" data-category-filter="all" aria-pressed="true">
-          All <span>{subjectCatalog.length}</span>
+          All <span>{availableSubjects.length}</span>
         </button>
         {categories.map((category) => (
           <button type="button" class="category-filter" data-category-filter={category.id} aria-pressed="false">
@@ -34,7 +34,7 @@ const categories = subjectCategories.map((category) => ({
           </button>
         ))}
       </div>
-      <p class="directory-result-count" data-result-count aria-live="polite">Showing {subjectCatalog.length} subjects</p>
+      <p class="directory-result-count" data-result-count aria-live="polite">Showing {availableSubjects.length} subjects</p>
     </section>
 
     <nav class="directory-jump-nav" aria-label="Jump to subject category">
@@ -74,6 +74,7 @@ const categories = subjectCategories.map((category) => ({
       ))}
       <p class="directory-no-results" data-no-results hidden>No subjects match that search. Try another term or category.</p>
     </div>
+    <p class="directory-development-note">Looking for another subject? See <a href={`${base}/under-development.html`}>pages under development</a>.</p>
   </main>
 
   <script>

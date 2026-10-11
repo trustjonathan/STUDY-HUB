@@ -1,0 +1,125 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { availableSubjects, subjectsUnderDevelopment } from '../data/availableSubjects';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<SiteLayout
+  title="Pages Under Development | Study Hub"
+  description="See which Study Hub subject libraries are available now and which are still being prepared."
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, follow">
+  </Fragment>
+
+  <main class="development-page">
+    <header class="development-hero">
+      <p class="eyebrow">Study Hub library status</p>
+      <h1>Pages under development</h1>
+      <p>Study Hub is publishing subject libraries in stages so that each active page has useful learning material and a working resource catalogue.</p>
+      <p>At the moment, the public libraries are <strong>Biology, Chemistry, Mathematics, and Physics</strong>. The subjects listed below are not yet available as public resource pages. We will add them when their content is ready; no launch dates are promised.</p>
+      <a class="development-primary-link" href={`${base}/subjects.html`}>Explore available subjects <span aria-hidden="true">→</span></a>
+    </header>
+
+    <section class="development-status" aria-labelledby="available-title">
+      <h2 id="available-title">Available now</h2>
+      <ul class="development-active-list">
+        {availableSubjects.map((subject) => (
+          <li><a href={`${base}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="development-status" aria-labelledby="preparing-title">
+      <h2 id="preparing-title">Being prepared</h2>
+      <p>These subjects are not linked to empty or incomplete library pages. This list is a status notice, not a promise that every subject will be published.</p>
+      <ul class="development-pending-list">
+        {subjectsUnderDevelopment.map((subject) => <li>{subject.name}</li>)}
+      </ul>
+    </section>
+
+    <p class="development-contact">Have a correction or a resource request? <a href={`${base}/community-chat.html`}>Send Study Hub a suggestion</a>.</p>
+  </main>
+</SiteLayout>
+
+<style>
+  .development-page {
+    width: min(100% - 2rem, 68rem);
+    margin: 0 auto;
+    padding: clamp(2.5rem, 7vw, 5rem) 0;
+    color: #173247;
+  }
+
+  .development-hero,
+  .development-status {
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border: 1px solid #d8e4eb;
+    border-radius: 1.25rem;
+    background: #fff;
+  }
+
+  .development-hero h1 {
+    max-width: 15ch;
+    margin: 0.4rem 0 1rem;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    line-height: 1.05;
+  }
+
+  .development-hero p,
+  .development-status p,
+  .development-contact {
+    max-width: 68ch;
+    line-height: 1.7;
+  }
+
+  .development-primary-link {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding: 0.8rem 1.1rem;
+    border-radius: 0.65rem;
+    background: #176b55;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .development-status {
+    margin-top: 1.25rem;
+  }
+
+  .development-status h2 {
+    margin-top: 0;
+  }
+
+  .development-active-list,
+  .development-pending-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .development-active-list a,
+  .development-pending-list li {
+    display: block;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid #d8e4eb;
+    border-radius: 999px;
+    background: #f5f8fa;
+    color: inherit;
+  }
+
+  .development-active-list a {
+    color: #145842;
+    font-weight: 700;
+  }
+
+  .development-contact {
+    margin: 1.5rem auto 0;
+    text-align: center;
+  }
+</style>
