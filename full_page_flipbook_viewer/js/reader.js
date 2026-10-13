@@ -63,13 +63,17 @@ import * as tus from 'tus-js-client';
   const renderEntries = new Map();
   const pageElements = new Map();
 
-  // In-document banner ads: after every READER_AD_EVERY PDF pages the reader
-  // inserts a banner ad slot. The single ad unit is rendered once and then
-  // cloned into the remaining slots so the same banner repeats between pages.
-  const READER_AD_KEY = '3a62a7d89a97afeab2a2bceab640bfac';
+  // In-document banner ads. After every READER_AD_EVERY PDF pages the reader
+  // inserts an ad break. Wide screens show up to READER_AD_ROW ads in a single
+  // row; phones show a single ad so the document stays compact and readable.
+  // A single Adsterra key only fills one #container, so the first rendered
+  // iframe's src is captured and reused to populate the remaining slots.
+  const READER_AD_KEYS = ['3a62a7d89a97afeab2a2bceab640bfac'];
   const READER_AD_EVERY = 2;
-  const READER_AD_SRC = `https://bauval.org/21/${READER_AD_KEY}`;
+  const READER_AD_ROW = 4;
+  const wideAdQuery = window.matchMedia('(min-width: 900px)');
   let readerAdsMounted = false;
+  let capturedAdSrc = '';
 
   document.title = `${title} | Study Hub`;
   document.querySelector('.ela-t-title').textContent = title;
@@ -568,36 +572,108 @@ import * as tus from 'tus-js-client';
     slot.dataset.afterPage = String(afterPage);
     slot.setAttribute('role', 'complementary');
     slot.setAttribute('aria-label', 'Advertisement');
-    slot.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;min-height:104px;margin:6px 0;';
-    const box = document.createElement('div');
-    box.className = 'sh-reader-ad-box';
-    box.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;min-height:90px;max-width:728px;overflow:hidden;';
-    slot.append(box);
+    // One flex row. On wide screens it holds up to READER_AD_ROW ad boxes;
+    // on phones the boxes wrap, but we only ever inject iframes into the
+    // visible box count (see mountReaderAds) so no empty ad shells remain.
+    slot.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;width:100%;margin:10px 0;';
+    for (let i = 0; i < READER_AD_ROW; i += 1) {
+      const box = document.createElement('div');
+      box.className = 'sh-reader-ad-box';
+      box.dataset.adIndex = String(i);
+      box.style.cssText = 'flex:1 1 170px;max-width:180px;min-width:150px;min-height:94px;display:flex;align-items:center;justify-content:center;overflow:hidden;';
+      slot.append(box);
+    }
     return slot;
+  }
+
+  function visibleAdBoxCount() {
+    // Wide screens show a full row of ads; phones show a single ad.
+    return wideAdQuery.matches ? READER_AD_ROW : 1;
+  }
+
+  function injectAdInto(box) {
+    if (box.dataset.adFilled === 'true') return;
+    box.dataset.adFilled = 'true';
+    const key = READER_AD_KEYS[0];
+    const container = document.createElement('div');
+    container.id = `container-${key}`;
+    const adScript = document.createElement('script');
+    adScript.async = true;
+    adScript.setAttribute('data-cfasync', 'false');
+    adScript.src = `https://bauval.org/21/${key}`;
+    box.append(container, adScript);
+  }
+
+  function replicateAdFrame(fromBox, toBox) {
+    const source = fromBox.querySelector('iframe');
+    if (!source) return false;
+    const src = source.getAttribute('src');
+    if (!src) return false;
+    const frame = document.createElement('iframe');
+    frame.setAttribute('src', src);
+    frame.setAttribute('frameborder', '0');
+    frame.setAttribute('scrolling', 'no');
+    frame.setAttribute('marginwidth', '0');
+    frame.setAttribute('marginheight', '0');
+    frame.setAttribute('allowtransparency', 'true');
+    for (const attr of source.attributes) {
+      if (attr.name === 'src') continue;
+      try { frame.setAttribute(attr.name, attr.value); } catch { /* ignore */ }
+    }
+    frame.style.width = '100%';
+    frame.style.height = '90px';
+    frame.style.border = '0';
+    frame.style.display = 'block';
+    toBox.replaceChildren(frame);
+    toBox.dataset.adFilled = 'true';
+    return true;
   }
 
   function mountReaderAds() {
     if (readerAdsMounted) return;
-    const boxes = Array.from(pdfPages.querySelectorAll('.sh-reader-ad-box'));
-    if (!boxes.length) return;
     readerAdsMounted = true;
 
-    const primary = boxes[0];
-    const container = document.createElement('div');
-    container.id = `container-${READER_AD_KEY}`;
-    const adScript = document.createElement('script');
-    adScript.async = true;
-    adScript.setAttribute('data-cfasync', 'false');
-    adScript.src = READER_AD_SRC;
-    primary.append(container, adScript);
+    const slots = Array.from(pdfPages.querySelectorAll('.sh-reader-ad'));
+    if (!slots.length) return;
 
-    const replicate = () => {
-      const source = document.getElementById(`container-${READER_AD_KEY}`);
-      if (!source || !source.firstChild) return false;
-      for (const box of boxes.slice(1)) {
-        if (box.firstChild) continue;
-        for (const node of Array.from(source.childNodes)) {
-          box.append(node.cloneNode(true));
+    const applyLayout = () => {
+      const visible = visibleAdBoxCount();
+      for (const slot of slots) {
+        const boxes = Array.from(slot.querySelectorAll('.sh-reader-ad-box'));
+        boxes.forEach((box, index) => {
+          // On phones only the first box of each slot is shown; the rest are
+          // removed from layout so they never leave an empty shell behind.
+          if (index < visible) {
+            box.style.display = 'flex';
+          } else {
+            box.style.display = 'none';
+          }
+        });
+      }
+    };
+
+    applyLayout();
+
+    // Seed the very first ad (official script) into the first visible box of
+    // the first slot. Everything else is filled by reusing that rendered
+    // iframe's src once Adsterra has populated it.
+    const firstBox = slots[0].querySelector('.sh-reader-ad-box');
+    injectAdInto(firstBox);
+
+    const fillAll = () => {
+      const seed = firstBox.querySelector('iframe');
+      if (!seed) return false;
+      const src = seed.getAttribute('src');
+      if (!src) return false;
+      capturedAdSrc = src;
+      for (const slot of slots) {
+        const boxes = Array.from(slot.querySelectorAll('.sh-reader-ad-box'));
+        const visible = visibleAdBoxCount();
+        for (let index = 0; index < visible; index += 1) {
+          const box = boxes[index];
+          if (!box || box === firstBox) continue;
+          if (box.querySelector('iframe')) continue;
+          replicateAdFrame(firstBox, box);
         }
       }
       return true;
@@ -605,17 +681,28 @@ import * as tus from 'tus-js-client';
 
     if ('MutationObserver' in window) {
       const observer = new MutationObserver(() => {
-        if (replicate()) observer.disconnect();
+        if (fillAll()) observer.disconnect();
       });
-      observer.observe(primary, { childList: true, subtree: true });
+      observer.observe(firstBox, { childList: true, subtree: true, attributes: true });
     }
     let attempts = 0;
     const retry = () => {
       attempts += 1;
-      if (replicate() || attempts > 15) return;
-      setTimeout(retry, 500);
+      if (fillAll() || attempts > 20) return;
+      setTimeout(retry, 400);
     };
-    setTimeout(retry, 700);
+    setTimeout(retry, 600);
+
+    // Re-apply the responsive layout if the viewport crosses the breakpoint.
+    const onQueryChange = () => {
+      applyLayout();
+      fillAll();
+    };
+    if (typeof wideAdQuery.addEventListener === 'function') {
+      wideAdQuery.addEventListener('change', onQueryChange);
+    } else if (typeof wideAdQuery.addListener === 'function') {
+      wideAdQuery.addListener(onQueryChange);
+    }
   }
 
   function createPdfPages() {
