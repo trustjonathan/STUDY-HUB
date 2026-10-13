@@ -63,17 +63,12 @@ import * as tus from 'tus-js-client';
   const renderEntries = new Map();
   const pageElements = new Map();
 
-  // In-document banner ads. After every READER_AD_EVERY PDF pages the reader
-  // inserts an ad break. Wide screens show up to READER_AD_ROW ads in a single
-  // row; phones show a single ad so the document stays compact and readable.
-  // A single Adsterra key only fills one #container, so the first rendered
-  // iframe's src is captured and reused to populate the remaining slots.
+  // Ads live in a collapsible "ADs" sidebar rather than between PDF pages.
+  // A single Adsterra key fills only one #container, so the first rendered
+  // iframe's src is captured and reused to fill every sidebar slot.
   const READER_AD_KEYS = ['3a62a7d89a97afeab2a2bceab640bfac'];
-  const READER_AD_EVERY = 2;
-  const READER_AD_ROW = 4;
-  const wideAdQuery = window.matchMedia('(min-width: 900px)');
+  const READER_AD_SLOTS = 4;
   let readerAdsMounted = false;
-  let capturedAdSrc = '';
 
   document.title = `${title} | Study Hub`;
   document.querySelector('.ela-t-title').textContent = title;
@@ -566,34 +561,19 @@ import * as tus from 'tus-js-client';
     requestAnimationFrame(renderNearbyPages);
   }
 
-  function createReaderAdSlot(afterPage) {
-    const slot = document.createElement('div');
-    slot.className = 'sh-reader-ad';
-    slot.dataset.afterPage = String(afterPage);
-    slot.setAttribute('role', 'complementary');
-    slot.setAttribute('aria-label', 'Advertisement');
-    // One flex row. On wide screens it holds up to READER_AD_ROW ad boxes;
-    // on phones the boxes wrap, but we only ever inject iframes into the
-    // visible box count (see mountReaderAds) so no empty ad shells remain.
-    slot.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;width:100%;margin:10px 0;';
-    for (let i = 0; i < READER_AD_ROW; i += 1) {
-      const box = document.createElement('div');
-      box.className = 'sh-reader-ad-box';
-      box.dataset.adIndex = String(i);
-      box.style.cssText = 'flex:1 1 170px;max-width:180px;min-width:150px;min-height:94px;display:flex;align-items:center;justify-content:center;overflow:hidden;';
-      slot.append(box);
+  function buildAdRailSlots() {
+    const content = document.querySelector('#ad-rail-content');
+    if (!content || content.childElementCount) return;
+    for (let i = 0; i < READER_AD_SLOTS; i += 1) {
+      const slot = document.createElement('div');
+      slot.className = 'ad-rail-slot';
+      content.append(slot);
     }
-    return slot;
   }
 
-  function visibleAdBoxCount() {
-    // Wide screens show a full row of ads; phones show a single ad.
-    return wideAdQuery.matches ? READER_AD_ROW : 1;
-  }
-
-  function injectAdInto(box) {
-    if (box.dataset.adFilled === 'true') return;
-    box.dataset.adFilled = 'true';
+  function injectAdInto(slot) {
+    if (slot.dataset.adFilled === 'true') return;
+    slot.dataset.adFilled = 'true';
     const key = READER_AD_KEYS[0];
     const container = document.createElement('div');
     container.id = `container-${key}`;
@@ -601,11 +581,11 @@ import * as tus from 'tus-js-client';
     adScript.async = true;
     adScript.setAttribute('data-cfasync', 'false');
     adScript.src = `https://bauval.org/21/${key}`;
-    box.append(container, adScript);
+    slot.append(container, adScript);
   }
 
-  function replicateAdFrame(fromBox, toBox) {
-    const source = fromBox.querySelector('iframe');
+  function replicateAdFrame(fromSlot, toSlot) {
+    const source = fromSlot.querySelector('iframe');
     if (!source) return false;
     const src = source.getAttribute('src');
     if (!src) return false;
@@ -616,65 +596,36 @@ import * as tus from 'tus-js-client';
     frame.setAttribute('marginwidth', '0');
     frame.setAttribute('marginheight', '0');
     frame.setAttribute('allowtransparency', 'true');
-    for (const attr of source.attributes) {
-      if (attr.name === 'src') continue;
-      try { frame.setAttribute(attr.name, attr.value); } catch { /* ignore */ }
-    }
     frame.style.width = '100%';
     frame.style.height = '90px';
     frame.style.border = '0';
     frame.style.display = 'block';
-    toBox.replaceChildren(frame);
-    toBox.dataset.adFilled = 'true';
+    toSlot.replaceChildren(frame);
+    toSlot.dataset.adFilled = 'true';
     return true;
   }
 
   function mountReaderAds() {
     if (readerAdsMounted) return;
     readerAdsMounted = true;
+    buildAdRailSlots();
 
-    const slots = Array.from(pdfPages.querySelectorAll('.sh-reader-ad'));
+    const slots = Array.from(document.querySelectorAll('#ad-rail-content .ad-rail-slot'));
     if (!slots.length) return;
 
-    const applyLayout = () => {
-      const visible = visibleAdBoxCount();
-      for (const slot of slots) {
-        const boxes = Array.from(slot.querySelectorAll('.sh-reader-ad-box'));
-        boxes.forEach((box, index) => {
-          // On phones only the first box of each slot is shown; the rest are
-          // removed from layout so they never leave an empty shell behind.
-          if (index < visible) {
-            box.style.display = 'flex';
-          } else {
-            box.style.display = 'none';
-          }
-        });
-      }
-    };
-
-    applyLayout();
-
-    // Seed the very first ad (official script) into the first visible box of
-    // the first slot. Everything else is filled by reusing that rendered
-    // iframe's src once Adsterra has populated it.
-    const firstBox = slots[0].querySelector('.sh-reader-ad-box');
-    injectAdInto(firstBox);
+    // Seed the first slot with the official Adsterra snippet. Adsterra sets the
+    // iframe src asynchronously, so every other slot is filled by reusing that
+    // rendered iframe's src once it appears.
+    injectAdInto(slots[0]);
 
     const fillAll = () => {
-      const seed = firstBox.querySelector('iframe');
+      const seed = slots[0].querySelector('iframe');
       if (!seed) return false;
       const src = seed.getAttribute('src');
       if (!src) return false;
-      capturedAdSrc = src;
-      for (const slot of slots) {
-        const boxes = Array.from(slot.querySelectorAll('.sh-reader-ad-box'));
-        const visible = visibleAdBoxCount();
-        for (let index = 0; index < visible; index += 1) {
-          const box = boxes[index];
-          if (!box || box === firstBox) continue;
-          if (box.querySelector('iframe')) continue;
-          replicateAdFrame(firstBox, box);
-        }
+      for (const slot of slots.slice(1)) {
+        if (slot.querySelector('iframe')) continue;
+        replicateAdFrame(slots[0], slot);
       }
       return true;
     };
@@ -683,7 +634,7 @@ import * as tus from 'tus-js-client';
       const observer = new MutationObserver(() => {
         if (fillAll()) observer.disconnect();
       });
-      observer.observe(firstBox, { childList: true, subtree: true, attributes: true });
+      observer.observe(slots[0], { childList: true, subtree: true, attributes: true });
     }
     let attempts = 0;
     const retry = () => {
@@ -692,17 +643,6 @@ import * as tus from 'tus-js-client';
       setTimeout(retry, 400);
     };
     setTimeout(retry, 600);
-
-    // Re-apply the responsive layout if the viewport crosses the breakpoint.
-    const onQueryChange = () => {
-      applyLayout();
-      fillAll();
-    };
-    if (typeof wideAdQuery.addEventListener === 'function') {
-      wideAdQuery.addEventListener('change', onQueryChange);
-    } else if (typeof wideAdQuery.addListener === 'function') {
-      wideAdQuery.addListener(onQueryChange);
-    }
   }
 
   function createPdfPages() {
@@ -716,12 +656,8 @@ import * as tus from 'tus-js-client';
       page.style.aspectRatio = '0.7727';
       pageElements.set(pageNumber, page);
       fragment.append(page);
-      if (pageNumber % READER_AD_EVERY === 0 && pageNumber < pdfDocument.numPages) {
-        fragment.append(createReaderAdSlot(pageNumber));
-      }
     }
     pdfPages.replaceChildren(fragment);
-    mountReaderAds();
 
     if ('IntersectionObserver' in window) {
       const pageObserver = new IntersectionObserver((entries) => {
@@ -1233,11 +1169,30 @@ import * as tus from 'tus-js-client';
     syncDrawerBackdrop();
   }
 
+  function toggleAdPanel(open) {
+    const shouldOpen = open ?? !document.body.classList.contains('ad-panel-open');
+    if (shouldOpen) {
+      toggleRelatedPanel(false);
+      toggleContributionPanel(false);
+      window.dispatchEvent(new CustomEvent('study-hub:close-ai-panel'));
+      mountReaderAds();
+    }
+    document.body.classList.toggle('ad-panel-open', shouldOpen);
+    const adRail = document.querySelector('#ad-rail');
+    adRail.setAttribute('aria-hidden', String(!shouldOpen));
+    const adToggle = document.querySelector('[data-a="ads"]');
+    adToggle.setAttribute('aria-expanded', String(shouldOpen));
+    adToggle.setAttribute('aria-label', shouldOpen ? 'Close ads' : 'Open ads');
+    adToggle.title = shouldOpen ? 'Close ads' : 'ADs';
+    syncDrawerBackdrop();
+  }
+
   function syncDrawerBackdrop() {
     const isMobile = window.matchMedia('(max-width: 760px)').matches;
     const relatedOpen = isMobile && document.body.classList.contains('related-panel-open');
     const contributionOpen = document.body.classList.contains('contribution-panel-open');
-    drawerBackdrop.hidden = !relatedOpen && !contributionOpen;
+    const adOpen = document.body.classList.contains('ad-panel-open');
+    drawerBackdrop.hidden = !relatedOpen && !contributionOpen && !adOpen;
   }
 
   toolbar.addEventListener('click', (event) => {
@@ -1275,15 +1230,22 @@ import * as tus from 'tus-js-client';
       case 'related':
         toggleRelatedPanel();
         break;
+      case 'ads':
+        toggleAdPanel();
+        break;
       case 'close-contribution':
         toggleContributionPanel(false);
         break;
       case 'close-related':
         toggleRelatedPanel(false);
         break;
+      case 'close-ads':
+        toggleAdPanel(false);
+        break;
       case 'close-drawers':
         toggleRelatedPanel(false);
         toggleContributionPanel(false);
+        toggleAdPanel(false);
         break;
       case 'contents':
         readingPanel.hidden = !readingPanel.hidden;
@@ -1300,11 +1262,13 @@ import * as tus from 'tus-js-client';
     contentsButton.setAttribute('aria-expanded', 'false');
   });
   document.querySelector('[data-a="close-contribution"]').addEventListener('click', () => toggleContributionPanel(false));
+  document.querySelector('[data-a="close-ads"]').addEventListener('click', () => toggleAdPanel(false));
   document.querySelector('.related-share').addEventListener('click', () => toggleContributionPanel(true));
   relatedRetry.addEventListener('click', () => void loadRelatedDocuments());
   drawerBackdrop.addEventListener('click', () => {
     toggleRelatedPanel(false);
     toggleContributionPanel(false);
+    toggleAdPanel(false);
   });
   bookmarkButton.addEventListener('click', toggleBookmark);
   colorSelect.addEventListener('change', () => applyReadingColor(colorSelect.value));
@@ -1368,12 +1332,15 @@ import * as tus from 'tus-js-client';
     toolbar.hidden = false;
     toggleContributionPanel(false);
     toggleRelatedPanel(false);
+    toggleAdPanel(false);
     if (reviewMode) {
       document.querySelector('[data-a="back"]').hidden = true;
       relatedToggle.hidden = true;
       contributionToggle.hidden = true;
+      document.querySelector('[data-a="ads"]').hidden = true;
       relatedRail.hidden = true;
       document.querySelector('#contribution-rail').hidden = true;
+      document.querySelector('#ad-rail').hidden = true;
       document.querySelector('#ai-study-toggle').hidden = true;
     } else {
       void loadRelatedDocuments();

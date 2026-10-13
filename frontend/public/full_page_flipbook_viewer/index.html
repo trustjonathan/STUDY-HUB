@@ -72,6 +72,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
         <span class="ela-contribute-label">Share resource</span>
       </button>
+      <button class="ela-btn ad-toggle" data-a="ads" type="button" title="ADs" aria-label="Open ads" aria-expanded="false" aria-controls="ad-rail">ADs</button>
     </div>
   </header>
 
@@ -129,6 +130,17 @@
       <button class="contribution-submit" id="submit-contribution" type="submit" disabled>Submit complete batch</button>
     </form>
     <p class="upload-status" id="upload-status" role="status" aria-live="polite">Uploads are optional. Selected files stage privately as they transfer and are submitted together when you choose.</p>
+  </aside>
+
+  <aside class="ad-rail" id="ad-rail" aria-labelledby="ad-rail-title" aria-hidden="true">
+    <div class="ad-rail-heading">
+      <div>
+        <p class="rail-eyebrow">Sponsored</p>
+        <h2 id="ad-rail-title">ADs</h2>
+      </div>
+      <button class="ela-btn ad-close" data-a="close-ads" type="button" aria-label="Close ads panel">×</button>
+    </div>
+    <div class="ad-rail-content" id="ad-rail-content"></div>
   </aside>
 
   <aside class="reading-panel" id="reading-panel" aria-label="Contents and bookmarks" hidden>

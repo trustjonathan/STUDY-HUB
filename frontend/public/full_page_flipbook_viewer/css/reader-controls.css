@@ -177,6 +177,42 @@ body.contribution-panel-open .contribution-rail { transform: translateX(0); visi
 .rights-check input { flex: 0 0 auto; margin: 2px 0 0; accent-color: #54b6e7; }
 .contribution-submit { min-height: 43px; padding: 10px 16px; border: 0; border-radius: 7px; background: #38a7d8; color: #07141c; cursor: pointer; font: 700 14px Arial, sans-serif; }
 .contribution-submit:disabled { cursor: not-allowed; opacity: .55; }
+
+.ad-toggle { display: inline-grid; place-items: center; width: auto; min-width: 44px; height: 40px; padding: 0 12px; border: 1px solid var(--reader-border); border-radius: 7px; background: #172232; color: var(--reader-text); cursor: pointer; font: 700 12px/1 Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.ad-toggle:hover, .ad-toggle[aria-expanded="true"] { border-color: rgba(125, 211, 252, .5); background: #172b3d; color: #c7edff; }
+.ad-toggle:focus-visible { outline: 2px solid var(--reader-accent); outline-offset: 2px; }
+
+.ad-rail {
+  position: fixed;
+  z-index: 21;
+  inset: 60px 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(340px, 100vw);
+  padding: 24px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--reader-border);
+  border-left: 1px solid var(--reader-border);
+  border-radius: 12px 0 0 0;
+  background: var(--reader-panel);
+  color: var(--reader-text);
+  box-sizing: border-box;
+  box-shadow: -16px 0 42px rgba(0, 0, 0, .42);
+  transform: translateX(105%);
+  visibility: hidden;
+  transition: transform .22s ease, visibility .22s ease;
+}
+body.ad-panel-open .ad-rail { transform: translateX(0); visibility: visible; }
+.ad-rail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ad-rail-heading h2 { margin: 4px 0 0; font-size: 22px; line-height: 1.2; letter-spacing: -.02em; }
+.ad-close { display: inline-grid; }
+.ad-rail-intro { margin: 0; color: var(--reader-muted); font-size: 13px; line-height: 1.55; }
+.ad-rail-content { display: grid; gap: 16px; }
+.ad-rail-slot { display: flex; align-items: center; justify-content: center; min-height: 94px; padding: 8px; overflow: hidden; border: 1px solid var(--reader-border); border-radius: 10px; background: #101923; }
+.ad-rail-slot iframe { max-width: 100%; }
+
 .upload-queue { display: grid; gap: 9px; max-height: 220px; overflow: auto; }
 .upload-queue:empty { display: none; }
 .upload-item { display: grid; gap: 5px; padding: 9px; border: 1px solid var(--reader-border); border-radius: 7px; background: #101923; }
