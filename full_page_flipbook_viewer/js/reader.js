@@ -63,6 +63,14 @@ import * as tus from 'tus-js-client';
   const renderEntries = new Map();
   const pageElements = new Map();
 
+  // In-document banner ads: after every READER_AD_EVERY PDF pages the reader
+  // inserts a banner ad slot. The single ad unit is rendered once and then
+  // cloned into the remaining slots so the same banner repeats between pages.
+  const READER_AD_KEY = '3a62a7d89a97afeab2a2bceab640bfac';
+  const READER_AD_EVERY = 2;
+  const READER_AD_SRC = `https://bauval.org/21/${READER_AD_KEY}`;
+  let readerAdsMounted = false;
+
   document.title = `${title} | Study Hub`;
   document.querySelector('.ela-t-title').textContent = title;
 
@@ -554,6 +562,62 @@ import * as tus from 'tus-js-client';
     requestAnimationFrame(renderNearbyPages);
   }
 
+  function createReaderAdSlot(afterPage) {
+    const slot = document.createElement('div');
+    slot.className = 'sh-reader-ad';
+    slot.dataset.afterPage = String(afterPage);
+    slot.setAttribute('role', 'complementary');
+    slot.setAttribute('aria-label', 'Advertisement');
+    slot.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;min-height:104px;margin:6px 0;';
+    const box = document.createElement('div');
+    box.className = 'sh-reader-ad-box';
+    box.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;min-height:90px;max-width:728px;overflow:hidden;';
+    slot.append(box);
+    return slot;
+  }
+
+  function mountReaderAds() {
+    if (readerAdsMounted) return;
+    const boxes = Array.from(pdfPages.querySelectorAll('.sh-reader-ad-box'));
+    if (!boxes.length) return;
+    readerAdsMounted = true;
+
+    const primary = boxes[0];
+    const container = document.createElement('div');
+    container.id = `container-${READER_AD_KEY}`;
+    const adScript = document.createElement('script');
+    adScript.async = true;
+    adScript.setAttribute('data-cfasync', 'false');
+    adScript.src = READER_AD_SRC;
+    primary.append(container, adScript);
+
+    const replicate = () => {
+      const source = document.getElementById(`container-${READER_AD_KEY}`);
+      if (!source || !source.firstChild) return false;
+      for (const box of boxes.slice(1)) {
+        if (box.firstChild) continue;
+        for (const node of Array.from(source.childNodes)) {
+          box.append(node.cloneNode(true));
+        }
+      }
+      return true;
+    };
+
+    if ('MutationObserver' in window) {
+      const observer = new MutationObserver(() => {
+        if (replicate()) observer.disconnect();
+      });
+      observer.observe(primary, { childList: true, subtree: true });
+    }
+    let attempts = 0;
+    const retry = () => {
+      attempts += 1;
+      if (replicate() || attempts > 15) return;
+      setTimeout(retry, 500);
+    };
+    setTimeout(retry, 700);
+  }
+
   function createPdfPages() {
     const fragment = document.createDocumentFragment();
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
@@ -565,8 +629,12 @@ import * as tus from 'tus-js-client';
       page.style.aspectRatio = '0.7727';
       pageElements.set(pageNumber, page);
       fragment.append(page);
+      if (pageNumber % READER_AD_EVERY === 0 && pageNumber < pdfDocument.numPages) {
+        fragment.append(createReaderAdSlot(pageNumber));
+      }
     }
     pdfPages.replaceChildren(fragment);
+    mountReaderAds();
 
     if ('IntersectionObserver' in window) {
       const pageObserver = new IntersectionObserver((entries) => {
