@@ -1,0 +1,143 @@
+---
+// src/components/Partners.astro
+// "Our Partners & Supporters" section.
+// NOTE: This project does not use Tailwind, so styling is plain scoped CSS.
+
+interface Partner {
+  name: string;
+  badge?: string;
+  referralLink: string;
+  bannerImg: string;
+  altText: string;
+}
+
+// Add more partners to this array in the future.
+const partners: Partner[] = [
+  {
+    name: 'Adsterra Network',
+    badge: 'Monetization Partner',
+    referralLink: '',
+    bannerImg: 'https://landings-cdn.adsterratech.com/referralBanners/gif/720x90_adsterra_reff.gif',
+    altText: 'banner'
+  }
+];
+---
+
+<section class="partners-section" aria-labelledby="partners-heading">
+  <div class="container">
+    <div class="section-header">
+      <h3 id="partners-heading">Our Partners &amp; Supporters</h3>
+      <p>
+        We partner with trusted global networks to keep high-quality educational
+        materials accessible to everyone.
+      </p>
+    </div>
+
+    <div class="partners-grid">
+      {partners.map((partner) => (
+        <div class="partner-card">
+          {partner.badge && <span class="partner-badge">{partner.badge}</span>}
+          <div class="partner-banner-wrapper">
+            <a href={partner.referralLink} target="_blank" rel="nofollow">
+              <img
+                src={partner.bannerImg}
+                alt={partner.altText}
+                width={720}
+                height={90}
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .partners-section {
+    padding: 40px 20px;
+    background-color: #f9fafb; /* Light, clean background */
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .partners-section .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-header h3 {
+    font-size: 24px;
+    color: #1f2937;
+    margin-bottom: 8px;
+  }
+
+  .section-header p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 30px;
+  }
+
+  .partners-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .partner-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    max-width: 100%;
+  }
+
+  .partner-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  }
+
+  .partner-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background-color: #3b82f6;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .partner-banner-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .partner-card a:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  @media (max-width: 600px) {
+    .partners-section { padding: 28px 16px; }
+    .section-header h3 { font-size: 20px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .partner-card { transition: none; }
+    .partner-card:hover { transform: none; }
+  }
+</style>

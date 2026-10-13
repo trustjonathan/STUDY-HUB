@@ -1,5 +1,6 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import Partners from '../components/Partners.astro';
 import aLevelCombinations from '../data/aLevelCombinations.json';
 import { availableSubjects } from '../data/availableSubjects';
 import { subjectCategories } from '../data/subjectCategories';
@@ -103,5 +104,7 @@ const featuredSubjects = availableSubjects;
         ))}
       </div>
     </section>
+
+    <Partners />
   </main>
 </SiteLayout>
