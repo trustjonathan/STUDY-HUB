@@ -2,12 +2,17 @@
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../../database/models/postgres/user');
 const { auth } = require('../../config');
+const googleIdentityClient = new OAuth2Client();
 
 const accountServiceUnavailable = (res) => res.status(503).json({
-  error: 'The account service is not configured yet. Please try again later.'
+  error: 'The account service is not configured correctly. Please try again later.'
 });
+
+const hasSecureAuthSecret = typeof auth.jwtSecret === 'string'
+  && Buffer.byteLength(auth.jwtSecret, 'utf8') >= 32;
 
 const createSessionToken = (user) => jwt.sign(
   { id: user.id, userId: user.id, role: user.role },
@@ -31,7 +36,10 @@ const publicUser = (user) => ({
 // ----------------------
 const registerUser = async (req, res) => {
   try {
-    if (!auth.jwtSecret) return accountServiceUnavailable(res);
+    if (!hasSecureAuthSecret) {
+      console.error('Account registration unavailable: JWT_SECRET must contain at least 32 bytes.');
+      return accountServiceUnavailable(res);
+    }
 
     const { username, email, password } = req.body;
 
@@ -66,12 +74,15 @@ const registerUser = async (req, res) => {
 // ----------------------
 const loginUser = async (req, res) => {
   try {
-    if (!auth.jwtSecret) return accountServiceUnavailable(res);
+    if (!hasSecureAuthSecret) {
+      console.error('Account login unavailable: JWT_SECRET must contain at least 32 bytes.');
+      return accountServiceUnavailable(res);
+    }
 
     const { email, password } = req.body;
 
     const user = await User.findOne({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || typeof user.password !== 'string' || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -86,6 +97,72 @@ const loginUser = async (req, res) => {
   } catch (err) {
     console.error('Login Error:', err);
     res.status(500).json({ error: 'Server error during login' });
+  }
+};
+
+const googleLogin = async (req, res) => {
+  if (!hasSecureAuthSecret) {
+    console.error('Google sign-in unavailable: JWT_SECRET must contain at least 32 bytes.');
+    return accountServiceUnavailable(res);
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(503).json({ error: 'Google sign-in is not configured yet. Please try email sign-in.' });
+  }
+
+  const credential = req.body && req.body.credential;
+  if (typeof credential !== 'string' || credential.length > 8192) {
+    return res.status(400).json({ error: 'A valid Google sign-in credential is required.' });
+  }
+
+  let payload;
+  try {
+    const ticket = await googleIdentityClient.verifyIdToken({ idToken: credential, audience: clientId });
+    payload = ticket.getPayload();
+  } catch (error) {
+    console.error('Google identity token verification failed:', error instanceof Error ? error.message : error);
+    return res.status(401).json({ error: 'Google sign-in could not verify your account. Please try again.' });
+  }
+
+  if (!payload || typeof payload.sub !== 'string' || typeof payload.email !== 'string' || payload.email_verified !== true) {
+    return res.status(401).json({ error: 'Use a Google account with a verified email address.' });
+  }
+
+  try {
+    const email = payload.email.trim().toLowerCase();
+    let user = await User.findOne({ where: { googleId: payload.sub } });
+
+    if (!user) {
+      user = await User.findOne({ where: { email } });
+      if (user) {
+        if (user.googleId && user.googleId !== payload.sub) {
+          return res.status(409).json({ error: 'This email is already linked to another Google account.' });
+        }
+        user.googleId = payload.sub;
+        await user.save();
+      } else {
+        const username = typeof payload.name === 'string' && payload.name.trim()
+          ? payload.name.trim().slice(0, 80)
+          : email.split('@')[0].slice(0, 80);
+        user = await User.create({
+          username,
+          email,
+          password: null,
+          googleId: payload.sub,
+          role: 'user',
+        });
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Google sign-in successful',
+      token: createSessionToken(user),
+      user: publicUser(user),
+    });
+  } catch (error) {
+    console.error('Google sign-in account error:', error);
+    return res.status(500).json({ error: 'Google sign-in could not be completed. Please try again.' });
   }
 };
 
@@ -171,6 +248,7 @@ const updateReputation = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  googleLogin,
   getProfile,
   updateProfile,
   updateReputation

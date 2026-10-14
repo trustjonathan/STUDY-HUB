@@ -30,6 +30,11 @@
 .auth-form input:focus { border-color: #43835b; box-shadow: 0 0 0 3px rgba(67, 131, 91, .13); }
 .auth-form input:disabled { background: #f1f3ef; color: #7b857e; }
 .auth-field-hint { color: #7b867d; font-size: .72rem; font-weight: 400; }
+.auth-divider { display: flex; align-items: center; gap: 12px; margin: 19px 0 15px; color: #78837b; font-size: .72rem; }
+.auth-divider::before, .auth-divider::after { height: 1px; flex: 1; background: #e0e5df; content: ''; }
+.auth-google-button { display: flex; min-height: 42px; justify-content: center; overflow: hidden; }
+.auth-google-button.is-busy { pointer-events: none; opacity: .55; }
+.auth-google-notice { margin: 0; color: #738076; font-size: .75rem; text-align: center; }
 .auth-primary-button, .auth-secondary-button { display: inline-flex; min-height: 45px; align-items: center; justify-content: center; gap: 10px; padding: 0 16px; border: 0; border-radius: 7px; cursor: pointer; font: 750 .86rem 'DM Sans', sans-serif; }
 .auth-primary-button { width: 100%; margin-top: 5px; background: #246b49; color: #fffefa; }
 .auth-primary-button:hover:not(:disabled) { background: #18583a; }

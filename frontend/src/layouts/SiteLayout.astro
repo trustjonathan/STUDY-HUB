@@ -65,6 +65,9 @@ const popularSubjects = availableSubjects;
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
     <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-touch-icon.png`} />
     <link rel="manifest" href={`${base}site.webmanifest`} />
+    {routeKey === 'sign-in' && (
+      <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
+    )}
     <title>{title}</title>
     <slot name="head" />
   </head>

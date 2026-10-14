@@ -1,14 +1,25 @@
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,      // your database name
-  process.env.DB_USER,      // your DB username
-  process.env.DB_PASS,      // your DB password
-  {
-    host: process.env.DB_HOST || 'localhost',
-    dialect: 'postgres',
-    logging: false,         // optional, disables SQL logging
-  }
-);
+const databaseUrl = process.env.DATABASE_URL;
+const useSsl = process.env.DATABASE_SSL === 'true'
+  || (process.env.NODE_ENV === 'production' && process.env.DATABASE_SSL !== 'false');
+const options = {
+  dialect: 'postgres',
+  logging: false,
+  ...(useSsl ? { dialectOptions: { ssl: { require: true, rejectUnauthorized: true } } } : {}),
+};
+
+const sequelize = databaseUrl
+  ? new Sequelize(databaseUrl, options)
+  : new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASS,
+    {
+      ...options,
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT) || 5432,
+    }
+  );
 
 module.exports = sequelize;

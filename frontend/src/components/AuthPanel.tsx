@@ -1,9 +1,38 @@
-import { useEffect, useState, type SubmitEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
 
 interface Props {
   apiUrl: string;
+  googleClientId: string;
   homeHref: string;
+}
+
+interface GoogleCredentialResponse {
+  credential?: string;
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (options: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+          }) => void;
+          renderButton: (element: HTMLElement, options: {
+            type: 'standard';
+            theme: 'outline';
+            size: 'large';
+            shape: 'rectangular';
+            text: 'continue_with' | 'signup_with';
+            logo_alignment: 'left';
+            width: number;
+          }) => void;
+        };
+      };
+    };
+  }
 }
 
 interface Account {
@@ -45,7 +74,7 @@ function getErrorMessage(result: AuthResponse, fallback: string): string {
   return validationMessage || result.message || result.error || fallback;
 }
 
-export default function AuthPanel({ apiUrl, homeHref }: Props) {
+export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   const apiBase = getApiBase(apiUrl);
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
@@ -55,6 +84,7 @@ export default function AuthPanel({ apiUrl, homeHref }: Props) {
   const [account, setAccount] = useState<Account | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const googleButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -75,6 +105,91 @@ export default function AuthPanel({ apiUrl, homeHref }: Props) {
       setError('Saved sign-in information could not be read in this browser. You can still sign in again.');
     }
   }, []);
+
+  async function signInWithGoogle(credential: string) {
+    if (busy || !apiBase) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+
+    try {
+      const response = await fetch(`${apiBase}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      const result: AuthResponse = await response.json().catch(() => ({}));
+      if (!response.ok || typeof result.token !== 'string' || !result.user || typeof result.user.email !== 'string') {
+        throw new Error(getErrorMessage(result, 'Google sign-in could not be completed. Please try again.'));
+      }
+
+      sessionStorage.setItem('study-hub-auth', JSON.stringify({ token: result.token, user: result.user }));
+      if (result.user.onboardingComplete !== true) {
+        window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
+        return;
+      }
+      setAccount(result.user);
+      setNotice('You are signed in with Google. Your learning profile is ready.');
+    } catch (googleError) {
+      const message = googleError instanceof Error ? googleError.message : '';
+      setError(message === 'Failed to fetch'
+        ? 'Could not reach the account service. Check your connection and try again.'
+        : message || 'Google sign-in could not be completed. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    const button = googleButtonRef.current;
+    if (!button || account || !apiBase || !googleClientId) return;
+
+    const configureGoogleButton = () => {
+      if (!window.google) {
+        setError('Google sign-in could not be loaded. Please use email sign-in or try again later.');
+        return;
+      }
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response) => {
+          if (!response.credential) {
+            setError('Google did not return a sign-in credential. Please try again.');
+            return;
+          }
+          void signInWithGoogle(response.credential);
+        },
+      });
+      button.replaceChildren();
+      window.google.accounts.id.renderButton(button, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        text: mode === 'register' ? 'signup_with' : 'continue_with',
+        logo_alignment: 'left',
+        width: Math.min(360, Math.floor(button.clientWidth || 360)),
+      });
+    };
+
+    const scriptUrl = 'https://accounts.google.com/gsi/client';
+    const script = document.querySelector<HTMLScriptElement>(`script[src="${scriptUrl}"]`);
+    if (window.google) {
+      configureGoogleButton();
+      return;
+    }
+    if (!script) {
+      setError('Google sign-in script is missing from the sign-in page.');
+      return;
+    }
+    const handleScriptError = () => setError('Google sign-in could not be loaded. Please use email sign-in.');
+    script.addEventListener('load', configureGoogleButton);
+    script.addEventListener('error', handleScriptError);
+
+    return () => {
+      script?.removeEventListener('load', configureGoogleButton);
+      script?.removeEventListener('error', handleScriptError);
+    };
+  }, [account, apiBase, googleClientId, mode]);
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -255,6 +370,13 @@ export default function AuthPanel({ apiUrl, homeHref }: Props) {
                   {!busy && <span aria-hidden="true">→</span>}
                 </button>
               </form>
+              <div className="auth-divider" aria-hidden="true"><span>or continue with</span></div>
+              {googleClientId ? (
+                <div className={`auth-google-button ${busy ? 'is-busy' : ''}`} ref={googleButtonRef} aria-label="Continue with Google" />
+              ) : (
+                <p className="auth-google-notice" role="status">Google sign-in is not configured yet. Use email sign-in for now.</p>
+              )}
+              {googleClientId && error && <p className="auth-message auth-error" role="alert">{error}</p>}
             </>
           )}
         </div>

@@ -20,6 +20,8 @@ router.post('/register', validateRegister, identityController.registerUser);
 
 router.post('/login', validateLogin, identityController.loginUser);
 
+router.post('/google', identityController.googleLogin);
+
 // ----------------------
 // Protected Routes
 // ----------------------

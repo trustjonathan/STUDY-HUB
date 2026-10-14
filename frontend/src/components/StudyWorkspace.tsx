@@ -8,7 +8,12 @@ interface Props {
   legalHref: string;
 }
 
-interface Note { slug: string; title: string; }
+interface Note {
+  slug: string;
+  title: string;
+  markdown?: string;
+  source?: string;
+}
 interface StudyProfile {
   username: string;
   classLevel: string;
@@ -39,6 +44,17 @@ const suggestedQuestions = [
   'How do quadratic equations work?',
   'Compare mitosis and meiosis'
 ];
+const RECENTS_STORAGE_KEY = 'study-hub-ai-study-recents';
+const MAX_RECENT_GUIDES = 20;
+
+function isNote(value: unknown): value is Note {
+  if (typeof value !== 'object' || value === null) return false;
+  const note = value as Partial<Note>;
+  return typeof note.slug === 'string'
+    && typeof note.title === 'string'
+    && (note.markdown === undefined || typeof note.markdown === 'string')
+    && (note.source === undefined || typeof note.source === 'string');
+}
 
 function apiBase(): string {
   const configured = import.meta.env.PUBLIC_STUDY_HUB_API_URL?.trim();
@@ -60,6 +76,10 @@ function titleFromTopic(topic: string): string {
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
+function slugifyTopic(topic: string): string {
+  return topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 export default function StudyWorkspace({
   homeHref,
   libraryHref,
@@ -68,6 +88,7 @@ export default function StudyWorkspace({
 }: Props) {
   const base = apiBase();
   const [recents, setRecents] = useState<Note[]>([]);
+  const [recentSearch, setRecentSearch] = useState('');
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
   const [markdown, setMarkdown] = useState('');
@@ -113,16 +134,60 @@ export default function StudyWorkspace({
     if (!base) return;
     try {
       const response = await fetch(`${base}/api/lesson-guide`);
+      if (!response.ok) return;
       const data = await response.json().catch(() => ({}));
-      if (Array.isArray(data.notes)) setRecents(data.notes as Note[]);
+      if (!Array.isArray(data.notes)) return;
+      const serverNotes = data.notes.filter(isNote);
+      setRecents((current) => {
+        const localNotes = current.filter((note) => note.markdown);
+        const merged = [...localNotes, ...serverNotes.filter((note) => !localNotes.some((local) => local.slug === note.slug))];
+        return merged.slice(0, MAX_RECENT_GUIDES);
+      });
     } catch { /* recents are optional */ }
   }
 
-  // Load the list of previously generated notes for the Recents panel.
+  // Load this browser's saved answers as well as shared backend guides.
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem(RECENTS_STORAGE_KEY);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) setRecents(parsed.filter(isNote).slice(0, MAX_RECENT_GUIDES));
+        else localStorage.removeItem(RECENTS_STORAGE_KEY);
+      }
+    } catch {
+      setNotice('Saved recent study guides could not be read in this browser.');
+    }
     void refreshRecents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base]);
+
+  function saveRecentGuide(note: Note) {
+    const next = [note, ...recents.filter((item) => item.slug !== note.slug)].slice(0, MAX_RECENT_GUIDES);
+    setRecents(next);
+    try {
+      localStorage.setItem(RECENTS_STORAGE_KEY, JSON.stringify(next.filter((item) => item.markdown)));
+    } catch {
+      setNotice('Your answer is ready, but this browser could not save it to Recents.');
+    }
+  }
+
+  function openRecent(note: Note) {
+    if (!note.markdown) {
+      void openNote(note.title);
+      return;
+    }
+    setActiveSlug(note.slug);
+    setActiveTitle(note.title);
+    setMarkdown(note.markdown);
+    setSource(note.source || '');
+    setError('');
+    setNotice('');
+    setDraft('');
+    setCopied(false);
+    setCopyError('');
+    setSidebarOpen(false);
+  }
 
   async function openNote(topic: string) {
     const clean = topic.trim();
@@ -166,6 +231,12 @@ export default function StudyWorkspace({
       setActiveSlug(result.slug ?? null);
       setActiveTitle(result.topic ?? titleFromTopic(clean));
       setDraft('');
+      saveRecentGuide({
+        slug: typeof result.slug === 'string' ? result.slug : slugifyTopic(clean),
+        title: typeof result.topic === 'string' ? result.topic : titleFromTopic(clean),
+        markdown: result.markdown,
+        source: typeof result.source === 'string' ? result.source : '',
+      });
       await refreshRecents();
     } catch (err) {
       setMarkdown('');
@@ -210,6 +281,7 @@ export default function StudyWorkspace({
   }
 
   const hasNote = Boolean(markdown) && !loading;
+  const visibleRecents = recents.filter((note) => note.title.toLowerCase().includes(recentSearch.trim().toLowerCase()));
 
   return (
     <div className={`ws ${sidebarOpen ? 'ws-sidebar-open' : ''}`}>
@@ -228,17 +300,29 @@ export default function StudyWorkspace({
 
         <div className="ws-recents">
           <p className="ws-recents-label">Recents</p>
+          {recents.length > 0 && (
+            <input
+              className="ws-recents-search"
+              type="search"
+              value={recentSearch}
+              onChange={(event) => setRecentSearch(event.target.value)}
+              placeholder="Search recent guides"
+              aria-label="Search recent study guides"
+            />
+          )}
           {recents.length === 0 ? (
-            <p className="ws-recents-empty">{base ? 'Your saved study guides will appear here.' : 'Connect the backend API to load saved guides.'}</p>
+            <p className="ws-recents-empty">{base ? 'Your recent study guides will appear here.' : 'Connect the backend API to load saved guides.'}</p>
+          ) : visibleRecents.length === 0 ? (
+            <p className="ws-recents-empty">No recent guides match that search.</p>
           ) : (
             <ul>
-              {recents.map((note) => (
+              {visibleRecents.map((note) => (
                 <li key={note.slug}>
                   <button
                     type="button"
                     className={`ws-recent ${activeSlug === note.slug ? 'is-active' : ''}`}
                     disabled={loading}
-                    onClick={() => void openNote(note.title)}
+                    onClick={() => openRecent(note)}
                   >
                     {note.title}
                   </button>
@@ -341,7 +425,10 @@ export default function StudyWorkspace({
           {hasNote && (
             <article className="ws-note">
               <div className="ws-note-heading">
-                <p className="ws-note-kicker">{activeTitle ? `${activeTitle} — AI tutor response` : 'AI tutor response'}</p>
+                <div className="ws-note-heading-copy">
+                  <p className="ws-note-kicker">STUDY GUIDE · AI REFERENCE</p>
+                  <h1 className="ws-note-title">{activeTitle || 'AI tutor response'}</h1>
+                </div>
                 <button type="button" className="ws-copy-button" onClick={() => void copyResponse()}>
                   {copied ? 'Copied' : 'Copy answer'}
                 </button>

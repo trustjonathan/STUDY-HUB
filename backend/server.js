@@ -8,7 +8,17 @@ const { google } = require("googleapis")
 const app = express()
 
 // Middleware
-app.use(cors())
+const allowedOrigins = (process.env.STUDY_HUB_ALLOWED_ORIGINS || '')
+   .split(',')
+   .map((origin) => origin.trim())
+   .filter(Boolean)
+
+app.use(cors(allowedOrigins.length ? {
+   origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true)
+      return callback(new Error('Origin is not allowed by Study Hub CORS policy.'))
+   },
+} : {}))
 app.use("/api/ai-study-companion", express.json({ limit: "1mb" }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))

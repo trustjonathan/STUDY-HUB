@@ -49,6 +49,8 @@
 .ws-recents { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 .ws-recents-label { margin: 8px 12px 6px; color: #617068; font: 700 0.7rem/1 Manrope, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
 .ws-recents-empty { margin: 0 12px; color: #8a978d; font-size: 0.8rem; line-height: 1.5; }
+.ws-recents-search { display: block; width: calc(100% - 24px); min-height: 34px; margin: 0 12px 8px; padding: 6px 9px; border: 1px solid #dfe4db; border-radius: 7px; outline: none; background: #fffefa; color: #293b32; font: 500 .75rem/1.3 'DM Sans', Arial, sans-serif; }
+.ws-recents-search:focus { border-color: #8db69a; box-shadow: 0 0 0 2px rgba(57, 129, 90, .13); }
 .ws-recents ul { margin: 0; padding: 0; list-style: none; }
 .ws-recent {
   display: block;
@@ -113,24 +115,51 @@
 .ws-retry:hover { background: #fbe8e4; }
 .ws-retry:focus-visible { outline: 3px solid #8a3b2e; outline-offset: 2px; }
 
-.ws-note { max-width: 760px; margin: 0 auto; padding-bottom: 18px; }
-.ws-note-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
-.ws-note-kicker { margin: 0 0 16px; color: #246b49; font: 800 0.8rem/1.2 Manrope, sans-serif; letter-spacing: 0.02em; }
-.ws-note-heading .ws-note-kicker { margin: 0; }
-.ws-copy-button { flex: 0 0 auto; min-height: 34px; padding: 6px 11px; border: 1px solid #dfe4db; border-radius: 8px; background: #fffefa; color: #405148; cursor: pointer; font: 600 0.78rem/1 'DM Sans', Arial, sans-serif; }
+.ws-note { max-width: 820px; margin: 0 auto 24px; padding: clamp(22px, 4vw, 48px) clamp(20px, 5vw, 58px) 42px; border: 1px solid #e1e7df; border-radius: 18px; background: #fffefa; box-shadow: 0 14px 42px rgba(35, 58, 43, .07); }
+.ws-note-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin: 0 0 26px; padding-bottom: 22px; border-bottom: 1px solid #e9ede6; }
+.ws-note-heading-copy { min-width: 0; }
+.ws-note-kicker { margin: 0 0 9px; color: #28704d; font: 800 0.68rem/1.2 Manrope, sans-serif; letter-spacing: 0.14em; }
+.ws-note-title { margin: 0; color: #243a2f; font: 800 clamp(1.65rem, 4vw, 2.35rem)/1.15 Manrope, sans-serif; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.ws-copy-button { flex: 0 0 auto; min-height: 38px; padding: 7px 13px; border: 1px solid #d8e1d8; border-radius: 9px; background: #f7faf5; color: #285c40; cursor: pointer; font: 700 0.78rem/1 'DM Sans', Arial, sans-serif; }
 .ws-copy-button:hover { border-color: #b8d0be; background: #f8fbf7; }
-.ws-save-note { margin: -5px 0 16px; color: #718078; font-size: 0.78rem; line-height: 1.5; }
+.ws-save-note { margin: -7px 0 20px; padding: 10px 12px; border: 1px solid #dbe8dc; border-radius: 8px; background: #f4f8f2; color: #596e60; font-size: 0.76rem; line-height: 1.5; }
 .ws-copy-error { margin: -6px 0 14px; color: #8a3b2e; font-size: 0.78rem; line-height: 1.5; }
-.ws-prose { color: #24312c; font-family: 'DM Sans', Arial, sans-serif; line-height: 1.75; }
-.ws-prose h2 { margin: 26px 0 10px; color: #246b49; font: 800 1.25rem/1.3 Manrope, sans-serif; }
+.ws-prose { color: #35463d; font-family: 'DM Sans', Arial, sans-serif; font-size: .98rem; line-height: 1.82; }
+.ws-prose h2 { margin: 34px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e8ede6; color: #246b49; font: 800 1.28rem/1.3 Manrope, sans-serif; }
 .ws-prose h2:first-child { margin-top: 0; }
-.ws-prose h3 { margin: 20px 0 8px; color: #293b32; font: 700 1.05rem/1.35 Manrope, sans-serif; }
-.ws-prose p { margin: 0 0 14px; }
-.ws-prose ul, .ws-prose ol { margin: 0 0 16px; padding-left: 22px; }
-.ws-prose li { margin-bottom: 7px; }
-.ws-prose li::marker { color: #246b49; font-weight: 700; }
+.ws-prose h3 { margin: 25px 0 9px; color: #293b32; font: 750 1.05rem/1.4 Manrope, sans-serif; }
+.ws-prose p { margin: 0 0 17px; }
+.ws-prose ul, .ws-prose ol { margin: 0 0 19px; padding-left: 25px; }
+.ws-prose li { margin-bottom: 9px; padding-left: 3px; }
+.ws-prose li::marker { color: #39815a; font-weight: 700; }
 .ws-prose strong { color: #173e2e; }
 .ws-prose code { padding: 1px 6px; border: 1px solid #dfe4db; border-radius: 5px; background: #f4f5ef; font: 0.9em/1.5 Consolas, monospace; }
+.ws-prose .ws-math { display: inline; padding: 0 2px; color: #20553b; font-family: Cambria, 'Times New Roman', serif; font-size: 1.04em; }
+.ws-prose .ws-math-text { font-family: 'DM Sans', Arial, sans-serif; font-size: .88em; }
+.ws-prose .ws-math-bold { font-weight: 700; }
+.ws-prose .ws-math-roman { font-style: normal; }
+.ws-prose .ws-math-script { position: relative; display: inline-block; margin-right: .12em; }
+.ws-prose .ws-math-script sup, .ws-prose .ws-math-script sub { position: relative; font-size: .68em; line-height: 0; vertical-align: baseline; }
+.ws-prose .ws-math-script sup { top: -.55em; }
+.ws-prose .ws-math-script sub { bottom: -.2em; }
+.ws-prose .ws-math-fraction { display: inline-flex; flex-direction: column; align-items: center; margin: 0 .16em; vertical-align: middle; font-size: .83em; line-height: 1.15; }
+.ws-prose .ws-math-fraction > span:first-child { width: 100%; padding: 0 .15em .08em; border-bottom: 1px solid currentColor; text-align: center; }
+.ws-prose .ws-math-fraction > span:last-child { padding: .08em .15em 0; text-align: center; }
+.ws-prose .ws-math-root { display: inline-flex; align-items: stretch; margin-left: .1em; vertical-align: middle; }
+.ws-prose .ws-math-root > span:first-child { padding-right: .08em; font-size: 1.35em; line-height: 1; }
+.ws-prose .ws-math-root > span:last-child { padding: 0 .12em; border-top: 1px solid currentColor; }
+.ws-prose .ws-math-arrow { display: inline-grid; min-width: 2.5em; grid-template-rows: auto auto auto; align-items: center; justify-items: center; vertical-align: middle; line-height: 1; }
+.ws-prose .ws-math-arrow > span:first-child, .ws-prose .ws-math-arrow > span:last-child { font-family: 'DM Sans', Arial, sans-serif; font-size: .56em; line-height: 1.1; }
+.ws-prose .ws-math-arrow > span:nth-child(2) { width: 100%; overflow: hidden; font-size: 1.4em; text-align: center; white-space: nowrap; }
+.ws-equation { display: block; overflow-x: auto; margin: 20px 0; padding: 17px 20px; border: 1px solid #dce8dd; border-left: 4px solid #39815a; border-radius: 9px; background: #f5f8f3; color: #214c36; font: 600 1.02rem/1.8 Cambria, 'Times New Roman', serif; text-align: center; white-space: nowrap; }
+.ws-prose hr { height: 1px; margin: 25px 0; border: 0; background: #e6ebe4; }
+.ws-table-wrap { overflow: auto; margin: 20px 0 24px; border: 1px solid #dfe7dd; border-radius: 10px; background: #fff; }
+.ws-prose table { width: 100%; border-collapse: collapse; font-size: .88rem; line-height: 1.6; }
+.ws-prose th, .ws-prose td { min-width: 120px; padding: 11px 14px; border-bottom: 1px solid #e8ede6; text-align: left; vertical-align: top; }
+.ws-prose th { background: #f0f5ee; color: #24563b; font: 750 .76rem/1.45 Manrope, sans-serif; letter-spacing: .02em; }
+.ws-prose tr:last-child td { border-bottom: 0; }
+.ws-prose tbody tr:nth-child(even) { background: #fafbf8; }
+.ws-table-wrap:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
 
 /* ---- Floating prompt bar ---- */
 .ws-prompt {
@@ -213,7 +242,10 @@
   .ws-suggestion { justify-content: space-between; width: 100%; text-align: left; }
   .ws-prompt input { font-size: 14px; }
   .ws-prompt-model { display: none; }
-  .ws-note-heading { align-items: flex-start; }
+  .ws-note { padding: 22px 17px 28px; border-radius: 13px; }
+  .ws-note-heading { align-items: flex-start; gap: 10px; }
+  .ws-copy-button { padding-inline: 9px; }
+  .ws-prose { font-size: .93rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
