@@ -1,6 +1,7 @@
 const MAX_IMAGE_LENGTH = 900_000;
 const MAX_PROMPT_LENGTH = 1_500;
 const MAX_HISTORY_MESSAGES = 10;
+const { generateContent } = require("../../services/geminiService");
 
 function invalidRequest(res, message) {
   return res.status(400).json({ error: message });
@@ -51,36 +52,29 @@ exports.handler = async (req, res) => {
     role: "user",
     parts: [
       { text: `The student is viewing PDF page ${pageNumber}. ${prompt.trim()}` },
-      { inline_data: { mime_type: "image/jpeg", data: pageImage } }
+      { inlineData: { mimeType: "image/jpeg", data: pageImage } }
     ]
   });
 
   try {
-    const endpoint = new URL(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent"
-    );
-    const geminiResponse = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
+    const geminiResponse = await generateContent(apiKey, {
+      systemInstruction: {
+        parts: [{
+          text: "You are Study Hub's helpful tutor for Ugandan learners. Explain the supplied document page accurately and clearly, adapting explanations to the student's question. Show steps for calculations and explain diagrams from visible evidence. If the page does not contain enough information, say so rather than inventing details. Curriculum guidance should be framed as general study help, not as an official NCDC or UNEB ruling."
+        }]
       },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{
-            text: "You are Study Hub's helpful tutor for Ugandan learners. Explain the supplied document page accurately and clearly, adapting explanations to the student's question. Show steps for calculations and explain diagrams from visible evidence. If the page does not contain enough information, say so rather than inventing details. Curriculum guidance should be framed as general study help, not as an official NCDC or UNEB ruling."
-          }]
-        },
-        contents,
-        generationConfig: { maxOutputTokens: 1_000, temperature: 0.3 }
-      })
+      contents,
+      generationConfig: { maxOutputTokens: 1_000, temperature: 0.3 }
     });
 
     if (!geminiResponse.ok) {
       console.error(`Gemini tutor request failed with HTTP ${geminiResponse.status}.`);
-      return res.status(geminiResponse.status === 429 ? 429 : 502).json({
+      const busy = geminiResponse.status === 429 || geminiResponse.status === 503;
+      return res.status(busy ? 503 : 502).json({
         error: geminiResponse.status === 429
-          ? "The study companion is busy. Please try again shortly."
+          ? "Study Hub AI is experiencing high demand. Please try again shortly."
+          : geminiResponse.status === 503
+            ? "Study Hub AI is experiencing high demand. Please try again shortly."
           : "The study companion could not answer right now."
       });
     }

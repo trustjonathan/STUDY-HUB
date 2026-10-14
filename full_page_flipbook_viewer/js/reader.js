@@ -9,7 +9,16 @@ import * as tus from 'tus-js-client';
   const title = params.get('title') || 'Study Hub resource';
   const reviewMode = params.get('mode') === 'review';
   const storagePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
+  const freshTeacherOrigins = new Set([
+    'https://fresh-teacher.github.io',
+    'https://s6-fresh-teacher.vercel.app',
+    'https://freshteachers.vercel.app'
+  ]);
   const toolbar = document.querySelector('#reader-toolbar');
+  const readerResumeBanner = document.querySelector('#reader-resume');
+  const readerResumeMessage = document.querySelector('#reader-resume-message');
+  const readerResumeButton = document.querySelector('#reader-resume-button');
+  const readerResumeDismiss = document.querySelector('#reader-resume-dismiss');
   const pdfReader = document.querySelector('#pdf-reader');
   const pdfPages = document.querySelector('#pdf-pages');
   const documentReader = document.querySelector('#document-reader');
@@ -56,6 +65,8 @@ import * as tus from 'tus-js-client';
   let activeBatch = null;
   let processingQueue = false;
   let startingBatch = false;
+  let readerProgressPending = false;
+  let readerProgressTimer = 0;
   const resourceKey = requestedFile || window.location.pathname;
   const readerStateKey = `study-hub-reader:${encodeURIComponent(resourceKey)}`;
   const uploadBatchKey = 'study-hub-contribution-upload-batch-v1';
@@ -108,6 +119,7 @@ import * as tus from 'tus-js-client';
   }
 
   function resourceType(item) {
+    if (item.source === 'fresh-teacher') return item.type || 'Study resource';
     const type = item.resource_type;
     if (type === 'notes' || type === 'guide' || type === 'paper') {
       return type === 'paper' ? 'Practice paper' : type === 'guide' ? 'Marking guide' : 'Study notes';
@@ -119,6 +131,7 @@ import * as tus from 'tus-js-client';
   }
 
   function resourcePublicUrl(item) {
+    if (typeof item.url === 'string' && item.url) return item.url;
     const sourceUrl = new URL(requestedFile);
     const storagePath = String(item.storage_path || '').split('/').map(encodeURIComponent).join('/');
     const bucket = encodeURIComponent(item.storage_bucket || 'study-hub-resources');
@@ -131,6 +144,10 @@ import * as tus from 'tus-js-client';
     link.searchParams.set('file', resourcePublicUrl(item));
     link.searchParams.set('title', resourceTitle(item));
     link.searchParams.set('subject', subject);
+    if (item.source === 'fresh-teacher') {
+      link.searchParams.set('source', 'fresh-teacher');
+      if (item.classKey) link.searchParams.set('class_key', item.classKey);
+    }
     const returnUrl = params.get('return');
     if (returnUrl) link.searchParams.set('return', returnUrl);
     for (const key of ['anon_key']) {
@@ -171,22 +188,12 @@ import * as tus from 'tus-js-client';
     : null;
 
   function renderRelatedDocuments(items, subject) {
-    const currentPath = (() => {
-      try {
-        return decodeURIComponent(new URL(requestedFile).pathname.split('/').pop() || '').toLowerCase();
-      } catch {
-        return '';
-      }
-    })();
     const related = items.filter((item) => {
-      const path = String(item.storage_path || '').split('/').pop() || '';
-      let normalizedPath = path;
       try {
-        normalizedPath = decodeURIComponent(path);
+        return new URL(resourcePublicUrl(item)).href !== new URL(requestedFile).href;
       } catch {
-        normalizedPath = path;
+        return false;
       }
-      return item.storage_path && normalizedPath.toLowerCase() !== currentPath;
     });
 
     if (!related.length) {
@@ -207,7 +214,7 @@ import * as tus from 'tus-js-client';
       const preview = document.createElement('span');
       preview.className = 'related-preview';
       preview.setAttribute('aria-hidden', 'true');
-      const extension = String(item.extension || '').toUpperCase();
+      const extension = String(item.extension || new URL(resourcePublicUrl(item)).pathname.split('.').pop() || '').toUpperCase();
       preview.append(Object.assign(document.createElement('span'), {
         className: 'related-preview-placeholder',
         textContent: extension || 'FILE'
@@ -230,7 +237,7 @@ import * as tus from 'tus-js-client';
         className: 'related-name',
         textContent: resourceTitle(item)
       }));
-      const meta = [item.level, item.year].filter(Boolean).join(' · ');
+      const meta = [item.className || item.level, item.year].filter(Boolean).join(' · ');
       if (meta) {
         copy.append(Object.assign(document.createElement('span'), {
           className: 'related-meta',
@@ -244,8 +251,11 @@ import * as tus from 'tus-js-client';
   }
 
   async function loadRelatedDocuments() {
-    const subject = currentSubject();
-    const subjectName = subjectNames[subject];
+    const sourceUrl = requestedFile ? new URL(requestedFile) : null;
+    const isFreshTeacher = params.get('source') === 'fresh-teacher' ||
+      Boolean(sourceUrl && freshTeacherOrigins.has(sourceUrl.origin));
+    const subject = (params.get('subject') || currentSubject()).trim().toLowerCase();
+    const subjectName = subjectNames[subject] || subject.replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
     relatedRetry.hidden = true;
     relatedSubjectLabel.textContent = subjectName || '';
     if (!subject || !requestedFile) {
@@ -253,6 +263,47 @@ import * as tus from 'tus-js-client';
         className: 'related-status',
         textContent: 'Related documents appear here when you open a resource from a subject library.'
       }));
+      return;
+    }
+
+    if (isFreshTeacher) {
+      relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+        className: 'related-status',
+        textContent: `Loading ${subjectName} documents…`
+      }));
+      try {
+        const catalogUrl = new URL('../fresh-teacher-catalog.json', window.location.href);
+        const response = await fetch(catalogUrl);
+        if (!response.ok) throw new Error(`Fresh Teacher catalog request failed (HTTP ${response.status}).`);
+        const catalog = await response.json();
+        if (!Array.isArray(catalog?.items)) throw new Error('Fresh Teacher catalog returned an invalid list.');
+        const classKey = params.get('class_key') || '';
+        const items = catalog.items
+          .filter((item) => {
+            if (typeof item?.url !== 'string' || typeof item?.subject !== 'string') return false;
+            if (item.subject.trim().toLowerCase() !== subject) return false;
+            if (classKey && item.classKey !== classKey) return false;
+            try {
+              const url = new URL(item.url);
+              const extension = url.pathname.split('.').pop().toLowerCase();
+              return url.protocol === 'https:' &&
+                freshTeacherOrigins.has(url.origin) &&
+                ['pdf', 'doc', 'docx', 'rtf'].includes(extension);
+            } catch {
+              return false;
+            }
+          })
+          .slice(0, 30)
+          .map((item) => ({ ...item, source: 'fresh-teacher' }));
+        renderRelatedDocuments(items, subject);
+      } catch (error) {
+        console.error('Unable to load related Fresh Teacher documents:', error);
+        relatedList.replaceChildren(Object.assign(document.createElement('p'), {
+          className: 'related-status',
+          textContent: 'Related documents could not be loaded right now.'
+        }));
+        relatedRetry.hidden = false;
+      }
       return;
     }
 
@@ -318,6 +369,100 @@ import * as tus from 'tus-js-client';
   }
 
   const readerState = loadReaderState();
+  const savedProgress = readerState.progress && typeof readerState.progress === 'object'
+    ? readerState.progress
+    : null;
+  readerProgressPending = Boolean(savedProgress);
+
+  function hideReaderResume() {
+    if (readerResumeBanner) readerResumeBanner.hidden = true;
+  }
+
+  function showReaderResume(kind, maximum = Infinity) {
+    if (!savedProgress || !readerResumeBanner || !readerResumeMessage) {
+      readerProgressPending = false;
+      hideReaderResume();
+      return;
+    }
+
+    if (savedProgress.kind !== kind || !Number.isFinite(Number(savedProgress.value))) {
+      readerProgressPending = false;
+      hideReaderResume();
+      return;
+    }
+
+    const value = Math.min(maximum, Math.max(kind === 'page' ? 1 : 0, Number(savedProgress.value)));
+    const canResume = kind === 'page'
+      ? value > 1 && Number.isFinite(maximum)
+      : value > 0.02 && value < 0.98;
+    if (!canResume) {
+      readerProgressPending = false;
+      hideReaderResume();
+      return;
+    }
+
+    readerProgressPending = true;
+    readerResumeMessage.textContent = kind === 'page'
+      ? `Continue reading on page ${value} of ${maximum}?`
+      : `Continue reading from ${Math.round(value * 100)}% through this document?`;
+    readerResumeBanner.hidden = false;
+  }
+
+  function saveReaderProgress() {
+    if (readerProgressPending) return;
+    const position = currentPosition();
+    if (position.kind === 'page' && position.value <= 1) {
+      delete readerState.progress;
+      saveReaderState(readerState);
+      return;
+    }
+    if (position.kind === 'page' && pdfDocument && position.value >= pdfDocument.numPages) {
+      delete readerState.progress;
+      saveReaderState(readerState);
+      return;
+    }
+    if (position.kind === 'scroll' && (position.value <= 0.02 || position.value >= 0.98)) {
+      delete readerState.progress;
+      saveReaderState(readerState);
+      return;
+    }
+    readerState.progress = { kind: position.kind, value: position.value, savedAt: Date.now() };
+    saveReaderState(readerState);
+  }
+
+  function scheduleReaderProgressSave() {
+    window.clearTimeout(readerProgressTimer);
+    readerProgressTimer = window.setTimeout(saveReaderProgress, 300);
+  }
+
+  readerResumeButton?.addEventListener('click', () => {
+    if (!savedProgress) return;
+    readerProgressPending = false;
+    hideReaderResume();
+    if (savedProgress.kind === 'page' && pdfDocument) {
+      scrollToPage(savedProgress.value);
+    } else if (savedProgress.kind === 'scroll') {
+      const scrollHeight = Math.max(0, documentReader.scrollHeight - documentReader.clientHeight);
+      documentReader.scrollTo({
+        top: Math.min(scrollHeight, Math.max(0, savedProgress.value * scrollHeight)),
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      });
+      saveReaderProgress();
+    }
+  });
+
+  readerResumeDismiss?.addEventListener('click', () => {
+    readerProgressPending = false;
+    delete readerState.progress;
+    saveReaderState(readerState);
+    hideReaderResume();
+  });
+
+  documentReader.addEventListener('scroll', scheduleReaderProgressSave, { passive: true });
+  window.addEventListener('pagehide', () => {
+    window.clearTimeout(readerProgressTimer);
+    saveReaderProgress();
+  });
 
   function currentPosition() {
     if (pdfDocument) return { kind: 'page', value: activePage, label: `Page ${activePage}` };
@@ -473,8 +618,11 @@ import * as tus from 'tus-js-client';
   function scrollToPage(pageNumber) {
     if (!pdfDocument) return;
     const page = Math.min(Math.max(Number(pageNumber) || 1, 1), pdfDocument.numPages);
+    readerProgressPending = false;
+    hideReaderResume();
     activePage = page;
     updatePageControls();
+    saveReaderProgress();
     pageElements.get(page)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     void renderPage(page);
   }
@@ -682,6 +830,7 @@ import * as tus from 'tus-js-client';
             if (pageNumber !== activePage) {
               activePage = pageNumber;
               updatePageControls();
+              saveReaderProgress();
             }
             break;
           }
@@ -722,6 +871,7 @@ import * as tus from 'tus-js-client';
     applyReadingColor(readerState.color || 'original');
     renderBookmarks();
     void renderPage(1);
+    showReaderResume('page', pdfDocument.numPages);
   }
 
   async function findInPdf() {
@@ -1318,13 +1468,14 @@ import * as tus from 'tus-js-client';
 
       const storageOrigin = new URL(storagePrefix).origin;
       const isPublicResource = fileUrl.href.startsWith(storagePrefix);
+      const isFreshTeacherResource = fileUrl.protocol === 'https:' && freshTeacherOrigins.has(fileUrl.origin);
       const isPrivateReviewResource = reviewMode &&
         fileUrl.protocol === 'https:' &&
         fileUrl.origin === storageOrigin &&
         /^\/storage\/v1\/object\/sign\/study-hub-contributions\/contribution\//i.test(fileUrl.pathname) &&
         Boolean(fileUrl.searchParams.get('token'));
-      if (!isPublicResource && !isPrivateReviewResource) {
-        showError('This resource is not hosted in the public Study Hub library. Return to the library and try again.');
+      if (!isPublicResource && !isFreshTeacherResource && !isPrivateReviewResource) {
+        showError('This resource is not hosted in a supported Study Hub library. Return to the library and try again.');
         return;
       }
     }
@@ -1347,6 +1498,7 @@ import * as tus from 'tus-js-client';
       void initializeUploads();
     }
     const extension = fileUrl.pathname.split('.').pop().toLowerCase();
+    if (!['pdf', 'docx', 'rtf'].includes(extension)) readerProgressPending = false;
     bookmarkButton.hidden = !['pdf', 'docx', 'rtf'].includes(extension);
     try {
       if (extension === 'pdf') {
@@ -1371,6 +1523,7 @@ import * as tus from 'tus-js-client';
         await buildContents();
         applyReadingColor(readerState.color || 'original');
         renderBookmarks();
+        showReaderResume('scroll');
       } else if (extension === 'doc') {
         documentFrame.title = `${title} reader`;
         documentFrame.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl.href)}`;

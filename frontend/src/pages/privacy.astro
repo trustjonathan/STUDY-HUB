@@ -1,58 +1,64 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+
 ---
 
 <SiteLayout
   title="Privacy Policy | Study Hub"
-  description="Learn what Study Hub collects, how learning tools and contributions are handled, and what third-party services may receive."
+  description="Learn how Study Hub handles information when you browse resources, use study tools, send suggestions, or contribute learning materials."
 >
   <main class="legal-page">
     <header class="legal-page-heading">
       <p class="eyebrow">Privacy and data use</p>
       <h1>Privacy Policy</h1>
-      <p>This policy explains how Study Hub handles information when you browse learning resources, use the document reader, send a suggestion, or offer a resource.</p>
-      <p class="policy-updated">Last updated <time datetime="2026-10-10">October 10, 2026</time></p>
+      <p>This policy describes the information handled by Study Hub’s public learning library, reader, AI study tools, suggestions board, and resource contributions.</p>
+      <p class="policy-updated">Last updated <time datetime="2026-10-14">October 14, 2026</time></p>
     </header>
 
     <article class="legal-copy">
       <section>
-        <h2>About this policy</h2>
-        <p>Study Hub is an educational resource website for learners, with a focus on Ugandan secondary-school study. Its currently active public libraries cover Biology, Chemistry, Mathematics, and Physics; additional subject pages are under development. You can browse public pages and resources without creating a Study Hub account. This policy describes the current website; it will be revised if the services or providers change.</p>
+        <h2>1. About Study Hub</h2>
+        <p>Study Hub is a public educational resource service. You can browse the library without creating an account. Its catalogue includes learning materials across subjects and levels, with dedicated subject pages currently available for Biology, Chemistry, Mathematics, and Physics. This policy describes the site’s current features and may change as the service develops.</p>
       </section>
 
       <section>
-        <h2>Information you choose to provide</h2>
-        <p>The suggestions page does not ask for your name or email address. Suggestions are reviewed before they may appear publicly, so do not include private, identifying, or sensitive information in a suggestion.</p>
-        <p>If you offer a study resource, the site receives the file and the details you provide for review. Submissions are held for moderation and are not published automatically. Only submit material you are permitted to share. The review team may retain, decline, or remove a submission as needed to manage the library.</p>
-        <p>For questions or removal requests, email <a href="mailto:trusteth777@gmail.com">Study Hub</a>. Include enough information to identify the relevant page or submission, but do not send passwords or other sensitive information.</p>
+        <h2>2. Information you provide</h2>
+        <p>If you create a Study Hub account, the account service receives your name, email address, and password, and stores your selected class, subjects, and onboarding status in the account profile. Passwords are stored as password hashes, not readable passwords. The sign-in token is kept in the current browser tab’s session storage. You do not need an account to browse public learning resources.</p>
+        <p>The suggestions board asks for suggestion text and does not request your name or email address. Suggestions are reviewed before they may appear publicly. Do not include personal, confidential, or sensitive information in a suggestion.</p>
+        <p>If you submit a learning resource, Study Hub receives the file and the details entered with it so the material can be reviewed and managed. Submissions are not published automatically. Files accepted for the public library may be made accessible to other visitors. Submit only material you are entitled to share.</p>
+        <p>If you contact Study Hub by email, we receive the email address and the information in your message so we can respond and handle your request.</p>
       </section>
 
       <section>
-        <h2>Document reader and AI study companion</h2>
-        <p>The reader can keep bookmarks, reading preferences, and limited information needed to resume a contribution in your browser. These features use browser storage on the device you are using; clearing the site’s browser data may remove them.</p>
-        <p>If you use the AI study companion, the current PDF page image, your question, and recent conversation context are sent to Study Hub’s AI service and an external generative AI provider to produce an answer. The reader keeps the conversation in the open page and does not require an account. Avoid sending personal, confidential, or sensitive information. AI responses may be inaccurate and should be checked against trusted learning materials.</p>
+        <h2>3. Reader and browser storage</h2>
+        <p>The site stores some reader preferences, bookmarks, and browsing progress in your browser so you can continue using the reader or return to a previous position. This information is kept on the browser and device where it was saved; clearing that browser’s site data may remove it.</p>
       </section>
 
       <section>
-        <h2>Technical information and service providers</h2>
-        <p>When your browser connects to a website or service, technical information such as your IP address, device, browser, and request details may be processed by the relevant provider. Study Hub uses GitHub Pages to serve the website, Supabase for the resource catalog and contribution services, and Google Gemini to generate AI study responses. Uploads currently do not use a CAPTCHA service; contribution requests are subject to origin checks and server-side rate limits. The PDF page and question are sent to the AI service only when you submit a request. Each provider processes information under its own terms and privacy notice.</p>
-        <p>Study Hub’s standard page layouts request fonts from Google Fonts. Some learning pages also embed or link to YouTube. When your browser loads these services, the relevant provider may receive connection information and may use its own cookies or similar technologies. You can choose not to open external videos or use the AI tool.</p>
+        <h2>4. AI study tools</h2>
+        <p>When you submit a question to the AI study companion, the visible PDF page image, your question, and recent conversation context are sent to Study Hub’s AI service and then to Google Gemini to generate a response. In AI Study, your selected class and subjects may also be sent with a request to tailor explanations; your account email and password are not sent to Gemini. This information is sent when you use an AI feature, not merely by opening the reader. Do not submit personal, confidential, or sensitive information. AI responses may be incomplete or incorrect and should be checked against trusted learning materials.</p>
       </section>
 
       <section>
-        <h2>Cookies, advertising, and analytics</h2>
-        <p>Study Hub does not currently use Google AdSense. When advertising is introduced, this policy and any required notices or consent controls will be updated before ads are enabled. Third-party services embedded or used by the site may use cookies or similar technologies under their own policies.</p>
-        <p>The current site does not require an advertising profile or sign-in to browse its public learning materials. Browser storage used by reader features is described above.</p>
+        <h2>5. Service providers and external content</h2>
+        <p>Study Hub uses GitHub Pages to host the website and Supabase for its resource catalogue, submitted resources, and suggestions board. The AI study companion uses Study Hub’s backend service and Google Gemini. These providers may process technical information such as an IP address, device and browser details, and request information when your browser connects to their services. Each provider handles information under its own terms and privacy notices.</p>
+        <p>The site loads fonts from Google Fonts and includes learning pages with YouTube embeds or links. Google AdSense code is also present on some subject pages. Loading these services may send connection and page information to the relevant provider; Google’s advertising services may use cookies or similar identifiers as described in Google’s notices and settings. Advertising behaviour may vary with page and account settings.</p>
       </section>
 
       <section>
-        <h2>How long information is kept</h2>
-        <p>Suggestions and resource submissions are kept as needed to review and operate the library. Technical records may be retained by the hosting or service providers for their operational and security purposes. Retention periods can vary by service and record type; contact Study Hub with a specific question or request.</p>
+        <h2>6. Retention and requests</h2>
+        <p>Study Hub keeps suggestions, submitted resources, and related details while they are needed to review and operate the library, respond to requests, and address rights or safety concerns. Hosting and service providers may also retain operational logs or backups under their own schedules. Study Hub does not publish a fixed retention period for every provider record.</p>
+        <p>For a question or request about information you provided, email <a href="mailto:trusteth777@gmail.com">trusteth777@gmail.com</a>. Identify the relevant page, suggestion, or resource where possible, and avoid including passwords or other sensitive details.</p>
       </section>
 
       <section>
-        <h2>Changes and contact</h2>
-        <p>We may update this policy when the site’s features or service providers change. The date above indicates the latest revision. For privacy questions or requests, contact <a href="mailto:trusteth777@gmail.com">trusteth777@gmail.com</a>.</p>
+        <h2>7. Learners and children</h2>
+        <p>Study Hub is intended for learners, including school-age students. Do not enter a learner’s personal, confidential, or sensitive information into suggestions, contribution details, or AI prompts. A parent, guardian, or learner may contact Study Hub with a privacy question or request.</p>
+      </section>
+
+      <section>
+        <h2>8. Changes to this policy</h2>
+        <p>Study Hub may update this policy when features, service providers, or advertising arrangements change. The date above identifies the latest revision. Please review this page periodically.</p>
       </section>
     </article>
   </main>

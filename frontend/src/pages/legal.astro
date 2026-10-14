@@ -1,0 +1,33 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+
+const home = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<SiteLayout
+  title="Legal | Study Hub"
+  description="Find Study Hub's privacy policy, terms of use, and copyright information."
+>
+  <main class="legal-page">
+    <header class="legal-page-heading">
+      <p class="eyebrow">Study Hub policies</p>
+      <h1>Legal</h1>
+      <p>Read the policies that explain how Study Hub handles information, how the service may be used, and how to raise a copyright concern.</p>
+    </header>
+
+    <article class="legal-copy">
+      <section>
+        <h2><a href={`${home}/privacy.html`}>Privacy policy</a></h2>
+        <p>Learn what information is handled when you use the library, forms, and study tools, and how it is used.</p>
+      </section>
+      <section>
+        <h2><a href={`${home}/terms.html`}>Terms of use</a></h2>
+        <p>Review the terms for accessing Study Hub and using its resources, readers, and learning features.</p>
+      </section>
+      <section>
+        <h2><a href={`${home}/copyright.html`}>Copyright information</a></h2>
+        <p>Find out how to report a resource that may infringe your rights and what details to include.</p>
+      </section>
+    </article>
+  </main>
+</SiteLayout>

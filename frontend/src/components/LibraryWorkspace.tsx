@@ -1,0 +1,812 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { libraryClassGroups, libraryClasses } from '../data/libraryClasses';
+import { availableSubjects } from '../data/availableSubjects';
+import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
+
+interface Props {
+  homeHref: string;
+  supabaseUrl: string;
+  anonKey: string;
+}
+
+type Source = 'study-hub' | 'fresh-teacher';
+type LibraryIconName = 'menu' | 'panel-left' | 'panel-left-open' | 'panel-right' | 'panel-right-open' | 'home' | 'bookshelf' | 'classes' | 'assistant' | 'close' | 'document' | 'shield' | 'scale';
+
+interface Resource {
+  id: string;
+  subject: string;
+  type: string;
+  source: Source;
+  title: string;
+  url: string;
+  keys: string[];
+}
+
+function LibraryIcon({ name }: { name: LibraryIconName }) {
+  const shared = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true as const,
+  };
+
+  switch (name) {
+    case 'menu':
+      return <svg {...shared}><path d="M4 6h16M4 12h16M4 18h16" /></svg>;
+    case 'panel-left':
+      return <svg {...shared}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M15 9l-3 3 3 3" /></svg>;
+    case 'panel-left-open':
+      return <svg {...shared}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16m8-10 3 2-3 2" /></svg>;
+    case 'panel-right':
+      return <svg {...shared}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M15 4v16m-6-11 3 3-3 3" /></svg>;
+    case 'panel-right-open':
+      return <svg {...shared}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M15 4v16M7 10l-3 2 3 2" /></svg>;
+    case 'home':
+      return <svg {...shared}><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>;
+    case 'bookshelf':
+      return <svg {...shared}><path d="M4 4h4v16H4zM10 6h4v14h-4zM16 3h4v17h-4zM3 21h18" /><path d="M5 7h2m5 2h2m5-3h2" /></svg>;
+    case 'classes':
+      return <svg {...shared}><rect x="3" y="4" width="8" height="7" rx="1.5" /><rect x="13" y="4" width="8" height="7" rx="1.5" /><rect x="3" y="13" width="8" height="7" rx="1.5" /><rect x="13" y="13" width="8" height="7" rx="1.5" /></svg>;
+    case 'assistant':
+      return <svg {...shared}><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1" /><circle cx="12" cy="12" r="5" /></svg>;
+    case 'close':
+      return <svg {...shared}><path d="m6 6 12 12M18 6 6 18" /></svg>;
+    case 'document':
+      return <svg {...shared}><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v5h5M9 13h6M9 17h6" /></svg>;
+    case 'shield':
+      return <svg {...shared}><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11zM9 12l2 2 4-4" /></svg>;
+    case 'scale':
+      return <svg {...shared}><path d="M12 3v18M5 6h14M5 6l-3 7h6zM19 6l-3 7h6zM8 21h8" /></svg>;
+  }
+}
+
+// Supabase stores `level` as S.3–S.6 / A-Level / O-Level; map onto shelf keys.
+const SUPA_LEVEL_KEYS: Record<string, string[]> = {
+  'S.3': ['s3'], 'S.4': ['s4'], 'S.5': ['s5'], 'S.6': ['s6'],
+  'A-Level': ['s5', 's6'], 'O-Level': ['s1', 's2', 's3', 's4'],
+};
+
+function titleCase(value: string): string {
+  const s = value.trim().replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+// Normalise Supabase category/resource_type into the shared type vocabulary.
+function supaType(category: string, resourceType: string): string {
+  if (category === 'papers') return 'Past Papers';
+  if (resourceType === 'guide') return 'Guides';
+  return 'Lesson Notes';
+}
+
+interface CatalogLoad {
+  resources: Resource[];
+  totalCount: number;
+}
+
+async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
+  const res = await fetch(catalogUrl);
+  if (!res.ok) throw new Error(`Additional subject catalog request failed (HTTP ${res.status}).`);
+  const data = await res.json();
+  const items: Array<{ classKey?: string; subject?: string; type?: string; title?: string; url?: string }>
+    = Array.isArray(data?.items) ? data.items : [];
+  const resources = items
+    .filter((i) => typeof i.url === 'string' && i.url)
+    .map((i, idx) => {
+      const subject = titleCase(i.subject || 'General');
+      return {
+        id: `ft-${idx}`,
+        subject: subject === 'All Subjects' ? 'General' : subject,
+        type: i.type || 'Resources',
+        source: 'fresh-teacher' as Source,
+        title: (i.title || i.url || 'Untitled').trim(),
+        url: i.url as string,
+        keys: i.classKey ? [i.classKey] : [],
+      };
+    });
+  return { resources, totalCount: resources.length };
+}
+
+async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> {
+  const endpoint = new URL('/rest/v1/study_hub_resources', url);
+  endpoint.searchParams.set('select', 'subject,category,storage_bucket,storage_path,original_filename,title,size_bytes,level,year,resource_type');
+  endpoint.searchParams.set('order', 'uploaded_at.desc,title.asc');
+  endpoint.searchParams.set('limit', '1000');
+  const headers: Record<string, string> = { apikey: anonKey, Prefer: 'count=exact' };
+  if (anonKey.startsWith('eyJ')) headers.Authorization = `Bearer ${anonKey}`;
+
+  const res = await fetch(endpoint, { headers });
+  if (!res.ok) throw new Error(`Study Hub catalog request failed (HTTP ${res.status}).`);
+  const totalCount = res.headers.get('content-range')?.match(/\/(\d+)$/)?.[1];
+  if (totalCount === undefined) throw new Error('Study Hub catalog did not provide an exact resource count.');
+  const rows: unknown = await res.json();
+  if (!Array.isArray(rows)) throw new Error('Study Hub catalog returned an invalid list.');
+  const resources = (rows as Array<Record<string, unknown>>).map((row, idx) => {
+    const bucket = String(row.storage_bucket || 'study-hub-resources');
+    const storagePath = String(row.storage_path || '');
+    const publicUrl = storagePath ? `${url}/storage/v1/object/public/${bucket}/${storagePath}` : '';
+    const level = typeof row.level === 'string' ? row.level : '';
+    return {
+      id: `sh-${idx}`,
+      subject: titleCase(String(row.subject || 'General')),
+      type: supaType(String(row.category || ''), String(row.resource_type || '')),
+      source: 'study-hub' as Source,
+      title: String(row.title || row.original_filename || 'Untitled'),
+      url: publicUrl,
+      keys: SUPA_LEVEL_KEYS[level] || [],
+    };
+  }).filter((r) => r.url);
+  return { resources, totalCount: Number(totalCount) };
+}
+
+export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Props) {
+  const [selected, setSelected] = useState<{ label: string; keys: string[] } | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const [filtersCollapsed, setFiltersCollapsed] = useState(false);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [totalResourceCount, setTotalResourceCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [profileToken, setProfileToken] = useState('');
+  const [profileClass, setProfileClass] = useState('');
+  const [preferredSubjects, setPreferredSubjects] = useState<string[]>([]);
+  const [showAllSubjects, setShowAllSubjects] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [preferencesError, setPreferencesError] = useState('');
+
+  const base = homeHref.endsWith('/') ? homeHref : `${homeHref}/`;
+  const catalogUrl = `${base}fresh-teacher-catalog.json`;
+  const readerBase = `${base}full_page_flipbook_viewer/index.html`;
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      setLoading(true);
+      setError('');
+      const tasks: Promise<CatalogLoad>[] = [loadFreshTeacher(catalogUrl)];
+      if (supabaseUrl && anonKey) tasks.push(loadSupabase(supabaseUrl, anonKey));
+      const results = await Promise.allSettled(tasks);
+      if (!active) return;
+      const merged: Resource[] = [];
+      let totalCount = 0;
+      let failed = 0;
+      for (const r of results) {
+        if (r.status === 'fulfilled') {
+          merged.push(...r.value.resources);
+          totalCount += r.value.totalCount;
+        }
+        else failed += 1;
+      }
+      setResources(merged);
+      setTotalResourceCount(totalCount);
+      setLoading(false);
+      if (!merged.length) setError('No resources could be loaded. Please try again shortly.');
+      else if (failed > 0) setError('Some resource catalogs could not be loaded; showing what is available.');
+    }
+    void load();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalogUrl, supabaseUrl, anonKey]);
+
+  useEffect(() => {
+    const header = document.querySelector('.site-header');
+    const updateDashboardHeight = () => {
+      const headerHeight = header?.getBoundingClientRect().height ?? 76;
+      const root = document.documentElement;
+      root.style.setProperty('--lib-header-height', `${headerHeight}px`);
+      if (selected) {
+        root.style.setProperty('--lib-dashboard-height', `${Math.max(0, window.innerHeight - headerHeight)}px`);
+      }
+    };
+
+    updateDashboardHeight();
+    window.addEventListener('resize', updateDashboardHeight);
+    const headerObserver = header ? new ResizeObserver(updateDashboardHeight) : null;
+    if (header) headerObserver?.observe(header);
+
+    return () => {
+      window.removeEventListener('resize', updateDashboardHeight);
+      headerObserver?.disconnect();
+      document.documentElement.style.removeProperty('--lib-header-height');
+      document.documentElement.style.removeProperty('--lib-dashboard-height');
+    };
+  }, [selected]);
+
+  // Restore class + filters from the URL so refreshes and the reader's Back
+  // button (which passes this page as ?return=…) land on the same view.
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('study-hub-auth');
+      if (stored) {
+        const session = JSON.parse(stored) as { token?: unknown; user?: { classLevel?: unknown; subjects?: unknown; onboardingComplete?: unknown } };
+        if (typeof session.token === 'string' && session.user) {
+          setProfileToken(session.token);
+          const classLevel = typeof session.user.classLevel === 'string' ? session.user.classLevel : '';
+          const subjects = Array.isArray(session.user.subjects)
+            ? session.user.subjects.filter((subject): subject is string => typeof subject === 'string' && availableSubjects.some((available) => available.name === subject))
+            : [];
+          setProfileClass(classLevel);
+          setPreferredSubjects(subjects);
+
+          const params = new URLSearchParams(window.location.search);
+          const requestedClass = params.get('class');
+          const selectedClass = libraryClasses.find((item) => item.label === (requestedClass || classLevel));
+          if (selectedClass) setSelected(selectedClass);
+          if (params.get('welcome') === '1' && session.user.onboardingComplete !== true) setPreferencesOpen(true);
+        }
+      }
+    } catch {
+      setPreferencesError('Your saved account profile could not be read. Sign in again to personalise your library.');
+    }
+
+    const q = new URLSearchParams(window.location.search);
+    const cls = q.get('class');
+    if (cls) {
+      const found = libraryClasses.find((i) => i.label === cls);
+      if (found) setSelected({ label: found.label, keys: found.keys });
+    }
+    const subject = q.get('subject');
+    if (subject) setSubjectFilter(subject);
+    const typ = q.get('type');
+    if (typ) setTypeFilter(typ);
+    const query = q.get('q');
+    if (query) setSearch(query);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function saveLearningPreferences(preferences: LearningPreferences) {
+    if (!profileToken) throw new Error('Sign in again to save your learning profile.');
+    const configured = import.meta.env.PUBLIC_STUDY_HUB_API_URL?.trim();
+    if (!configured) throw new Error('The account service is not connected. Please try again later.');
+
+    const response = await fetch(`${configured.replace(/\/+$/, '')}/api/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      Authorization: `Bearer ${profileToken}`,
+    },
+      body: JSON.stringify({
+        classLevel: preferences.classLevel,
+        subjects: preferences.subjects,
+        onboardingComplete: true,
+      }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.user || typeof result.user.email !== 'string') {
+      throw new Error(result.message || result.error || 'Could not save your learning profile. Please try again.');
+    }
+
+    const stored = sessionStorage.getItem('study-hub-auth');
+    if (!stored) throw new Error('Your sign-in session ended. Sign in again to save preferences.');
+    const session = JSON.parse(stored) as { token?: unknown };
+    if (typeof session.token !== 'string') throw new Error('Your sign-in session ended. Sign in again to save preferences.');
+    sessionStorage.setItem('study-hub-auth', JSON.stringify({ token: session.token, user: result.user }));
+    setProfileClass(preferences.classLevel);
+    setPreferredSubjects(preferences.subjects);
+    setShowAllSubjects(false);
+    setPreferencesError('');
+    const selectedClass = libraryClasses.find((item) => item.label === preferences.classLevel);
+    if (selectedClass) setSelected(selectedClass);
+    setSubjectFilter('all');
+    setTypeFilter('all');
+    setSearch('');
+    setPreferencesOpen(false);
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete('welcome');
+    currentUrl.searchParams.set('class', preferences.classLevel);
+    window.history.replaceState({}, '', currentUrl);
+  }
+
+  async function skipLearningSetup() {
+    await saveLearningPreferences({ classLevel: '', subjects: [] });
+  }
+
+  // The library URL that encodes the current view, handed to the reader as ?return=.
+  function libraryStateUrl(): string {
+    const url = new URL(`${base}library.html`, window.location.origin);
+    if (selected) {
+      url.searchParams.set('class', selected.label);
+      if (subjectFilter !== 'all') url.searchParams.set('subject', subjectFilter);
+      if (typeFilter !== 'all') url.searchParams.set('type', typeFilter);
+      if (search.trim()) url.searchParams.set('q', search.trim());
+    }
+    return url.href;
+  }
+
+  // Build a flipbook-reader URL for a resource row.
+  function readerHref(row: Resource): string {
+    const url = new URL(readerBase, window.location.origin);
+    url.searchParams.set('file', row.url);
+    url.searchParams.set('title', row.title);
+    url.searchParams.set('subject', row.subject.toLowerCase());
+    if (row.source === 'fresh-teacher') {
+      url.searchParams.set('source', 'fresh-teacher');
+      if (row.keys[0]) url.searchParams.set('class_key', row.keys[0]);
+    }
+    url.searchParams.set('return', libraryStateUrl());
+    return url.href;
+  }
+
+  const path = selected ? ['Home', 'Library', selected.label] : ['Home', 'Library'];
+
+
+  function onNavigate(index: number) {
+    if (index === 0) { window.location.href = homeHref; return; }
+    if (index === 1) { setSelected(null); return; }
+  }
+
+  return (
+    <div className={`library ${selected ? 'is-dashboard' : ''}`}>
+      {preferencesOpen && profileToken && (
+        <div className="lib-preferences-backdrop" role="presentation">
+          <section className="lib-preferences-dialog" role="dialog" aria-modal="true" aria-labelledby="lib-preferences-heading">
+            <p className="lib-preferences-kicker">Make your library yours</p>
+            <h1 id="lib-preferences-heading">Set your learning profile.</h1>
+            <p>Choose your current class and subjects. We’ll use them to focus the Library and tailor AI Study. You can update these choices later from your account.</p>
+            {preferencesError && <p className="lib-preferences-error" role="alert">{preferencesError}</p>}
+            <LearningPreferencesForm
+              initialClassLevel={profileClass}
+              initialSubjects={preferredSubjects}
+              submitLabel="Save and open my library"
+              onSave={saveLearningPreferences}
+              onSkip={skipLearningSetup}
+            />
+          </section>
+        </div>
+      )}
+      <nav className="lib-crumbs" aria-label="Library breadcrumb">
+        {path.map((item, idx) => {
+          const isLast = idx === path.length - 1;
+          return (
+            <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              {idx > 0 && <span className="lib-crumb-sep" aria-hidden="true">/</span>}
+              <button
+                type="button"
+                className={`lib-crumb ${isLast ? 'is-active' : ''}`}
+                onClick={() => onNavigate(idx)}
+                aria-current={isLast ? 'page' : undefined}
+              >
+                {item}
+              </button>
+            </span>
+          );
+        })}
+      </nav>
+
+      {selected ? (
+        <ClassDashboard
+          selected={selected}
+          resources={resources}
+          loading={loading}
+          error={error}
+          subjectFilter={subjectFilter}
+          typeFilter={typeFilter}
+          search={search}
+          preferredSubjects={preferredSubjects}
+          showAllSubjects={showAllSubjects}
+          navigationCollapsed={navigationCollapsed}
+          filtersCollapsed={filtersCollapsed}
+          onSubjectFilter={(value) => { setSubjectFilter(value); setShowAllSubjects(true); }}
+          onShowAllSubjects={() => { setSubjectFilter('all'); setShowAllSubjects((current) => !current); }}
+          onTypeFilter={setTypeFilter}
+          onSearch={setSearch}
+          onToggleNavigation={() => setNavigationCollapsed((c) => !c)}
+          onToggleFilters={() => setFiltersCollapsed((c) => !c)}
+          onSelectClass={setSelected}
+          readerHref={readerHref}
+          base={base}
+          homeHref={homeHref}
+          onBackToShelf={() => setSelected(null)}
+        />
+      ) : (
+        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} onSelect={setSelected} base={base} />
+      )}
+    </div>
+  );
+}
+
+
+function ClassShelf({ resources, totalResourceCount, loading, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; onSelect: (sel: { label: string; keys: string[] }) => void; base: string }) {
+  const countFor = (keys: string[]) => resources.filter((r) => keys.some((k) => r.keys.includes(k))).length;
+  const classCount = libraryClassGroups.reduce((total, section) => total + section.items.length, 0);
+
+  return (
+    <div className="lib-shelf">
+      <section className="lib-shelf-hero" aria-labelledby="lib-shelf-heading">
+        <div className="lib-shelf-hero-art" aria-hidden="true">
+          <img src={`${base}assets/library/class-reading-space.jpg`} alt="" />
+        </div>
+        <div className="lib-shelf-hero-content">
+          <span className="lib-shelf-eyebrow">STUDY-HUB · YOUR DIGITAL LIBRARY</span>
+          <h1 id="lib-shelf-heading">A good place to begin.</h1>
+          <p>Find clear notes, helpful guides and papers for every step of your learning journey.</p>
+          <div className="lib-shelf-stats" aria-label="Library overview">
+            <span><strong>{classCount}</strong> learning levels</span>
+            <span><strong>{totalResourceCount.toLocaleString()}</strong> site-wide resources</span>
+          </div>
+          <a className="lib-shelf-cta" href="#library-classes">
+            Explore your class <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+      </section>
+      <div id="library-classes" className="lib-shelf-classes">
+        <div className="lib-shelf-section-heading">
+          <div>
+            <span className="lib-shelf-section-kicker">Choose a learning level</span>
+            <h2>Your class shelf</h2>
+          </div>
+          <span className="lib-shelf-class-count">{classCount} classes</span>
+        </div>
+        {loading && <p className="lib-shelf-status">Loading resources…</p>}
+        {libraryClassGroups.map((section) => (
+          <section key={section.group} className="lib-shelf-group">
+            <h2>{section.group}</h2>
+            <div className="lib-shelf-grid">
+              {section.items.map((item) => (
+                <button key={item.label} type="button" className="lib-class-card" onClick={() => onSelect({ label: item.label, keys: item.keys })}>
+                  <span className="lib-class-name">{item.label}</span>
+                  <span className="lib-class-sub">{countFor(item.keys)} resources</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+interface DashboardProps {
+  selected: { label: string; keys: string[] };
+  resources: Resource[];
+  loading: boolean;
+  error: string;
+  subjectFilter: string;
+  typeFilter: string;
+  search: string;
+  preferredSubjects: string[];
+  showAllSubjects: boolean;
+  navigationCollapsed: boolean;
+  filtersCollapsed: boolean;
+  onSubjectFilter: (v: string) => void;
+  onShowAllSubjects: () => void;
+  onTypeFilter: (v: string) => void;
+  onSearch: (v: string) => void;
+  onToggleNavigation: () => void;
+  onToggleFilters: () => void;
+  onSelectClass: (selection: { label: string; keys: string[] }) => void;
+  readerHref: (row: Resource) => string;
+  base: string;
+  homeHref: string;
+  onBackToShelf: () => void;
+}
+
+const PAGE_SIZE = 50;
+
+function ClassDashboard(props: DashboardProps) {
+  const { selected, resources, loading, error, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, navigationCollapsed, filtersCollapsed, base } = props;
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [classesOpen, setClassesOpen] = useState(false);
+  const [classesHovered, setClassesHovered] = useState(false);
+  const [filtersHovered, setFiltersHovered] = useState(false);
+  const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const classDrawerOpen = classesOpen || classesHovered;
+
+  function cancelHoverClose() {
+    if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+  }
+
+  function scheduleHoverClose(close: () => void) {
+    cancelHoverClose();
+    hoverCloseTimer.current = setTimeout(close, 400);
+  }
+
+  useEffect(() => {
+    if (!classDrawerOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setClassesOpen(false);
+        setClassesHovered(false);
+        setFiltersHovered(false);
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [classDrawerOpen]);
+
+  useEffect(() => () => cancelHoverClose(), []);
+
+  const classResources = useMemo(
+    () => resources.filter((r) => selected.keys.some((k) => r.keys.includes(k))),
+    [resources, selected.keys]
+  );
+
+  const types = useMemo(
+    () => Array.from(new Set(classResources.map((r) => r.type))).sort(),
+    [classResources]
+  );
+
+  const subjects = useMemo(
+    () => Array.from(new Set(classResources.map((r) => r.subject))).sort((a, b) => a.localeCompare(b)),
+    [classResources]
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return classResources.filter((r) => {
+      if (!showAllSubjects && preferredSubjects.length && !preferredSubjects.includes(r.subject)) return false;
+      if (subjectFilter !== 'all' && r.subject !== subjectFilter) return false;
+      if (typeFilter !== 'all' && r.type !== typeFilter) return false;
+      if (q && !(`${r.subject} ${r.title} ${r.type}`.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [classResources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects]);
+
+  useEffect(() => { setVisible(PAGE_SIZE); }, [selected.label, subjectFilter, typeFilter, search]);
+
+  const shown = filtered.slice(0, visible);
+
+  return (
+    <div className={`lib-dash ${navigationCollapsed ? 'is-navigation-collapsed' : ''} ${filtersCollapsed && !filtersHovered ? 'is-filters-collapsed' : ''}`}>
+      <aside id="lib-quick-navigation" className="lib-rail" aria-label="Quick navigation">
+        <button
+          type="button"
+          className="lib-rail-toggle"
+          onClick={props.onToggleNavigation}
+          aria-label={navigationCollapsed ? 'Expand quick navigation' : 'Collapse quick navigation'}
+          aria-expanded={!navigationCollapsed}
+          title={navigationCollapsed ? 'Expand quick navigation' : 'Collapse quick navigation'}
+        ><LibraryIcon name="menu" /></button>
+        <a className="lib-rail-btn" href={props.homeHref} title="Home" aria-label="Home"><LibraryIcon name="home" /></a>
+        <a className="lib-rail-btn" href={`${base}assistant.html`} title="AI Study" aria-label="AI Study"><LibraryIcon name="assistant" /></a>
+        <button type="button" className="lib-rail-btn is-active" title="Class Shelf" aria-label="Back to class shelf" onClick={props.onBackToShelf}><LibraryIcon name="bookshelf" /></button>
+        <button
+          type="button"
+          className={`lib-rail-btn lib-classes-trigger ${classesOpen ? 'is-open' : ''}`}
+          title="Browse classes"
+          aria-label="Browse classes"
+          aria-expanded={classDrawerOpen}
+          aria-controls="lib-class-drawer"
+          onClick={() => {
+            setClassesOpen((open) => !open);
+            setClassesHovered(false);
+          }}
+          onPointerEnter={() => {
+            cancelHoverClose();
+            setClassesHovered(true);
+          }}
+          onPointerLeave={() => scheduleHoverClose(() => setClassesHovered(false))}
+        ><LibraryIcon name="classes" /></button>
+      </aside>
+
+      {classDrawerOpen && (
+        <>
+          {classesOpen && (
+            <button type="button" className="lib-class-drawer-backdrop" aria-label="Close class navigation" onClick={() => { setClassesOpen(false); setClassesHovered(false); }} />
+          )}
+          <aside
+            id="lib-class-drawer"
+            className="lib-class-drawer"
+            aria-label="Browse all classes"
+            onPointerEnter={() => { cancelHoverClose(); setClassesHovered(true); }}
+            onPointerLeave={() => scheduleHoverClose(() => setClassesHovered(false))}
+          >
+            <div className="lib-class-drawer-head">
+              <div>
+                <span className="lib-side-kicker">Study Hub Library</span>
+                <h2>Browse classes</h2>
+              </div>
+              <button type="button" className="lib-class-drawer-close" aria-label="Close class navigation" onClick={() => { setClassesOpen(false); setClassesHovered(false); }}>
+                <LibraryIcon name="close" />
+              </button>
+            </div>
+            <nav className="lib-class-drawer-body" aria-label="Classes by level">
+              {libraryClassGroups.map((group) => (
+                <section className="lib-class-drawer-group" key={group.group}>
+                  <h3>{group.group}</h3>
+                  {group.items.map((item) => {
+                    const count = resources.filter((resource) => item.keys.some((key) => resource.keys.includes(key))).length;
+                    const active = selected.label === item.label;
+                    return (
+                      <button
+                        type="button"
+                        key={item.label}
+                        className={`lib-class-drawer-item ${active ? 'is-active' : ''}`}
+                        aria-current={active ? 'page' : undefined}
+                        onClick={() => {
+                          props.onSelectClass({ label: item.label, keys: item.keys });
+                          setClassesOpen(false);
+                          setClassesHovered(false);
+                        }}
+                      >
+                        <span>{item.label}</span>
+                        <span className="lib-class-drawer-count">{count.toLocaleString()}</span>
+                      </button>
+                    );
+                  })}
+                </section>
+              ))}
+            </nav>
+          </aside>
+        </>
+      )}
+
+      <aside
+        id="lib-class-filters"
+        className="lib-side"
+        aria-label="Class filters"
+        onPointerEnter={() => {
+          cancelHoverClose();
+          if (filtersCollapsed) setFiltersHovered(true);
+        }}
+        onPointerLeave={() => {
+          if (filtersCollapsed) scheduleHoverClose(() => setFiltersHovered(false));
+        }}
+      >
+        <div className="lib-side-head">
+          <span className="lib-side-kicker">{selected.label} Workspace</span>
+          <h2>Academic Library</h2>
+        </div>
+        <div className="lib-side-body">
+          <div className="lib-term">
+            <div className="lib-term-label">Subjects in {selected.label}</div>
+            <button
+              type="button"
+              className={`lib-cat ${subjectFilter === 'all' ? 'is-active' : ''}`}
+              onClick={() => props.onSubjectFilter('all')}
+            >
+              All Subjects
+              <span className="lib-cat-count">{classResources.length.toLocaleString()}</span>
+            </button>
+            {subjects.map((subject) => (
+              <button
+                key={subject}
+                type="button"
+                className={`lib-cat ${subjectFilter === subject ? 'is-active' : ''}`}
+                onClick={() => props.onSubjectFilter(subject)}
+              >
+                {subject}
+                <span className="lib-cat-count">
+                  {classResources.filter((resource) => resource.subject === subject).length.toLocaleString()}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="lib-term">
+            <div className="lib-term-label">Type</div>
+            <button type="button" className={`lib-cat ${typeFilter === 'all' ? 'is-active' : ''}`} onClick={() => props.onTypeFilter('all')}>All Types</button>
+            {types.map((t) => (
+              <button key={t} type="button" className={`lib-cat ${typeFilter === t ? 'is-active' : ''}`} onClick={() => props.onTypeFilter(t)}>{t}</button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+        <div className="lib-main">
+        <div className="lib-main-crumbs">
+          <div className="lib-main-crumb-path">
+            Home / Library / <span className="is-active">{selected.label}</span>
+          </div>
+          <div className="lib-panel-actions" aria-label="Library panels">
+            <button
+              type="button"
+              className="lib-panel-toggle"
+              onClick={props.onToggleNavigation}
+              aria-expanded={!navigationCollapsed}
+              aria-controls="lib-quick-navigation"
+              title={navigationCollapsed ? 'Show quick navigation' : 'Hide quick navigation'}
+            >
+              <LibraryIcon name={navigationCollapsed ? 'panel-left-open' : 'panel-left'} />
+              <span className="lib-panel-toggle-label">{navigationCollapsed ? 'Navigation' : 'Hide navigation'}</span>
+            </button>
+            <button
+              type="button"
+              className="lib-panel-toggle"
+              onClick={props.onToggleFilters}
+              aria-expanded={!filtersCollapsed || filtersHovered}
+              aria-controls="lib-class-filters"
+              title={filtersCollapsed ? 'Show class filters' : 'Hide class filters'}
+              onPointerEnter={() => {
+                cancelHoverClose();
+                if (filtersCollapsed) setFiltersHovered(true);
+              }}
+              onPointerLeave={() => {
+                if (filtersCollapsed) scheduleHoverClose(() => setFiltersHovered(false));
+              }}
+            >
+              <LibraryIcon name={filtersCollapsed && !filtersHovered ? 'panel-right-open' : 'panel-right'} />
+              <span className="lib-panel-toggle-label">{filtersCollapsed && !filtersHovered ? 'Filters' : 'Hide filters'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="lib-main-body">
+          <section className="lib-resource-hero" aria-labelledby="lib-resource-heading">
+            <div className="lib-resource-hero-art" aria-hidden="true">
+              <img src={`${base}assets/library/resource-library.jpg`} alt="" loading="lazy" />
+            </div>
+            <div className="lib-resource-hero-content">
+              <span className="lib-resource-eyebrow">{selected.label} · YOUR STUDY SPACE</span>
+              <h1 id="lib-resource-heading">Room to explore.</h1>
+              <p>Pick up where curiosity leads — your class resources are all gathered here.</p>
+              <div className="lib-resource-stats">
+                <span><strong>{classResources.length.toLocaleString()}</strong> resources</span>
+                <span><strong>{new Set(classResources.map((resource) => resource.subject)).size}</strong> subjects</span>
+              </div>
+            </div>
+            <a className="lib-resource-cta" href="#library-resources" aria-label="Browse class resources">↓</a>
+          </section>
+          <div className="lib-main-head">
+            <div className="lib-resource-list-heading">
+              <span className="lib-shelf-section-kicker">Made for your class</span>
+              <h2>Browse resources <span>{filtered.length.toLocaleString()}</span></h2>
+            </div>
+            <input
+              type="search"
+              className="lib-search"
+              placeholder="Search subject or title…"
+              value={search}
+              onChange={(e) => props.onSearch(e.target.value)}
+              aria-label="Search resources"
+            />
+          </div>
+          {preferredSubjects.length > 0 && (
+            <p className="lib-personalization-note">
+              {showAllSubjects ? `Showing all ${selected.label} subjects.` : `Showing your saved subjects: ${preferredSubjects.join(', ')}.`}
+              <button type="button" onClick={props.onShowAllSubjects}>
+                {showAllSubjects ? 'Show my subjects' : 'Show all subjects'}
+              </button>
+            </p>
+          )}
+
+          <div id="library-resources" className="lib-resource-results">
+            {error && <p className="lib-banner">{error}</p>}
+            {loading && <p className="lib-banner">Loading resources…</p>}
+
+            {!loading && shown.length === 0 ? (
+              <p className="lib-empty">No resources match these filters yet.</p>
+            ) : (
+              <div className="lib-table-wrap">
+                <table className="lib-table">
+                  <thead>
+                    <tr>
+                      <th>Subject</th>
+                      <th>Title</th>
+                      <th>Type</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shown.map((row) => (
+                      <tr key={row.id}>
+                        <td className="lib-subject">{row.subject}</td>
+                        <td className="lib-title">{row.title}</td>
+                        <td><span className={`lib-tag ${row.type === 'Past Papers' ? 'lib-tag-exam' : 'lib-tag-notes'}`}>{row.type}</span></td>
+                        <td><a className="lib-view" href={props.readerHref(row)}>Read →</a></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {visible < filtered.length && (
+              <div className="lib-more">
+                <button type="button" className="lib-request" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+                  Load more ({filtered.length - visible} remaining)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

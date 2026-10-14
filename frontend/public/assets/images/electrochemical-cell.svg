@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="title description">
+  <title id="title">Zinc-copper electrochemical cell</title>
+  <desc id="description">A spontaneous redox reaction sends electrons from the zinc anode through an external wire to the copper cathode. A salt bridge completes the circuit.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0 0 8 4 0 8z" fill="#315e76"/>
+    </marker>
+  </defs>
+  <rect width="720" height="420" rx="22" fill="#f4f8fb"/>
+  <text x="360" y="42" fill="#173247" font-family="Arial,sans-serif" font-size="24" font-weight="700" text-anchor="middle">ELECTROCHEMICAL (GALVANIC) CELL</text>
+  <path d="M105 178v126q0 18 18 18h185q18 0 18-18V178" fill="#fff" stroke="#527287" stroke-width="5"/>
+  <path d="M389 178v126q0 18 18 18h185q18 0 18-18V178" fill="#fff" stroke="#527287" stroke-width="5"/>
+  <path d="M110 240h211v62q0 16-16 16H126q-16 0-16-16z" fill="#d5e5ee"/>
+  <path d="M394 240h211v62q0 16-16 16H410q-16 0-16-16z" fill="#cfe6ef"/>
+  <text x="215" y="284" fill="#315e76" font-family="Arial,sans-serif" font-size="15" text-anchor="middle">ZnSO₄ solution</text>
+  <text x="500" y="284" fill="#315e76" font-family="Arial,sans-serif" font-size="15" text-anchor="middle">CuSO₄ solution</text>
+  <path d="M165 145v151" stroke="#707d87" stroke-width="14" stroke-linecap="round"/>
+  <path d="M550 145v151" stroke="#bc7448" stroke-width="14" stroke-linecap="round"/>
+  <text x="165" y="124" fill="#173247" font-family="Arial,sans-serif" font-size="17" font-weight="700" text-anchor="middle">Zn ANODE (−)</text>
+  <text x="550" y="124" fill="#173247" font-family="Arial,sans-serif" font-size="17" font-weight="700" text-anchor="middle">Cu CATHODE (+)</text>
+  <path d="M165 145V91h385v54" fill="none" stroke="#315e76" stroke-width="4"/>
+  <path d="M235 91h220" fill="none" stroke="#315e76" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="345" y="79" fill="#315e76" font-family="Arial,sans-serif" font-size="16" font-weight="700" text-anchor="middle">electron flow (e⁻)</text>
+  <path d="M315 200v-39q0-14 14-14h62q14 0 14 14v39" fill="none" stroke="#a97935" stroke-width="13" stroke-linecap="round"/>
+  <text x="360" y="177" fill="#73501e" font-family="Arial,sans-serif" font-size="13" font-weight="700" text-anchor="middle">SALT BRIDGE</text>
+  <text x="165" y="380" fill="#173247" font-family="Arial,sans-serif" font-size="15" text-anchor="middle">Zn → Zn²⁺ + 2e⁻</text>
+  <text x="550" y="380" fill="#173247" font-family="Arial,sans-serif" font-size="15" text-anchor="middle">Cu²⁺ + 2e⁻ → Cu</text>
+</svg>

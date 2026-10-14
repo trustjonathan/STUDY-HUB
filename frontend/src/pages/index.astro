@@ -1,110 +1,224 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import Partners from '../components/Partners.astro';
+import StudyBillboard from '../components/StudyBillboard.astro';
 import aLevelCombinations from '../data/aLevelCombinations.json';
 import { availableSubjects } from '../data/availableSubjects';
-import { subjectCategories } from '../data/subjectCategories';
+import '../styles/landing.css';
 
-const base = `${import.meta.env.BASE_URL}/`;
-const categories = subjectCategories.map((category) => ({
-  ...category,
-  subjects: availableSubjects.filter((subject) => subject.category === category.id)
-})).filter((category) => category.subjects.length > 0);
-const featuredSubjects = availableSubjects;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 ---
 
-<SiteLayout>
-  <main>
-    <section class="hero-section" id="overview">
-      <div class="hero-copy">
-        <p class="eyebrow">Study resources, in one place</p>
-        <h1>Make your next study session count.</h1>
-        <p class="hero-description">
-          Find subject notes, exam papers, and focused study tools built to help you learn with clarity.
+<SiteLayout
+  title="Study Hub | Your path from questions to understanding"
+  description="See how Study Hub connects subject libraries, class-based resource discovery, a document reader, and AI study tools for Ugandan learners."
+>
+  <main class="landing-page">
+    <section class="landing-hero" id="overview">
+      <div class="landing-hero-copy">
+        <p class="landing-eyebrow"><span></span> A guided place to learn</p>
+        <h1>From “I’m stuck” to <em>“I understand.”</em></h1>
+        <p class="landing-intro">
+          Study Hub brings subject notes, exam resources, a comfortable document reader, and AI study tools into one connected learning journey.
+          Start with what you need today; the next step is always close by.
         </p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#subject-categories">Explore categories <span aria-hidden="true">→</span></a>
-          <a class="text-link" href={`${base}subjects.html`}>Browse available subjects</a>
+        <div class="landing-hero-actions">
+          <a class="landing-button landing-button-primary" href={`${base}library.html`}>Explore the Library <span aria-hidden="true">→</span></a>
+          <a class="landing-button landing-button-secondary" href={`${base}assistant.html`}>Open AI Study <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="hero-note">
-          <span class="note-mark" aria-hidden="true">+</span>
-          <p>Curriculum-aware resources for independent revision.</p>
-        </div>
+        <p class="landing-hero-note">Free study resources for Ugandan learners · Use on desktop, tablet, or phone</p>
       </div>
-      <aside class="study-brief" aria-label="Study Hub overview">
-        <div class="brief-topline"><span>STUDY HUB</span><span>{availableSubjects.length} SUBJECTS</span></div>
-        <div class="brief-rule"></div>
-        <p class="brief-label">Start with a subject</p>
+      <aside class="landing-path-card" aria-label="A typical Study Hub learning journey">
+        <div class="landing-path-top"><span>YOUR STUDY PATH</span><span>01—04</span></div>
+        <div class="landing-path-line" aria-hidden="true"></div>
         <ol>
-          <li><span>01</span><strong>Choose a topic</strong></li>
-          <li><span>02</span><strong>Review the notes</strong></li>
-          <li><span>03</span><strong>Practice exam questions</strong></li>
+          <li><span class="landing-path-number">01</span><div><strong>Find your class</strong><small>Browse by level, subject, or title</small></div></li>
+          <li><span class="landing-path-number">02</span><div><strong>Open a resource</strong><small>Read notes and exam papers</small></div></li>
+          <li><span class="landing-path-number">03</span><div><strong>Work through the idea</strong><small>Ask AI Study for another explanation</small></div></li>
+          <li><span class="landing-path-number">04</span><div><strong>Return when ready</strong><small>Pick up where you left off</small></div></li>
         </ol>
-        <p class="brief-foot">A focused path from understanding to practice.</p>
+        <a href="#site-tour">Take the two-minute tour <span aria-hidden="true">↓</span></a>
       </aside>
     </section>
 
-    <section class="subjects-section" id="subject-categories">
-      <div class="section-heading">
+    <section class="landing-spotlight" aria-label="Featured Study Hub highlights">
+      <StudyBillboard base={base} />
+    </section>
+
+    <section class="landing-section landing-subjects" id="subjects">
+      <div class="landing-section-heading">
         <div>
-          <p class="eyebrow">Browse by area</p>
-          <h2>Find your subject</h2>
+          <p class="landing-eyebrow">Start with a subject</p>
+          <h2>Choose a place to begin.</h2>
         </div>
-        <p>Explore our current libraries, or check which pages are being prepared.</p>
+        <p>These subject libraries are available now. Each opens a subject dashboard with collections, study notes, and practice resources.</p>
       </div>
-      <div class="category-preview-grid">
-        {categories.map((category, index) => (
-          <article class="category-preview">
-            <div class="category-preview-topline">
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <span>{category.subjects.length} subjects</span>
-            </div>
-            <div class="category-preview-body">
-              <h3>{category.label}</h3>
-              <p>{category.description}</p>
-              <ul>
-                {category.subjects.slice(0, 4).map((subject) => (
-                  <li><a href={`${base}frontend/src/html/${subject.slug}.html`}>{subject.name}</a></li>
-                ))}
-              </ul>
-            </div>
-            <a class="category-preview-link" href={`${base}subjects.html?category=${category.id}`}>
-              Explore category <span aria-hidden="true">↗</span>
-            </a>
-          </article>
+      <div class="landing-subject-grid">
+        {availableSubjects.map((subject, index) => (
+          <a class={`landing-subject-card landing-subject-${subject.slug}`} href={`${base}frontend/src/html/${subject.slug}.html`}>
+            <span class="landing-subject-index">{String(index + 1).padStart(2, '0')}</span>
+            <span class="landing-subject-icon" aria-hidden="true">{subject.icon}</span>
+            <span class="landing-subject-name">{subject.name}</span>
+            <span class="landing-subject-summary">{subject.description}</span>
+            <span class="landing-subject-link">Explore subject <span aria-hidden="true">↗</span></span>
+          </a>
         ))}
       </div>
-      <div class="featured-subjects">
-        <h3>Popular subjects</h3>
-        <nav aria-label="Popular subjects">
-          {featuredSubjects.map((subject) => (
-            <a href={`${base}frontend/src/html/${subject.slug}.html`}>{subject.name}</a>
-          ))}
-        </nav>
-      </div>
-      <a class="button button-primary directory-cta" href={`${base}subjects.html`}>
-        Browse available subjects <span aria-hidden="true">→</span>
-      </a>
-      <p class="directory-development-note">More subjects are being prepared. <a href={`${base}under-development.html`}>View pages under development</a>.</p>
+      <p class="landing-subject-foot">More subjects are being prepared. <a href={`${base}under-development.html`}>See what is in development</a> or <a href={`${base}subjects.html`}>browse the subject directory</a>.</p>
     </section>
 
-    <section class="combination-guide" id="combinations" aria-labelledby="combination-heading">
-      <div class="combination-heading">
-        <p class="eyebrow">Plan your A-Level path</p>
-        <h2 id="combination-heading">Common subject combinations</h2>
-        <p>Students choose three principal subjects and two subsidiaries: General Paper (S101) plus Subsidiary ICT (S850) or Subsidiary Mathematics (S475), depending on the principal Mathematics choice. Examples are guidance; confirm current requirements with your school and UNEB.</p>
+    <section class="landing-tour" id="site-tour">
+      <header class="landing-tour-heading">
+        <p class="landing-eyebrow">A connected set of study tools</p>
+        <h2>Here’s what happens after you arrive.</h2>
+        <p>Move from finding a resource to understanding it, without losing the thread of your study session.</p>
+      </header>
+
+      <article class="landing-showcase landing-showcase-library" id="library-tour">
+        <div class="landing-showcase-copy">
+          <span class="landing-step">01 / FIND A RESOURCE</span>
+          <h3>A Library that starts with your class.</h3>
+          <p>Choose a level from the class shelf, then narrow the collection by subject or resource type. Search titles, filter results, and load more as you browse.</p>
+          <ul>
+            <li>Find resources across class levels</li>
+            <li>Filter by subject and notes or past papers</li>
+            <li>Open a resource directly in the reader</li>
+          </ul>
+          <a class="landing-text-link" href={`${base}library.html`}>Browse the Library <span aria-hidden="true">→</span></a>
+        </div>
+        <figure class="landing-preview landing-library-preview" aria-label="Illustrative preview of the Study Hub class library">
+          <div class="landing-preview-browserbar"><span></span><span></span><span></span><b>STUDY HUB / LIBRARY</b></div>
+          <div class="landing-library-screen">
+            <aside class="landing-library-rail"><strong>SH</strong><span>⌂</span><span class="is-selected">▤</span><span>▦</span></aside>
+            <div class="landing-library-content">
+              <div class="landing-preview-crumb">HOME　/　LIBRARY　/　P.5</div>
+              <div class="landing-library-columns">
+                <div class="landing-library-filter">
+                  <small>P.5 WORKSPACE</small><strong>Academic Library</strong>
+                  <span class="is-current">All subjects <b>24</b></span><span>Biology <b>08</b></span><span>English <b>06</b></span><span>Mathematics <b>05</b></span>
+                </div>
+                <div class="landing-library-results">
+                  <small>MADE FOR YOUR CLASS</small><strong>Browse resources <b>38</b></strong>
+                  <div class="landing-preview-search">⌕　Search resources</div>
+                  <div class="landing-resource-row"><span>BIOLOGY</span><b>Primary 5 Biology Notes</b><i>Notes</i></div>
+                  <div class="landing-resource-row"><span>MATHEMATICS</span><b>Term II Revision Paper</b><i>Paper</i></div>
+                  <div class="landing-resource-row"><span>ENGLISH</span><b>Comprehension Practice</b><i>Notes</i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption><span>LIBRARY PREVIEW</span> Class shelf · filters · searchable resources</figcaption>
+        </figure>
+      </article>
+
+      <article class="landing-showcase landing-showcase-ai" id="ai-tour">
+        <div class="landing-showcase-copy">
+          <span class="landing-step">02 / GET AN EXPLANATION</span>
+          <h3>AI Study helps you keep asking why.</h3>
+          <p>Enter a topic or question in the Study Assistant to request a clear, exam-focused explanation. Start with a suggested question, or open the AI Guides library for a topic guide.</p>
+          <ul>
+            <li>Explore a topic in your own words</li>
+            <li>Open ready-made science and maths guides</li>
+            <li>Copy a response to use in your revision</li>
+          </ul>
+          <div class="landing-showcase-links">
+            <a class="landing-text-link" href={`${base}assistant.html`}>Open AI Study <span aria-hidden="true">→</span></a>
+            <a class="landing-secondary-link" href={`${base}learn.html`}>Browse AI Guides</a>
+          </div>
+          <p class="landing-disclaimer">AI explanations are a study aid. Check important answers against your teacher and course materials.</p>
+        </div>
+        <figure class="landing-preview landing-ai-preview" aria-label="Illustrative preview of the AI Study dashboard">
+          <div class="landing-preview-browserbar"><span></span><span></span><span></span><b>STUDY HUB / AI STUDY</b></div>
+          <div class="landing-ai-screen">
+            <aside class="landing-ai-sidebar">
+              <strong>▰ STUDY-HUB</strong>
+              <span>⌂　Home</span><span>⌕　Library</span><span>＋　New question</span>
+              <small>RECENTS</small><i>Your study guides appear here</i>
+            </aside>
+            <div class="landing-ai-main">
+              <small>YOUR STUDY PARTNER</small>
+              <strong>What would you like<br />to understand?</strong>
+              <p>Ask a question or enter a topic. Get a clear explanation, worked steps, and useful exam points.</p>
+              <div class="landing-prompt-chip">Explain photosynthesis step by step　↗</div>
+              <div class="landing-prompt-chip">How do quadratic equations work?　↗</div>
+              <div class="landing-ai-input">Ask a question or enter a study topic… <span>↑</span></div>
+            </div>
+          </div>
+          <figcaption><span>AI STUDY PREVIEW</span> Ask a topic question · explore a guide · continue learning</figcaption>
+        </figure>
+      </article>
+
+      <article class="landing-showcase landing-showcase-reader" id="reader-tour">
+        <div class="landing-showcase-copy">
+          <span class="landing-step">03 / READ, PRACTISE, RETURN</span>
+          <h3>Your resource opens in a focused reader.</h3>
+          <p>Use the reader to move through a document, adjust zoom or reading colours, and find related resources. On supported PDF pages, open the AI study companion to ask about the material in view.</p>
+          <ul>
+            <li>Navigate pages and use available document search</li>
+            <li>Open related documents without restarting your search</li>
+            <li>Resume reading or browsing on the same browser</li>
+          </ul>
+          <a class="landing-text-link" href={`${base}documentation.html`}>Read the full how-to guide <span aria-hidden="true">→</span></a>
+        </div>
+        <figure class="landing-preview landing-reader-preview" aria-label="Illustrative preview of the resource reading experience">
+          <div class="landing-preview-browserbar"><span></span><span></span><span></span><b>STUDY HUB / RESOURCE READER</b></div>
+          <div class="landing-reader-screen">
+            <div class="landing-reader-toolbar"><span>‹</span><b>Page　1 / 26</b><span>☷</span><span>Original⌄</span><span>⌕</span><span>Fit⌄</span><span>⛶</span><span>AI</span></div>
+            <div class="landing-reader-workspace">
+              <div class="landing-reader-page"><small>STUDY NOTES</small><strong>Understand the idea.<br />Practise the method.</strong><span></span><span></span><span></span><span class="short"></span><span></span></div>
+              <aside class="landing-related-panel"><small>RELATED DOCUMENTS</small><b>More for this subject</b><span>Revision notes</span><span>Past paper</span><span>Marking guide</span></aside>
+            </div>
+          </div>
+          <figcaption><span>READER PREVIEW</span> Page tools · related resources · optional AI help</figcaption>
+        </figure>
+      </article>
+    </section>
+
+    <section class="landing-more" id="more">
+      <div class="landing-section-heading">
+        <div>
+          <p class="landing-eyebrow">More ways to use Study Hub</p>
+          <h2>Useful before, during, and after revision.</h2>
+        </div>
+        <a class="landing-text-link" href={`${base}documentation.html`}>Visit the help centre <span aria-hidden="true">→</span></a>
       </div>
-      <div class="combination-grid">
+      <div class="landing-more-grid">
+        <a href={`${base}learn.html`}><span>GUIDED LEARNING</span><strong>AI Study Guides</strong><p>Choose a ready-made science or maths topic, or enter a topic to request a new guide.</p><b>Explore guides →</b></a>
+        <a href={`${base}library-guide.html`}><span>HOW THE LIBRARY WORKS</span><strong>Library Guide</strong><p>Learn about the class shelf, resource collections, contributions, and how to navigate the catalogue.</p><b>Read the guide →</b></a>
+        <a href={`${base}community-chat.html`}><span>HELP SHAPE THE SITE</span><strong>Suggestions</strong><p>Share a topic request, report an issue, or suggest an improvement for learners.</p><b>Send a suggestion →</b></a>
+      </div>
+      <div class="landing-trust-note">
+        <div><span class="landing-trust-icon" aria-hidden="true">↗</span><p><strong>Pick up where you left off.</strong><br />On this browser, Study Hub can offer to return you to your previous page position. Your progress is not synced between devices.</p></div>
+        <a href={`${base}privacy.html`}>Learn about privacy <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section class="landing-directory">
+      <div>
+        <p class="landing-eyebrow">A note for A-Level learners</p>
+        <h2>Planning a subject combination?</h2>
+        <p>These common combinations are starting points for research, not official placement advice. Confirm current requirements with your school and UNEB.</p>
+      </div>
+      <a class="landing-button landing-button-secondary" href={`${base}subjects.html`}>Browse subjects <span aria-hidden="true">→</span></a>
+    </section>
+    <section class="landing-combinations" id="combinations" aria-labelledby="landing-combinations-heading">
+      <div class="landing-section-heading">
+        <div><p class="landing-eyebrow">Plan your A-Level path</p><h2 id="landing-combinations-heading">Common subject combinations.</h2></div>
+        <p>Examples for exploration. Confirm current requirements and subject availability with your school and UNEB.</p>
+      </div>
+      <div class="landing-combination-grid">
         {aLevelCombinations.map((combination) => (
-          <article class="combination-card">
-            <h3>{combination.category}</h3>
-            <p class="combination-examples">{combination.examples.join(' · ')}</p>
-            <p>{combination.careers}</p>
-          </article>
+          <article><h3>{combination.category}</h3><p class="landing-combination-examples">{combination.examples.join(' · ')}</p><p>{combination.careers}</p></article>
         ))}
       </div>
     </section>
 
-    <Partners />
+    <section class="landing-directory landing-partnerships" aria-labelledby="landing-partnerships-heading">
+      <div>
+        <p class="landing-eyebrow">Work with Study Hub</p>
+        <h2 id="landing-partnerships-heading">Ads and partnerships.</h2>
+        <p>Learn about advertising and partner opportunities, including external referral links.</p>
+      </div>
+      <a class="landing-button landing-button-secondary" href={`${base}ads-and-partnerships.html`}>View partnerships <span aria-hidden="true">→</span></a>
+    </section>
   </main>
 </SiteLayout>

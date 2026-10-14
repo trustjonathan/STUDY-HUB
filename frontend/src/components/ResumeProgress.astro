@@ -1,0 +1,207 @@
+---
+---
+
+<aside class="resume-progress" data-resume-progress aria-label="Continue browsing" hidden>
+  <div class="resume-progress-copy">
+    <p class="resume-progress-kicker">Welcome back</p>
+    <p class="resume-progress-message" data-resume-message>Continue where you left off?</p>
+  </div>
+  <div class="resume-progress-actions">
+    <button class="resume-progress-button" type="button" data-resume-action>Resume</button>
+    <button class="resume-progress-dismiss" type="button" data-resume-dismiss aria-label="Dismiss resume prompt">×</button>
+  </div>
+</aside>
+
+<script>
+  const resumeProgressCleanups: Array<() => void> = [];
+  const minimumResumePosition = 300;
+  const saveThreshold = 100;
+  const saveDelay = 300;
+  const displayDelay = 800;
+
+  function clearResumeProgress(): void {
+    resumeProgressCleanups.splice(0).forEach((cleanup) => cleanup());
+  }
+
+  function initializeResumeProgress(): void {
+    clearResumeProgress();
+
+    const banner = document.querySelector<HTMLElement>('[data-resume-progress]');
+    if (!banner) return;
+
+    const resumeButton = banner.querySelector<HTMLButtonElement>('[data-resume-action]');
+    const dismissButton = banner.querySelector<HTMLButtonElement>('[data-resume-dismiss]');
+    const message = banner.querySelector<HTMLElement>('[data-resume-message]');
+    if (!resumeButton || !dismissButton || !message) return;
+
+    const routeKey = `${window.location.pathname}${window.location.search}`;
+    const storageKey = `study-hub-browse-progress:${encodeURIComponent(routeKey)}`;
+    const controller = new AbortController();
+    const { signal } = controller;
+    let savedPosition = 0;
+    let saveTimer = 0;
+    let showTimer = 0;
+    let hideTimer = 0;
+    let dismissed = false;
+    let hasScrolled = false;
+
+    const readSavedPosition = (): number => {
+      try {
+        const value = Number(window.localStorage.getItem(storageKey));
+        return Number.isFinite(value) && value > 0 ? value : 0;
+      } catch (error) {
+        console.error('Study Hub could not read your saved browsing position.', error);
+        return 0;
+      }
+    };
+
+    const savePosition = () => {
+      if (!hasScrolled) return;
+      if (window.scrollY <= saveThreshold) {
+        clearSavedPosition();
+        return;
+      }
+
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 80) {
+        clearSavedPosition();
+        return;
+      }
+
+      try {
+        window.localStorage.setItem(storageKey, String(Math.round(window.scrollY)));
+      } catch (error) {
+        console.error('Study Hub could not save your browsing position.', error);
+      }
+    };
+
+    const clearSavedPosition = () => {
+      try {
+        window.localStorage.removeItem(storageKey);
+      } catch (error) {
+        console.error('Study Hub could not clear your saved browsing position.', error);
+      }
+    };
+
+    const hideBanner = (clearSavedPosition: boolean) => {
+      window.clearTimeout(showTimer);
+      banner.classList.add('is-hiding');
+      hideTimer = window.setTimeout(() => {
+        banner.hidden = true;
+        banner.classList.remove('is-visible', 'is-hiding');
+      }, 240);
+      if (clearSavedPosition) {
+        try {
+          window.localStorage.removeItem(storageKey);
+        } catch (error) {
+          console.error('Study Hub could not clear your saved browsing position.', error);
+        }
+      }
+    };
+
+    savedPosition = readSavedPosition();
+    if (savedPosition > minimumResumePosition && window.scrollY < saveThreshold) {
+      message.textContent = 'Pick up where you left off on this page?';
+      showTimer = window.setTimeout(() => {
+        if (dismissed || window.scrollY >= saveThreshold) return;
+        banner.hidden = false;
+        window.requestAnimationFrame(() => banner.classList.add('is-visible'));
+      }, displayDelay);
+    }
+
+    resumeButton.addEventListener('click', () => {
+      if (savedPosition <= 0) return;
+      dismissed = true;
+      hideBanner(false);
+      window.scrollTo({
+        top: savedPosition,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+      });
+    }, { signal });
+
+    dismissButton.addEventListener('click', () => {
+      dismissed = true;
+      hideBanner(true);
+    }, { signal });
+
+    const scheduleSave = () => {
+      hasScrolled = true;
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(() => {
+        savePosition();
+      }, saveDelay);
+    };
+
+    window.addEventListener('scroll', scheduleSave, { passive: true, signal });
+    window.addEventListener('pagehide', savePosition, { signal });
+
+    resumeProgressCleanups.push(() => {
+      if (hasScrolled) savePosition();
+      controller.abort();
+      window.clearTimeout(saveTimer);
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initializeResumeProgress);
+  document.addEventListener('astro:before-swap', clearResumeProgress);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeResumeProgress, { once: true });
+  } else {
+    initializeResumeProgress();
+  }
+</script>
+
+<style>
+  .resume-progress {
+    position: fixed;
+    z-index: 1100;
+    right: max(20px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    display: flex;
+    width: min(390px, calc(100vw - 32px));
+    box-sizing: border-box;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid #304354;
+    border-radius: 14px;
+    background: #102a40;
+    box-shadow: 0 16px 42px rgba(11, 24, 36, .25);
+    color: #f7fafc;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+
+  .resume-progress[hidden] { display: none; }
+  .resume-progress.is-visible { opacity: 1; transform: translateY(0); }
+  .resume-progress.is-hiding { opacity: 0; transform: translateY(10px); }
+  .resume-progress-copy { min-width: 0; flex: 1; }
+  .resume-progress-kicker { margin: 0; color: #75b8f3; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .resume-progress-message { margin: 3px 0 0; color: #d3dde5; font-size: .76rem; line-height: 1.4; }
+  .resume-progress-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; }
+  .resume-progress-button,
+  .resume-progress-dismiss {
+    min-height: 34px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    cursor: pointer;
+    font: 700 .73rem/1 "DM Sans", sans-serif;
+  }
+  .resume-progress-button { padding: 0 12px; background: #2676cf; color: #fff; }
+  .resume-progress-button:hover { background: #1e63b0; }
+  .resume-progress-dismiss { width: 34px; padding: 0; background: #1b3a53; color: #d2dce4; font-size: 1rem; }
+  .resume-progress-dismiss:hover { background: #294a64; color: #fff; }
+  .resume-progress button:focus-visible { outline: 3px solid #9acbff; outline-offset: 2px; }
+
+  @media (max-width: 480px) {
+    .resume-progress { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); width: calc(100vw - 24px); gap: 9px; padding: 11px; }
+    .resume-progress-message { font-size: .7rem; }
+    .resume-progress-actions { gap: 5px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .resume-progress { transition: none; }
+  }
+</style>

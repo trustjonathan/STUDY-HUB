@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const { handler } = require("../api/controllers/aiStudyCompanion.controller");
 
 const originalApiKey = process.env.GEMINI_API_KEY;
+const originalGeminiModel = process.env.GEMINI_MODEL;
 const originalFetch = global.fetch;
 
 function responseMock() {
@@ -27,11 +28,14 @@ function responseMock() {
 afterEach(() => {
   if (originalApiKey === undefined) delete process.env.GEMINI_API_KEY;
   else process.env.GEMINI_API_KEY = originalApiKey;
+  if (originalGeminiModel === undefined) delete process.env.GEMINI_MODEL;
+  else process.env.GEMINI_MODEL = originalGeminiModel;
   global.fetch = originalFetch;
 });
 
 test("rejects missing page images before calling Gemini", async () => {
   process.env.GEMINI_API_KEY = "test-key";
+  delete process.env.GEMINI_MODEL;
   const res = responseMock();
 
   await handler({ body: { prompt: "Explain this page", pageNumber: 1 } }, res);
@@ -72,8 +76,9 @@ test("sends the page and conversation to Gemini without returning credentials", 
   assert.equal(new URL(requestUrl).pathname, "/v1beta/models/gemini-3.8-flash:generateContent");
   assert.equal(new URL(requestUrl).searchParams.has("key"), false);
   assert.equal(requestHeaders["x-goog-api-key"], "test-key");
-  assert.equal(requestBody.contents.at(-1).parts[1].inline_data.mime_type, "image/jpeg");
-  assert.equal(requestBody.contents.at(-1).parts[1].inline_data.data, Buffer.from("page image").toString("base64"));
+  assert.equal(requestBody.systemInstruction.parts.length, 1);
+  assert.equal(requestBody.contents.at(-1).parts[1].inlineData.mimeType, "image/jpeg");
+  assert.equal(requestBody.contents.at(-1).parts[1].inlineData.data, Buffer.from("page image").toString("base64"));
   assert.match(requestBody.contents.at(-1).parts[0].text, /page 4/i);
   assert.equal(JSON.stringify(res.body).includes("test-key"), false);
 });

@@ -1,0 +1,67 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Partners from '../components/Partners.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<SiteLayout
+  title="Ads & Partnerships | Study Hub"
+  description="Information about advertising, referrals, and partnership opportunities connected with Study Hub."
+>
+  <main class="partnerships-page">
+    <header class="partnerships-hero">
+      <p class="eyebrow">Transparency · Working together</p>
+      <h1>Ads and partnerships</h1>
+      <p>
+        Study Hub keeps partner and referral information separate from learning resources so
+        students can tell when a link leads to an external service.
+      </p>
+      <a href={`${base}/library.html`}>Return to the library <span aria-hidden="true">→</span></a>
+    </header>
+
+    <section class="partnerships-details" aria-labelledby="partner-opportunities-heading">
+      <div>
+        <p class="eyebrow">For organisations and educators</p>
+        <h2 id="partner-opportunities-heading">Partnership opportunities</h2>
+        <p>
+          We welcome enquiries about educational partnerships, relevant sponsorships, and ways to
+          support accessible learning. Contact Study Hub to discuss an opportunity. A listing here
+          does not mean a partner endorses all Study Hub content.
+        </p>
+        <a href="mailto:trusteth777@gmail.com?subject=Study%20Hub%20partnership%20enquiry">Contact Study Hub</a>
+      </div>
+      <aside>
+        <h2>About external links</h2>
+        <p>
+          Partner, advertising, and referral links lead to third-party websites. They have their
+          own terms and privacy practices. Check the destination before signing up or sharing
+          information.
+        </p>
+        <p>Google AdSense code is present on some subject pages. Whether ads are served can depend on the page and advertising settings; Google’s own privacy and ad settings apply.</p>
+      </aside>
+    </section>
+
+    <section class="partnerships-list" aria-labelledby="listed-partners-heading">
+      <p class="eyebrow">Current external referral</p>
+      <h2 id="listed-partners-heading">Listed partner links</h2>
+      <p>Any referral relationship is disclosed here rather than embedded in subject-library pages.</p>
+      <Partners />
+    </section>
+  </main>
+</SiteLayout>
+
+<style>
+  .partnerships-page { width: min(100% - 2rem, 72rem); margin: 0 auto; padding: clamp(2rem, 5vw, 4rem) 0 5rem; }
+  .partnerships-hero { padding: clamp(2rem, 5vw, 3.5rem); border: 1px solid #d8ded5; background: linear-gradient(135deg, #fffefa, #f0f5ef); }
+  .partnerships-hero h1 { max-width: 18ch; margin: 0; color: #263a30; font: 800 clamp(2.2rem, 5vw, 3.6rem)/1.1 Manrope, sans-serif; letter-spacing: -.04em; }
+  .partnerships-hero > p:not(.eyebrow) { max-width: 65ch; color: #53645a; line-height: 1.7; }
+  .partnerships-hero > a, .partnerships-details a { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; padding: 0 14px; background: #246b49; color: #fffefa; font-size: .84rem; font-weight: 700; text-decoration: none; }
+  .partnerships-details { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; margin-top: 24px; }
+  .partnerships-details > * { padding: 24px; border: 1px solid #d8ded5; background: #fffefa; }
+  .partnerships-details h2, .partnerships-list h2 { margin: 0 0 10px; color: #293b32; font: 800 1.35rem/1.2 Manrope, sans-serif; }
+  .partnerships-details p, .partnerships-list > p:not(.eyebrow) { color: #53645a; font-size: .9rem; line-height: 1.7; }
+  .partnerships-details aside { background: #f4f5ef; }
+  .partnerships-list { margin-top: 36px; }
+  @media (max-width: 650px) { .partnerships-details { grid-template-columns: 1fr; } }
+</style>

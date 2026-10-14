@@ -1,0 +1,25 @@
+.learning-preferences-form { display: grid; gap: 17px; }
+.learning-class-field { display: grid; gap: 7px; color: #35483c; font-size: .8rem; font-weight: 700; }
+.learning-class-field select { width: 100%; min-height: 44px; padding: 0 11px; border: 1px solid #cfd9d0; border-radius: 7px; background: #fff; color: #263a30; font: 500 .88rem 'DM Sans', sans-serif; }
+.learning-class-field select:focus-visible { outline: 3px solid rgba(67, 131, 91, .25); border-color: #43835b; }
+.learning-subject-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+.learning-subject-field legend { margin-bottom: 5px; color: #35483c; font-size: .8rem; font-weight: 700; }
+.learning-subject-field > p { margin: 0 0 10px; color: #758178; font-size: .74rem; line-height: 1.5; }
+.learning-subject-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.learning-subject-option { display: flex; min-height: 42px; align-items: center; gap: 9px; padding: 0 10px; border: 1px solid #d6dfd6; border-radius: 7px; background: #fff; color: #53645a; cursor: pointer; font-size: .78rem; font-weight: 650; }
+.learning-subject-option.is-selected { border-color: #81ad89; background: #f0f7ef; color: #24563b; }
+.learning-subject-option input { width: 15px; height: 15px; margin: 0; accent-color: #246b49; }
+.learning-preferences-error { margin: 0; padding: 10px 11px; border: 1px solid #ecc9c3; border-radius: 7px; background: #fff5f2; color: #8d3328; font-size: .8rem; line-height: 1.5; }
+.learning-preferences-actions { display: flex; justify-content: flex-end; gap: 12px; align-items: center; }
+.learning-preferences-submit, .learning-preferences-skip { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding: 0 14px; border-radius: 7px; cursor: pointer; font: 750 .8rem 'DM Sans', sans-serif; }
+.learning-preferences-submit { border: 1px solid #246b49; background: #246b49; color: #fffefa; }
+.learning-preferences-submit:hover:not(:disabled) { background: #18583a; }
+.learning-preferences-skip { border: 1px solid transparent; background: transparent; color: #627067; }
+.learning-preferences-skip:hover:not(:disabled) { background: #f0f2ed; color: #30463a; }
+.learning-preferences-submit:disabled, .learning-preferences-skip:disabled { cursor: wait; opacity: .6; }
+.learning-preferences-form button:focus-visible, .learning-preferences-form select:focus-visible { outline: 3px solid #d38b43; outline-offset: 3px; }
+@media (max-width: 440px) {
+  .learning-subject-options { grid-template-columns: minmax(0, 1fr); }
+  .learning-preferences-actions { align-items: stretch; flex-direction: column-reverse; }
+  .learning-preferences-submit, .learning-preferences-skip { width: 100%; }
+}

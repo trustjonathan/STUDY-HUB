@@ -1,0 +1,249 @@
+/* Study Assistant workspace: sidebar + note area + floating prompt bar.
+   NotebookLM/Gemini-inspired, themed to Study Hub's palette. */
+
+.ws {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: max(620px, calc(100vh - 76px));
+  background: #f4f5ef;
+  color: #24312c;
+  font-family: 'DM Sans', Arial, sans-serif;
+}
+
+/* ---- Sidebar ---- */
+.ws-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 14px;
+  border-right: 1px solid #dfe4db;
+  background: #fffefa;
+}
+.ws-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px; }
+.ws-brand-mark { color: #246b49; font-size: 1.2rem; }
+.ws-brand-name { flex: 1 1 auto; color: #24312c; font: 800 1rem/1 Manrope, sans-serif; letter-spacing: 0.04em; }
+.ws-sidebar-close { display: none; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: #617068; cursor: pointer; font-size: 1.4rem; line-height: 1; }
+
+.ws-nav { display: grid; gap: 2px; }
+.ws-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #24312c;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: 600 0.9rem/1 'DM Sans', Arial, sans-serif;
+}
+.ws-nav-item svg, .ws-resource-link svg { flex: 0 0 18px; width: 18px; height: 18px; color: #617068; }
+.ws-nav-item:hover { background: #edf4ec; }
+.ws-nav-item:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
+.ws-nav-item:disabled, .ws-recent:disabled { cursor: wait; opacity: .65; }
+
+.ws-recents { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ws-recents-label { margin: 8px 12px 6px; color: #617068; font: 700 0.7rem/1 Manrope, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+.ws-recents-empty { margin: 0 12px; color: #8a978d; font-size: 0.8rem; line-height: 1.5; }
+.ws-recents ul { margin: 0; padding: 0; list-style: none; }
+.ws-recent {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #24312c;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: 500 0.85rem/1.35 'DM Sans', Arial, sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-recent:hover { background: #edf4ec; }
+.ws-recent.is-active { background: #dceadf; color: #173e2e; font-weight: 700; }
+.ws-recent:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
+
+.ws-sidebar-resources { display: grid; gap: 2px; padding-top: 10px; border-top: 1px solid #dfe4db; }
+.ws-sidebar-resources .ws-recents-label { margin-top: 0; }
+.ws-resource-link { display: flex; min-height: 34px; align-items: center; gap: 10px; padding: 0 12px; border-radius: 8px; color: #53635a; font-size: 0.82rem; font-weight: 500; text-decoration: none; }
+.ws-resource-link:hover { background: #edf4ec; color: #173e2e; }
+.ws-resource-link:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
+.ws-sidebar-foot { display: flex; align-items: center; gap: 10px; padding: 4px 8px 2px; color: #617068; font-size: 0.82rem; }
+.ws-avatar { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #246b49; color: #fffefa; font: 700 0.72rem/1 Manrope, sans-serif; }
+
+.ws-sidebar-backdrop { display: none; }
+
+/* ---- Main column ---- */
+.ws-main { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: inherit; }
+.ws-topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 14px 22px; border-bottom: 1px solid #ecefe7; background: rgba(244, 245, 239, 0.9); backdrop-filter: blur(8px); }
+.ws-hamburger { display: none; width: 40px; height: 40px; border: 1px solid #dfe4db; border-radius: 9px; background: #fffefa; color: #24312c; cursor: pointer; font-size: 1.1rem; }
+.ws-topbar-title { color: #24312c; font: 700 1rem/1 Manrope, sans-serif; }
+.ws-topbar-meta { margin-left: auto; color: #718078; font: 600 0.76rem/1 'DM Sans', Arial, sans-serif; }
+
+.ws-content { flex: 1 1 auto; width: 100%; max-width: 1040px; min-width: 0; margin: 0 auto; padding: 32px 28px 12px; }
+.ws-empty { max-width: 700px; margin: clamp(3rem, 10vh, 7rem) auto 2rem; text-align: center; }
+.ws-empty-mark { display: inline-grid; place-items: center; width: 48px; height: 48px; margin-bottom: 18px; border: 1px solid #dce8de; border-radius: 15px; background: #edf4ec; color: #246b49; font-size: 1.5rem; }
+.ws-empty-eyebrow { margin: 0 0 10px !important; color: #246b49 !important; font: 800 0.7rem/1 Manrope, sans-serif !important; letter-spacing: 0.14em; }
+.ws-empty h2 { margin: 0 0 10px; color: #24312c; font: 800 clamp(1.45rem, 3vw, 1.85rem)/1.2 Manrope, sans-serif; }
+.ws-empty > p:not(.ws-empty-eyebrow) { max-width: 520px; margin: 0 auto; color: #617068; font-size: 0.98rem; line-height: 1.65; }
+.ws-empty .ws-api-warning { margin-top: 18px; padding: 10px 14px; border: 1px solid #ead8b9; border-radius: 10px; background: #fff9eb; color: #74541f; font-size: 0.82rem; }
+.ws-api-warning code { padding: 1px 5px; border-radius: 4px; background: rgba(116, 84, 31, .08); font: 0.92em Consolas, monospace; }
+.ws-suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 26px; }
+.ws-suggestion { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 13px; border: 1px solid #dfe4db; border-radius: 999px; background: #fffefa; color: #405148; cursor: pointer; font: 600 0.8rem/1.3 'DM Sans', Arial, sans-serif; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
+.ws-suggestion span { color: #718078; }
+.ws-suggestion:hover { transform: translateY(-1px); border-color: #b8d0be; background: #f8fbf7; }
+.ws-suggestion:focus-visible, .ws-copy-button:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
+.ws-suggestion:disabled { cursor: wait; opacity: .65; }
+
+.ws-state { display: flex; align-items: center; gap: 14px; max-width: 620px; margin: 6vh auto 0; padding: 22px; border: 1px solid #dfe4db; border-radius: 14px; background: #fffefa; }
+.ws-state p { margin: 0; font-size: 0.98rem; }
+.ws-loading { color: #246b49; }
+.ws-spinner { flex: 0 0 auto; width: 22px; height: 22px; border: 3px solid rgba(36, 107, 73, .25); border-top-color: #246b49; border-radius: 50%; animation: ws-spin .8s linear infinite; }
+@keyframes ws-spin { to { transform: rotate(360deg); } }
+.ws-error { border-color: #e6c9c4; background: #fdf3f1; color: #8a3b2e; }
+.ws-notice { border-color: #cfe0d6; background: #eef5f0; color: #246b49; }
+.ws-retry { flex: 0 0 auto; min-height: 34px; padding: 6px 11px; border: 1px solid #d6a9a1; border-radius: 8px; background: #fffafa; color: #74352c; cursor: pointer; font: 700 0.78rem/1 'DM Sans', Arial, sans-serif; }
+.ws-retry:hover { background: #fbe8e4; }
+.ws-retry:focus-visible { outline: 3px solid #8a3b2e; outline-offset: 2px; }
+
+.ws-note { max-width: 760px; margin: 0 auto; padding-bottom: 18px; }
+.ws-note-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.ws-note-kicker { margin: 0 0 16px; color: #246b49; font: 800 0.8rem/1.2 Manrope, sans-serif; letter-spacing: 0.02em; }
+.ws-note-heading .ws-note-kicker { margin: 0; }
+.ws-copy-button { flex: 0 0 auto; min-height: 34px; padding: 6px 11px; border: 1px solid #dfe4db; border-radius: 8px; background: #fffefa; color: #405148; cursor: pointer; font: 600 0.78rem/1 'DM Sans', Arial, sans-serif; }
+.ws-copy-button:hover { border-color: #b8d0be; background: #f8fbf7; }
+.ws-save-note { margin: -5px 0 16px; color: #718078; font-size: 0.78rem; line-height: 1.5; }
+.ws-copy-error { margin: -6px 0 14px; color: #8a3b2e; font-size: 0.78rem; line-height: 1.5; }
+.ws-prose { color: #24312c; font-family: 'DM Sans', Arial, sans-serif; line-height: 1.75; }
+.ws-prose h2 { margin: 26px 0 10px; color: #246b49; font: 800 1.25rem/1.3 Manrope, sans-serif; }
+.ws-prose h2:first-child { margin-top: 0; }
+.ws-prose h3 { margin: 20px 0 8px; color: #293b32; font: 700 1.05rem/1.35 Manrope, sans-serif; }
+.ws-prose p { margin: 0 0 14px; }
+.ws-prose ul, .ws-prose ol { margin: 0 0 16px; padding-left: 22px; }
+.ws-prose li { margin-bottom: 7px; }
+.ws-prose li::marker { color: #246b49; font-weight: 700; }
+.ws-prose strong { color: #173e2e; }
+.ws-prose code { padding: 1px 6px; border: 1px solid #dfe4db; border-radius: 5px; background: #f4f5ef; font: 0.9em/1.5 Consolas, monospace; }
+
+/* ---- Floating prompt bar ---- */
+.ws-prompt {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 56px);
+  max-width: 760px;
+  margin: 18px auto 8px;
+  padding: 8px 9px 8px 16px;
+  border: 1px solid #dfe4db;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: 0 8px 26px rgba(36, 49, 44, 0.09);
+}
+.ws-prompt input { flex: 1 1 auto; min-width: 0; height: 42px; border: 0; background: transparent; color: #24312c; font: 15px/1.4 'DM Sans', Arial, sans-serif; }
+.ws-prompt input:focus { outline: none; }
+.ws-prompt:focus-within { border-color: #8ab49a; box-shadow: 0 0 0 3px rgba(36, 107, 73, .1), 0 8px 26px rgba(36, 49, 44, 0.08); }
+.ws-prompt input:disabled { opacity: .7; }
+.ws-prompt-model { flex: 0 0 auto; display: none; padding: 5px 12px; border-radius: 999px; background: #eef2ec; color: #4a5a50; font: 600 0.74rem/1 'DM Sans', Arial, sans-serif; white-space: nowrap; }
+.ws-prompt-send { flex: 0 0 auto; display: inline-grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 11px; background: #246b49; color: #fff; cursor: pointer; font-size: 1.2rem; line-height: 1; transition: background .15s ease; }
+.ws-prompt-send:hover { background: #1e583c; }
+.ws-prompt-send:disabled { background: #c6d5ca; cursor: not-allowed; }
+.ws-prompt-send:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
+.ws-send-spinner { width: 17px; height: 17px; border: 2px solid rgba(255, 255, 255, .55); border-top-color: white; border-radius: 50%; animation: ws-spin .8s linear infinite; }
+
+.ws-disclaimer { max-width: 760px; margin: 0 auto; padding: 4px 22px 20px; color: #8a978d; font-size: 0.74rem; text-align: center; }
+
+/* ---- Responsive: sidebar becomes a slide-in drawer ---- */
+@media (min-width: 720px) {
+  .ws-prompt-model { display: inline-block; }
+}
+
+@media (max-width: 900px) and (min-width: 720px) {
+  .ws { grid-template-columns: 220px minmax(0, 1fr); }
+  .ws-content { padding-inline: 22px; }
+}
+
+@media (max-width: 719px) {
+  .ws { grid-template-columns: minmax(0, 1fr); min-height: calc(100vh - 76px); }
+  .ws-hamburger { display: inline-grid; place-items: center; }
+  .ws-sidebar {
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(280px, 82vw);
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform .22s ease, visibility .22s ease;
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.18);
+  }
+  .ws-sidebar-open .ws-sidebar { transform: translateX(0); visibility: visible; }
+  .ws-sidebar-close { display: inline-grid; place-items: center; }
+  .ws-sidebar-backdrop {
+    display: none;
+    position: fixed;
+    z-index: 25;
+    inset: 0;
+    border: 0;
+    background: rgba(3, 7, 15, 0.5);
+  }
+  .ws-sidebar-open .ws-sidebar-backdrop { display: block; }
+  .ws-content { padding: 24px 18px 8px; }
+  .ws-empty { margin-top: clamp(2rem, 7vh, 4rem); }
+  .ws-prompt { width: calc(100% - 28px); margin: 14px auto 6px; padding-left: 12px; }
+  .ws-disclaimer { padding-bottom: 14px; }
+}
+
+@media (max-width: 480px) {
+  .ws-topbar { gap: 10px; padding: 10px 14px; }
+  .ws-topbar-meta { display: none; }
+  .ws-topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ws-content { padding: 20px 14px 6px; }
+  .ws-suggestions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 22px; }
+  .ws-suggestion { justify-content: space-between; width: 100%; text-align: left; }
+  .ws-prompt input { font-size: 14px; }
+  .ws-prompt-model { display: none; }
+  .ws-note-heading { align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-spinner, .ws-send-spinner { animation: none; }
+  .ws-sidebar { transition: none; }
+  .ws-suggestion { transition: none; }
+}
+.ws-onboarding-backdrop {
+  position: fixed;
+  z-index: 1200;
+  inset: 54px 0 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(8, 18, 29, .76);
+  backdrop-filter: blur(7px);
+}
+.ws-onboarding-card {
+  width: min(100%, 560px);
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid #cfe0d3;
+  border-radius: 18px;
+  background: #fffefa;
+  color: #263a30;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .25);
+}
+.ws-onboarding-step { margin: 0 0 14px; color: #28704d; font-size: .68rem; font-weight: 800; letter-spacing: .14em; }
+.ws-onboarding-card h2 { margin: 0; color: #243a2f; font: 800 clamp(1.9rem, 5vw, 2.8rem)/1.12 Manrope, sans-serif; letter-spacing: -.04em; }
+.ws-onboarding-card > p:not(.ws-onboarding-step) { margin: 15px 0 0; color: #5f6e63; font-size: .93rem; line-height: 1.75; }
+.ws-onboarding-next { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; margin-top: 24px; padding: 0 15px; border-radius: 7px; background: #246b49; color: #fffefa; font-size: .82rem; font-weight: 750; text-decoration: none; }
+.ws-onboarding-next:hover { background: #18583a; }
+.ws-onboarding-dismiss { display: block; margin-top: 13px; padding: 5px 0; border: 0; background: transparent; color: #6b786e; cursor: pointer; font: 650 .78rem 'DM Sans', sans-serif; }
+.ws-onboarding-next:focus-visible, .ws-onboarding-dismiss:focus-visible { outline: 3px solid #d38b43; outline-offset: 3px; }

@@ -1,0 +1,675 @@
+---
+interface Props {
+  base: string;
+}
+
+interface Notice {
+  kind: 'mission' | 'resources' | 'speed' | 'mobile' | 'exams';
+  badge: string;
+  title: string;
+  description: string;
+  href: string;
+  linkText: string;
+  image?: string;
+}
+
+const { base } = Astro.props;
+const aboutUrl = `${base}frontend/src/html/about.html`;
+const notices: Notice[] = [
+  {
+    kind: 'mission',
+    badge: 'Our Mission',
+    title: 'Quality Education for Every Student',
+    description: 'Access free O-Level and A-Level revision materials, past papers, and structured study guides anytime, anywhere.',
+    href: `${base}subjects.html`,
+    linkText: 'Explore Notes',
+    image: `${base}assets/billboard/digital-library.jpg`,
+  },
+  {
+    kind: 'resources',
+    badge: 'Resource Rich',
+    title: 'High-Resolution Diagrams & Proofs',
+    description: 'Master organic chemistry and mathematical proofs with step-by-step visual guides.',
+    href: `${base}library.html`,
+    linkText: 'Browse Diagrams',
+    image: `${base}assets/billboard/digital-library.jpg`,
+  },
+  {
+    kind: 'speed',
+    badge: 'Fast Load',
+    title: 'Zero Lag, Low Data Consumption',
+    description: 'Built for ultra-fast loading and minimal data usage so studying stays affordable and uninterrupted.',
+    href: aboutUrl,
+    linkText: 'Learn More',
+  },
+  {
+    kind: 'mobile',
+    badge: 'Mobile Ready',
+    title: 'Seamless Learning on Any Device',
+    description: 'Optimized for smartphone screens and tablets, so you can read notes and revise comfortably on the go.',
+    href: aboutUrl,
+    linkText: 'Learn More',
+    image: `${base}assets/billboard/reading-student.jpg`,
+  },
+  {
+    kind: 'exams',
+    badge: 'Exam Ready',
+    title: 'Past Papers & Official Marking Guides',
+    description: 'Test your knowledge with UNEB mock series and past exam questions paired with step-by-step solutions.',
+    href: `${base}subjects.html`,
+    linkText: 'Practice Now',
+  },
+];
+---
+
+<aside class="study-billboard home-study-carousel" aria-label="Study Hub announcements and featured links" data-study-billboard>
+  <div class="billboard-stage" data-billboard-stage role="region" aria-label="Study Hub spotlight" aria-roledescription="carousel">
+    {notices.map((notice, index) => (
+      <article
+        class="billboard-card"
+        data-pos={index}
+        data-kind={notice.kind}
+        role="group"
+        aria-roledescription="slide"
+        aria-label={`${index + 1} of ${notices.length}: ${notice.title}`}
+        aria-hidden={index === 0 ? 'false' : 'true'}
+        inert={index !== 0}
+      >
+        {notice.image && <img class="billboard-card-image" src={notice.image} alt="" />}
+        <div class="billboard-card-copy">
+          <span class="billboard-card-badge">{notice.badge}</span>
+          <h2>{notice.title}</h2>
+          <p>{notice.description}</p>
+        </div>
+        <div class="billboard-card-action">
+          <a
+            class="billboard-card-cta"
+            href={notice.href}
+            tabindex={index === 0 ? 0 : -1}
+          >
+            {notice.linkText} <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <div class="billboard-utility">
+    <div class="billboard-controls" role="group" aria-label="Spotlight controls">
+      <span class="billboard-count" data-billboard-count aria-hidden="true">01 / 05</span>
+      <button class="billboard-control" type="button" data-billboard-previous aria-label="Show previous spotlight">←</button>
+      <button class="billboard-control billboard-motion-toggle" type="button" data-billboard-toggle aria-label="Pause automatic spotlights" aria-pressed="false">Pause</button>
+      <button class="billboard-control" type="button" data-billboard-next aria-label="Show next spotlight">→</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+  const billboardCleanups: Array<() => void> = [];
+  const rotationInterval = 5000;
+  const exitDuration = 600;
+
+  function syncViewportGutter(): void {
+    const gutter = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+    document.documentElement.style.setProperty('--viewport-scrollbar-gutter', `${gutter}px`);
+    document.documentElement.style.setProperty('--viewport-scrollbar-gutter-half', `${gutter / 2}px`);
+  }
+
+  function cleanupBillboards(): void {
+    billboardCleanups.splice(0).forEach((cleanup) => cleanup());
+  }
+
+  function initializeBillboards(): void {
+    syncViewportGutter();
+    cleanupBillboards();
+
+    document.querySelectorAll<HTMLElement>('[data-study-billboard]').forEach((billboard) => {
+      const cards = Array.from(billboard.querySelectorAll<HTMLElement>('.billboard-card'));
+      const count = billboard.querySelector<HTMLElement>('[data-billboard-count]');
+      const previous = billboard.querySelector<HTMLButtonElement>('[data-billboard-previous]');
+      const next = billboard.querySelector<HTMLButtonElement>('[data-billboard-next]');
+      const toggle = billboard.querySelector<HTMLButtonElement>('[data-billboard-toggle]');
+      if (cards.length < 2 || !count || !previous || !next || !toggle) return;
+
+      const controller = new AbortController();
+      const { signal } = controller;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let order = cards.map((_, index) => index);
+      let timer = 0;
+      let transitionTimer = 0;
+      let recycleFrame = 0;
+      let userPaused = false;
+      let hovered = false;
+      let focused = false;
+      let transitioning = false;
+
+      const isPaused = () => userPaused || hovered || focused || document.hidden || reducedMotion.matches;
+      const updatePositions = () => {
+        order.forEach((cardIndex, position) => {
+          const card = cards[cardIndex];
+          card.dataset.pos = String(position);
+          card.setAttribute('aria-hidden', String(position !== 0));
+          card.inert = position !== 0;
+          const link = card.querySelector<HTMLAnchorElement>('.billboard-card-cta');
+          if (link) link.tabIndex = position === 0 ? 0 : -1;
+        });
+        count.textContent = `${String(order[0] + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
+      };
+      const updateToggle = () => {
+        toggle.disabled = reducedMotion.matches;
+        toggle.textContent = reducedMotion.matches ? 'Off' : userPaused ? 'Resume' : 'Pause';
+        toggle.setAttribute('aria-label', reducedMotion.matches
+          ? 'Automatic spotlights are disabled by your motion preference'
+          : userPaused ? 'Resume automatic spotlights' : 'Pause automatic spotlights');
+        toggle.setAttribute('aria-pressed', String(userPaused));
+      };
+      const stopTimer = () => {
+        window.clearTimeout(timer);
+        timer = 0;
+      };
+      const schedule = () => {
+        stopTimer();
+        if (!isPaused() && !transitioning) {
+          timer = window.setTimeout(() => move(1), rotationInterval);
+        }
+      };
+      const move = (direction: 1 | -1) => {
+        if (transitioning || cards.length < 2) return;
+        stopTimer();
+        transitioning = true;
+        previous.disabled = true;
+        next.disabled = true;
+
+        const outgoing = cards[order[0]];
+        const incomingIndex = direction === 1 ? order[1] : order[order.length - 1];
+        const incoming = cards[incomingIndex];
+        if (!reducedMotion.matches) {
+          incoming.classList.add('is-entering');
+          void incoming.offsetWidth;
+          outgoing.classList.add('is-exiting');
+        }
+
+        if (direction === 1) {
+          const first = order.shift();
+          if (first !== undefined) order.push(first);
+        } else {
+          const last = order.pop();
+          if (last !== undefined) order.unshift(last);
+        }
+        updatePositions();
+
+        if (!reducedMotion.matches) {
+          recycleFrame = window.requestAnimationFrame(() => incoming.classList.remove('is-entering'));
+        }
+
+        transitionTimer = window.setTimeout(() => {
+          outgoing.classList.add('is-recycling');
+          outgoing.classList.remove('is-exiting');
+          recycleFrame = window.requestAnimationFrame(() => {
+            recycleFrame = window.requestAnimationFrame(() => outgoing.classList.remove('is-recycling'));
+          });
+          recycleFrame = window.requestAnimationFrame(() => {
+            recycleFrame = window.requestAnimationFrame(() => {
+              transitioning = false;
+              previous.disabled = false;
+              next.disabled = false;
+              schedule();
+            });
+          });
+        }, reducedMotion.matches ? 0 : exitDuration);
+      };
+
+      updatePositions();
+      updateToggle();
+      schedule();
+
+      billboard.addEventListener('pointerenter', () => {
+        hovered = true;
+        stopTimer();
+      }, { signal });
+      billboard.addEventListener('pointerleave', () => {
+        hovered = false;
+        schedule();
+      }, { signal });
+      billboard.addEventListener('focusin', () => {
+        focused = true;
+        stopTimer();
+      }, { signal });
+      billboard.addEventListener('focusout', (event) => {
+        const target = event.relatedTarget;
+        if (!(target instanceof Node) || !billboard.contains(target)) {
+          focused = false;
+          schedule();
+        }
+      }, { signal });
+      previous.addEventListener('click', () => move(-1), { signal });
+      next.addEventListener('click', () => move(1), { signal });
+      toggle.addEventListener('click', () => {
+        userPaused = !userPaused;
+        updateToggle();
+        schedule();
+      }, { signal });
+      document.addEventListener('visibilitychange', schedule, { signal });
+      reducedMotion.addEventListener('change', () => {
+        updateToggle();
+        schedule();
+      }, { signal });
+
+      billboardCleanups.push(() => {
+        controller.abort();
+        stopTimer();
+        window.clearTimeout(transitionTimer);
+        window.cancelAnimationFrame(recycleFrame);
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initializeBillboards);
+  document.addEventListener('astro:before-swap', cleanupBillboards);
+  window.addEventListener('resize', syncViewportGutter, { passive: true });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBillboards, { once: true });
+  } else {
+    initializeBillboards();
+  }
+</script>
+
+<style>
+  .study-billboard {
+    display: grid;
+    min-width: 0;
+    grid-template-rows: 88px auto;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid #dfe4db;
+    border-radius: 12px;
+    background: #fffefa;
+    box-shadow: 0 8px 24px rgba(36, 49, 44, .07);
+  }
+
+  .billboard-stage {
+    position: relative;
+    min-width: 0;
+    height: 88px;
+    overflow: clip;
+    perspective: 900px;
+    perspective-origin: center;
+    transform-style: preserve-3d;
+  }
+
+  .billboard-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    overflow: hidden;
+    padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 10px;
+    background: #173b37;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(18, 44, 40, .17);
+    transform-style: preserve-3d;
+    transition: transform 600ms cubic-bezier(.2, .75, .25, 1), opacity 500ms ease, box-shadow 200ms ease;
+    will-change: transform, opacity;
+  }
+
+  .billboard-card-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .34;
+    pointer-events: none;
+  }
+
+  .billboard-card::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(90deg, rgba(12, 39, 36, .96) 0%, rgba(12, 39, 36, .83) 52%, rgba(12, 39, 36, .46) 100%);
+    pointer-events: none;
+  }
+
+  .billboard-card[data-kind="sponsor"] { background: #fff6f1; color: #293b32; }
+  .billboard-card[data-kind="sponsor"]::after {
+    background: linear-gradient(105deg, rgba(255, 250, 247, .98), rgba(255, 239, 230, .91));
+  }
+
+  .billboard-card[data-pos="0"] {
+    z-index: 30;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  .billboard-card[data-pos="1"] {
+    z-index: 20;
+    opacity: .56;
+    pointer-events: none;
+    transform: translate3d(0, 8px, -38px) scale(.96);
+  }
+
+  .billboard-card[data-pos="2"] {
+    z-index: 10;
+    opacity: .27;
+    pointer-events: none;
+    transform: translate3d(0, 16px, -76px) scale(.92);
+  }
+
+  .billboard-card[data-pos]:not([data-pos="0"]):not([data-pos="1"]):not([data-pos="2"]) {
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, 22px, -110px) scale(.88);
+  }
+
+  .billboard-card.is-exiting {
+    z-index: 40 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate3d(115%, 0, -50px) rotate(4deg) scale(.78) !important;
+    transition: transform 600ms cubic-bezier(.4, 0, .2, 1), opacity 500ms ease-out !important;
+  }
+
+  .billboard-card.is-entering {
+    z-index: 35 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate3d(-38%, 0, 55px) scale(.82) !important;
+  }
+
+  .billboard-card.is-recycling { transition: none !important; }
+
+  .billboard-card-copy,
+  .billboard-card-action {
+    position: relative;
+    z-index: 1;
+  }
+
+  .billboard-card-copy {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .billboard-card-badge {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: #d4eee2;
+    color: #174b3e;
+    font-size: .56rem;
+    font-weight: 800;
+    letter-spacing: .045em;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .billboard-card[data-kind="sponsor"] .billboard-card-badge {
+    background: #f8dfd3;
+    color: #88391f;
+  }
+
+  .billboard-card h2 {
+    overflow: hidden;
+    margin: 5px 0 2px;
+    color: inherit;
+    font: 800 .92rem/1.2 Manrope, sans-serif;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .billboard-card p {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    color: inherit;
+    font-size: .67rem;
+    line-height: 1.35;
+    opacity: .88;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .billboard-card-action {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .billboard-sponsor-logo { width: 32px; height: 32px; object-fit: contain; }
+
+  .billboard-card-cta {
+    display: inline-flex;
+    min-height: 31px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, .14);
+    color: #fff;
+    font-size: .64rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    transition: background 160ms ease, border-color 160ms ease;
+  }
+
+  .billboard-card[data-kind="sponsor"] .billboard-card-cta {
+    border-color: #e7c9bc;
+    background: #fff;
+    color: #87391f;
+  }
+
+  .billboard-card-cta:hover { background: rgba(255, 255, 255, .27); }
+  .billboard-card[data-kind="sponsor"] .billboard-card-cta:hover { background: #fff0e8; }
+
+  .billboard-utility {
+    display: flex;
+    min-width: 0;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .billboard-controls {
+    display: flex;
+    min-width: 0;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .billboard-count {
+    color: #697970;
+    font-size: .57rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .billboard-control {
+    display: inline-flex;
+    min-width: 25px;
+    min-height: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 5px;
+    border: 1px solid #dfe4db;
+    border-radius: 5px;
+    background: #fff;
+    color: #344b40;
+    cursor: pointer;
+    font: 700 .62rem/1.2 "DM Sans", sans-serif;
+    white-space: nowrap;
+  }
+
+  .billboard-control:hover:not(:disabled) { border-color: #9fb6a6; background: #f2f7f1; }
+  .billboard-control:disabled { cursor: not-allowed; opacity: .55; }
+  .billboard-motion-toggle { min-width: 44px; }
+
+  .billboard-card-cta:focus-visible,
+  .billboard-control:focus-visible {
+    outline: 3px solid #277150;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 760px) {
+    .study-billboard { grid-template-rows: 88px auto; gap: 6px; padding: 7px; }
+    .billboard-stage { height: 88px; }
+    .billboard-card { gap: 8px; padding: 10px 11px; }
+    .billboard-card h2 { font-size: .84rem; }
+    .billboard-card p { font-size: .62rem; }
+    .billboard-card-cta { min-height: 29px; padding: 0 8px; font-size: .6rem; }
+    .billboard-controls { gap: 5px; }
+  }
+
+  @media (max-width: 420px) {
+    .study-billboard { grid-template-rows: 88px auto; gap: 6px; padding: 6px; }
+    .billboard-stage { height: 88px; }
+    .billboard-card { gap: 6px; padding: 9px; }
+    .billboard-card-badge { font-size: .5rem; }
+    .billboard-card h2 { font-size: .76rem; }
+    .billboard-card p { font-size: .58rem; }
+    .billboard-card-action { max-width: 84px; }
+    .billboard-card-cta { min-height: 28px; padding: 0 6px; font-size: .56rem; }
+    .billboard-sponsor-logo { width: 27px; height: 27px; }
+    .billboard-utility { gap: 4px; }
+    .billboard-controls { gap: 5px; }
+    .billboard-control { min-width: 23px; min-height: 22px; }
+    .billboard-motion-toggle { min-width: 41px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .billboard-card,
+    .billboard-card-cta { scroll-behavior: auto; transition: none; }
+    .billboard-card { will-change: auto; }
+  }
+
+  .home-study-carousel.study-billboard {
+    position: relative;
+    display: block;
+    min-height: max(620px, calc(100svh - 54px));
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #102d2b;
+    box-shadow: none;
+  }
+
+  .home-study-carousel .billboard-stage {
+    height: auto;
+    min-height: inherit;
+    overflow: hidden;
+    perspective: none;
+  }
+
+  .home-study-carousel .billboard-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(20px, 4vh, 40px);
+    overflow: hidden;
+    padding: clamp(32px, 8vw, 120px);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transform-style: flat;
+  }
+
+  .home-study-carousel .billboard-card::after {
+    background: linear-gradient(90deg, rgba(8, 30, 28, .91), rgba(8, 30, 28, .67) 58%, rgba(8, 30, 28, .28));
+  }
+
+  .home-study-carousel .billboard-card-copy {
+    width: min(100%, 1000px);
+    flex: 0 0 auto;
+  }
+
+  .home-study-carousel .billboard-card-badge {
+    width: fit-content;
+    max-width: 100%;
+    overflow: visible;
+    padding: 7px 12px;
+    font-size: clamp(.68rem, 1vw, .85rem);
+    white-space: normal;
+  }
+
+  .home-study-carousel .billboard-card h2 {
+    max-width: 950px;
+    overflow: visible;
+    margin: 18px 0 14px;
+    font-size: clamp(2.5rem, 7vw, 6.8rem);
+    line-height: 1.04;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .home-study-carousel .billboard-card p {
+    display: block;
+    max-width: 64ch;
+    overflow: visible;
+    font-size: clamp(1rem, 1.8vw, 1.38rem);
+    line-height: 1.65;
+    -webkit-line-clamp: unset;
+  }
+
+  .home-study-carousel .billboard-card-action {
+    flex: 0 0 auto;
+    align-items: flex-start;
+    margin-left: clamp(32px, 8vw, 120px);
+  }
+
+  .home-study-carousel .billboard-card-cta {
+    min-height: 52px;
+    padding: 0 22px;
+    border-radius: 8px;
+    font-size: .9rem;
+  }
+
+  .home-study-carousel .billboard-utility {
+    position: absolute;
+    z-index: 50;
+    right: clamp(16px, 4vw, 56px);
+    bottom: clamp(16px, 4vh, 40px);
+  }
+
+  .home-study-carousel .billboard-count { color: rgba(255, 255, 255, .85); font-size: .76rem; }
+  .home-study-carousel .billboard-control { min-width: 38px; min-height: 36px; border-color: rgba(255, 255, 255, .38); background: rgba(10, 31, 29, .46); color: #fff; font-size: .82rem; }
+  .home-study-carousel .billboard-control:hover:not(:disabled) { border-color: #fff; background: rgba(255, 255, 255, .16); }
+  .home-study-carousel .billboard-card-cta:focus-visible,
+  .home-study-carousel .billboard-control:focus-visible { outline-color: #fff; }
+
+  @media (max-width: 760px) {
+    .home-study-carousel.study-billboard { min-height: max(620px, calc(100svh - 54px)); }
+    .home-study-carousel .billboard-card { gap: 26px; padding: 36px 25px 96px; }
+    .home-study-carousel .billboard-card h2 { font-size: clamp(2.35rem, 11vw, 4.4rem); }
+    .home-study-carousel .billboard-card p { max-width: 48ch; font-size: 1rem; }
+    .home-study-carousel .billboard-card-action { margin-left: 0; }
+    .home-study-carousel .billboard-utility { right: 18px; bottom: 18px; }
+  }
+
+  @media (max-width: 420px) {
+    .home-study-carousel .billboard-card { padding: 30px 18px 94px; }
+    .home-study-carousel .billboard-card h2 { font-size: clamp(2.1rem, 10vw, 3rem); }
+    .home-study-carousel .billboard-card p { font-size: .94rem; }
+    .home-study-carousel .billboard-control { min-width: 34px; min-height: 32px; }
+  }
+</style>

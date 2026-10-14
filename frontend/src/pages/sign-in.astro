@@ -1,0 +1,15 @@
+---
+import AuthPanel from '../components/AuthPanel';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import '../styles/auth.css';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const apiUrl = import.meta.env.PUBLIC_STUDY_HUB_API_URL?.trim() ?? '';
+---
+
+<SiteLayout
+  title="Sign in | Study Hub"
+  description="Sign in or create a Study Hub account to personalise your class and subject resources and get more relevant AI Study guidance."
+>
+  <AuthPanel client:load apiUrl={apiUrl} homeHref={base || '/'} />
+</SiteLayout>

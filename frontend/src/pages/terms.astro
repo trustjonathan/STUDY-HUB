@@ -1,58 +1,63 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+
+const home = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <SiteLayout
   title="Terms of Use | Study Hub"
-  description="Terms for accessing Study Hub learning resources, the document reader, AI study tools, and contribution features."
+  description="Terms for using Study Hub’s learning resources, document reader, AI study tools, and contribution features."
 >
   <main class="legal-page">
     <header class="legal-page-heading">
       <p class="eyebrow">Using the learning library</p>
       <h1>Terms of Use</h1>
-      <p>By using Study Hub, you agree to use the website and its learning materials responsibly and in accordance with these terms.</p>
-      <p class="policy-updated">Last updated <time datetime="2026-10-10">October 10, 2026</time></p>
+      <p>These terms explain the basic conditions for using Study Hub’s website, resources, and learning tools.</p>
+      <p class="policy-updated">Last updated <time datetime="2026-10-14">October 14, 2026</time></p>
     </header>
 
     <article class="legal-copy">
       <section>
-        <h2>1. About Study Hub</h2>
-        <p>Study Hub currently provides Biology, Chemistry, Mathematics, and Physics subject libraries, notes, past papers, document-reading tools, and related learning features. Other subject pages may be under development and are not represented as active resource libraries. The site is intended to support independent study; it is not a school, examining body, or substitute for advice from a qualified teacher.</p>
+        <h2>1. About the service</h2>
+        <p>Study Hub provides a public educational resource library, document-reading features, and optional study tools. The service supports independent learning and revision. It is not a school, examining body, or substitute for instruction from a qualified teacher or official academic requirements.</p>
       </section>
 
       <section>
-        <h2>2. Appropriate use</h2>
-        <p>Use Study Hub lawfully and in a way that does not disrupt the service or other learners. Do not attempt unauthorized access, interfere with the site or its security controls, misuse forms, distribute malware, or use the site to violate another person’s rights.</p>
-        <p>Do not copy, republish, sell, or distribute a resource unless you have permission or the law otherwise allows it. A file appearing in the library does not transfer ownership or grant a reuse licence.</p>
+        <h2>2. Learning materials and accuracy</h2>
+        <p>Resources are supplied for educational use. Syllabuses, examination requirements, descriptions, and available files can change, and materials may contain errors or be incomplete. Check important academic requirements with your school and the relevant education authorities.</p>
+        <p>Study Hub may update, restrict, move, or remove pages and resources to maintain the service or respond to a rights, safety, or operational concern. The site may be temporarily unavailable, and uninterrupted access is not guaranteed.</p>
       </section>
 
       <section>
-        <h2>3. Learning resources and availability</h2>
-        <p>Resources are provided for personal study and revision. Syllabuses, examination requirements, titles, and availability may change, and files or descriptions may contain errors. Check important academic requirements with your school and the relevant education authorities.</p>
-        <p>Study Hub may update, move, restrict, or remove a page or resource to maintain the library, address a rights concern, or protect the service. We aim to keep the site useful but do not promise uninterrupted availability or that every resource will remain accessible.</p>
+        <h2>3. Acceptable use</h2>
+        <p>Use Study Hub lawfully and without disrupting the service or other visitors. Do not attempt unauthorized access, interfere with site security or operation, misuse forms or tools, distribute malware, or use the service to violate another person’s rights.</p>
+        <p>Do not copy, sell, republish, or distribute a resource unless you have permission or applicable law allows it. A resource being available in the library does not itself grant a licence to reuse it.</p>
       </section>
 
       <section>
-        <h2>4. AI study companion</h2>
-        <p>The AI study companion generates explanations from the PDF page and question you provide. AI output can be incomplete, incorrect, or unsuitable for a particular syllabus. Check answers independently and do not treat them as official examination guidance or professional advice.</p>
-        <p>When you use the AI tool, the page image, question, and recent conversation context are processed by Study Hub’s AI service and an external AI provider. Do not submit confidential or personal information. See the <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/privacy.html`}>Privacy Policy</a>.</p>
+        <h2>4. Resource contributions</h2>
+        <p>Submit only materials you have the right to share. By submitting a resource for consideration, you confirm that you are permitted to provide it and allow Study Hub to receive and review it. If accepted, it may be included in the public library. A submission is not automatically published, and Study Hub may decline or remove it.</p>
+        <p>Do not include private or sensitive personal information in a resource, its description, or a suggestion. See the <a href={`${home}/privacy.html`}>Privacy Policy</a> and <a href={`${home}/copyright.html`}>Copyright Information</a>.</p>
       </section>
 
       <section>
-        <h2>5. Suggestions and resource contributions</h2>
-        <p>Submit only lawful content that you have the right to share. By offering a file, you confirm that you are permitted to provide it for review and possible inclusion in the library. A submission is not published automatically; Study Hub may review, decline, edit its catalogue description, or remove material.</p>
-        <p>Do not submit private or sensitive information through suggestions or resource forms. See the <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/copyright.html`}>Copyright Information</a> page for a way to raise a rights concern.</p>
+        <h2>5. Rights in resources</h2>
+        <p>Rights in original Study Hub material and third-party resources remain with their respective rights holders. These terms do not transfer ownership or grant permission to reuse material. See the <a href={`${home}/copyright.html`}>Copyright Information</a> page to raise a rights concern.</p>
       </section>
 
       <section>
-        <h2>6. External services and links</h2>
-        <p>Study Hub may link to or embed material operated by other organisations. Those services have their own terms, privacy practices, and availability. A link or embed does not mean Study Hub controls or endorses the external service.</p>
+        <h2>6. AI study tools</h2>
+        <p>AI-generated explanations can be inaccurate, incomplete, or unsuitable for your course. Check them against trusted learning materials and teacher guidance; do not treat them as official examination guidance or professional advice. When you submit an AI request, the page image, question, and recent conversation context are processed by Study Hub’s AI service and Google Gemini. See the <a href={`${home}/privacy.html`}>Privacy Policy</a> before using the feature.</p>
       </section>
 
       <section>
-        <h2>7. Changes and contact</h2>
-        <p>We may revise these terms as the site develops. The latest revision date appears above. Continued use after a revision means you accept the updated terms to the extent permitted by applicable law.</p>
-        <p>For questions about these terms, email <a href="mailto:trusteth777@gmail.com">trusteth777@gmail.com</a>.</p>
+        <h2>7. External services and advertising</h2>
+        <p>Some pages load or link to services operated by other organisations, including fonts, video, AI, hosting, catalogue, and advertising services. Those services have their own terms and privacy practices. Study Hub does not control their availability or policies. Google AdSense code is present on some subject pages; the handling of information by Google is described in Google’s own notices and settings.</p>
+      </section>
+
+      <section>
+        <h2>8. Changes and contact</h2>
+        <p>Study Hub may revise these terms as the service changes. The date above identifies the latest revision. Questions about these terms may be sent to <a href="mailto:trusteth777@gmail.com">trusteth777@gmail.com</a>.</p>
       </section>
     </article>
   </main>

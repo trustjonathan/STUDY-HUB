@@ -11,7 +11,7 @@ const config = {
 
   // JWT / Auth
   auth: {
-    jwtSecret: process.env.JWT_SECRET || 'supersecretkey',
+    jwtSecret: process.env.JWT_SECRET || '',
     tokenExpiry: process.env.JWT_EXPIRY || '7d',
   },
 

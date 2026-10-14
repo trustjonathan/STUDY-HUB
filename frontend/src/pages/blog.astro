@@ -1,0 +1,299 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const articles = [
+  {
+    id: 'make-past-papers-count',
+    category: 'Exam preparation',
+    readingTime: '4 min read',
+    title: 'Make past papers count',
+    excerpt: 'Use practice questions to find the next topic to revise, not only to measure what you already know.',
+    paragraphs: [
+      'Before you begin, choose a paper that matches the level and subject you are studying. Set aside a realistic block of time, keep your notes closed for the first attempt, and mark any question you are unsure about.',
+      'After the attempt, review each answer carefully. When an official marking guide is available, use it to understand the expected method and wording. If one is not available, ask a teacher to check questions where accuracy matters.',
+      'Turn each mistake into a small next step: revisit the relevant idea, practise a similar question, then try the original question again later. A short record of topics to revisit is often more useful than simply counting a score.'
+    ],
+    link: `${base}/subjects.html`,
+    linkText: 'Explore subject libraries'
+  },
+  {
+    id: 'read-notes-actively',
+    category: 'Study skills',
+    readingTime: '3 min read',
+    title: 'Read notes actively',
+    excerpt: 'A simple recall routine can help turn reading time into a better check of your understanding.',
+    paragraphs: [
+      'Start with a short section rather than trying to memorise an entire chapter at once. Read it to understand the main idea, then pause and look away from the page.',
+      'Write down or explain the key points from memory. Compare your explanation with the notes, correct anything missing or unclear, and make a question to revisit later. This reveals gaps that can be easy to miss when you only reread.',
+      'Return to the question after a break and again on another day. Keep the review sessions manageable, and use worked examples or a teacher’s explanation when a step still does not make sense.'
+    ],
+    link: `${base}/library.html`,
+    linkText: 'Find notes in the library'
+  },
+  {
+    id: 'find-the-right-resource',
+    category: 'Using Study Hub',
+    readingTime: '3 min read',
+    title: 'Find the right resource for your class',
+    excerpt: 'A few checks can make searching the Study Hub library faster and help you choose material that fits.',
+    paragraphs: [
+      'Begin with the class or level you are studying, then narrow by subject or resource type where those filters are available. If a search gives too few results, try a shorter topic or title and remove one filter at a time.',
+      'Before opening a file, check its title and the details shown for its subject, class, year, and source. Collections vary, so not every class or subject will have the same kinds or number of materials.',
+      'Use the reader to work through the document at your own pace. If a resource seems incomplete or difficult to interpret, check with your teacher and use the Library Guide for an overview of the site.'
+    ],
+    link: `${base}/library-guide.html`,
+    linkText: 'Read the Library Guide'
+  }
+];
+---
+
+<SiteLayout
+  title="Study Hub Blog | Study Skills, Exam Preparation & Library Tips"
+  description="Practical study strategies, exam preparation ideas, and guidance for making better use of the Study Hub learning library."
+>
+  <main class="blog-page">
+    <header class="blog-hero">
+      <div class="blog-hero-copy">
+        <p class="blog-eyebrow">The Study Hub Blog</p>
+        <h1>Small ideas for stronger study.</h1>
+        <p>Practical guidance for learners and educators: prepare for exams, make notes useful, and find the right learning resources.</p>
+        <div class="blog-hero-actions">
+          <a class="blog-primary-link" href="#featured-articles">Explore the articles <span aria-hidden="true">→</span></a>
+          <a class="blog-secondary-link" href={`${base}/subjects.html`}>Browse subjects</a>
+        </div>
+      </div>
+      <aside class="blog-hero-note" aria-label="About the Study Hub Blog">
+        <span class="blog-note-mark" aria-hidden="true">SH</span>
+        <p class="blog-eyebrow">Learn · reflect · repeat</p>
+        <p>Clear, practical ideas to help you take your next step with confidence.</p>
+        <a href={`${base}/library.html`}>Go to the library <span aria-hidden="true">↗</span></a>
+      </aside>
+    </header>
+
+    <section class="blog-featured" id="featured-articles" aria-labelledby="blog-featured-heading">
+      <div class="blog-section-heading">
+        <div>
+          <p class="blog-eyebrow">Ideas for your next session</p>
+          <h2 id="blog-featured-heading">Featured articles</h2>
+        </div>
+        <p>Use these guides as starting points, then adapt the suggestions to your subject, class, and teacher’s guidance.</p>
+      </div>
+      <div class="blog-card-grid">
+        {articles.map((article, index) => (
+          <a class="blog-card" href={`#${article.id}`}>
+            <span class="blog-card-index">{String(index + 1).padStart(2, '0')}</span>
+            <span class="blog-card-category">{article.category}</span>
+            <h3>{article.title}</h3>
+            <p>{article.excerpt}</p>
+            <span class="blog-card-footer">{article.readingTime}<span aria-hidden="true">Read article →</span></span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="blog-article-list" aria-label="Study Hub articles">
+      {articles.map((article, index) => (
+        <article class="blog-article" id={article.id}>
+          <div class="blog-article-aside">
+            <p class="blog-eyebrow">{article.category}</p>
+            <span>{article.readingTime}</span>
+            <span class="blog-article-number">{String(index + 1).padStart(2, '0')}</span>
+          </div>
+          <div class="blog-article-content">
+            <h2>{article.title}</h2>
+            <p class="blog-article-intro">{article.excerpt}</p>
+            {article.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+            <a href={article.link}>{article.linkText} <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <aside class="blog-bottom-callout">
+      <div>
+        <p class="blog-eyebrow">Keep learning</p>
+        <h2>Choose your next step.</h2>
+        <p>Browse a subject, find a resource in the library, or learn how the Study Hub tools work.</p>
+      </div>
+      <nav aria-label="Continue learning">
+        <a href={`${base}/subjects.html`}>Subjects <span aria-hidden="true">↗</span></a>
+        <a href={`${base}/library.html`}>Library <span aria-hidden="true">↗</span></a>
+        <a href={`${base}/documentation.html`}>Documentation <span aria-hidden="true">↗</span></a>
+      </nav>
+    </aside>
+  </main>
+</SiteLayout>
+
+<style>
+  .blog-page {
+    width: min(calc(100% - 2rem), 76rem);
+    max-width: none;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) 0 5rem;
+    color: #273a30;
+  }
+  .blog-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(230px, .55fr);
+    gap: clamp(24px, 5vw, 72px);
+    align-items: center;
+    padding: clamp(28px, 6vw, 76px);
+    border: 1px solid #d8ded5;
+    border-radius: 28px;
+    background: linear-gradient(125deg, #fffefa 0%, #f0f5ef 68%, #e7f0e8 100%);
+  }
+  .blog-eyebrow {
+    margin: 0 0 12px;
+    color: #28704d;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .blog-hero h1 {
+    max-width: 14ch;
+    margin: 0;
+    color: #21382e;
+    font: 800 clamp(2.6rem, 6vw, 5rem)/1.03 Manrope, sans-serif;
+    letter-spacing: -.055em;
+  }
+  .blog-hero-copy > p:not(.blog-eyebrow) {
+    max-width: 58ch;
+    margin: 20px 0 0;
+    color: #596b60;
+    font-size: clamp(1rem, 1.6vw, 1.15rem);
+    line-height: 1.75;
+  }
+  .blog-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .blog-hero-actions a {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 17px;
+    border-radius: 8px;
+    font-size: .87rem;
+    font-weight: 750;
+    text-decoration: none;
+  }
+  .blog-primary-link { background: #246b49; color: #fffefa; }
+  .blog-primary-link:hover { background: #18583a; }
+  .blog-secondary-link { border: 1px solid #c8d3c8; color: #2f5941; }
+  .blog-secondary-link:hover { background: #e8f0e8; }
+  .blog-hero-note {
+    padding: 25px;
+    border: 1px solid rgba(185, 201, 186, .8);
+    border-radius: 18px;
+    background: rgba(255, 254, 250, .72);
+  }
+  .blog-note-mark {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    margin-bottom: 24px;
+    border-radius: 15px;
+    background: #1d4937;
+    color: white;
+    font: 800 .85rem Manrope, sans-serif;
+    letter-spacing: .08em;
+  }
+  .blog-hero-note > p:not(.blog-eyebrow) { margin: 0; color: #30473b; font: 700 1.25rem/1.45 Manrope, sans-serif; }
+  .blog-hero-note > a { display: inline-flex; gap: 8px; margin-top: 22px; color: #28704d; font-size: .85rem; font-weight: 750; text-decoration: none; }
+  .blog-featured { padding: clamp(44px, 7vw, 82px) 0 48px; }
+  .blog-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 24px; }
+  .blog-section-heading .blog-eyebrow { margin-bottom: 8px; }
+  .blog-section-heading h2, .blog-bottom-callout h2 {
+    margin: 0;
+    color: #243a2f;
+    font: 800 clamp(1.8rem, 3vw, 2.5rem)/1.15 Manrope, sans-serif;
+    letter-spacing: -.035em;
+  }
+  .blog-section-heading > p { max-width: 49ch; margin: 0; color: #617066; font-size: .9rem; line-height: 1.7; }
+  .blog-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .blog-card {
+    position: relative;
+    display: flex;
+    min-height: 265px;
+    flex-direction: column;
+    padding: 24px;
+    border: 1px solid #dce3da;
+    border-radius: 15px;
+    background: #fffefa;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  }
+  .blog-card:hover { transform: translateY(-3px); border-color: #a9c4ad; box-shadow: 0 14px 32px rgba(31, 61, 44, .08); }
+  .blog-card-index { position: absolute; top: 21px; right: 22px; color: #a6b5a9; font: 800 .8rem Manrope, sans-serif; }
+  .blog-card-category { color: #28704d; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .blog-card h3 { max-width: 18ch; margin: 20px 0 10px; color: #293d32; font: 800 1.28rem/1.25 Manrope, sans-serif; }
+  .blog-card > p { margin: 0 0 24px; color: #627067; font-size: .86rem; line-height: 1.65; }
+  .blog-card-footer { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: auto; color: #77847a; font-size: .72rem; }
+  .blog-card-footer span { color: #286b49; font-weight: 750; }
+  .blog-article-list { display: grid; gap: 14px; }
+  .blog-article {
+    display: grid;
+    grid-template-columns: minmax(140px, .35fr) minmax(0, 1.65fr);
+    gap: clamp(24px, 5vw, 72px);
+    padding: clamp(24px, 4vw, 42px);
+    border: 1px solid #dce3da;
+    border-radius: 16px;
+    background: #fffefa;
+    scroll-margin-top: 78px;
+  }
+  .blog-article-aside { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .blog-article-aside .blog-eyebrow { margin: 0; }
+  .blog-article-aside > span:not(.blog-article-number) { color: #758278; font-size: .76rem; }
+  .blog-article-number { margin-top: auto; color: #d6dfd6; font: 800 clamp(2rem, 5vw, 3.2rem)/1 Manrope, sans-serif; }
+  .blog-article-content h2 { margin: 0; color: #263b30; font: 800 clamp(1.45rem, 2.6vw, 2rem)/1.2 Manrope, sans-serif; letter-spacing: -.025em; }
+  .blog-article-content > p { max-width: 75ch; color: #5c6b61; font-size: .92rem; line-height: 1.75; }
+  .blog-article-content .blog-article-intro { color: #344a3c; font-size: 1rem; font-weight: 650; }
+  .blog-article-content > a { display: inline-flex; gap: 8px; margin-top: 8px; color: #246b49; font-size: .85rem; font-weight: 750; text-decoration: none; }
+  .blog-bottom-callout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    margin-top: 28px;
+    padding: clamp(24px, 4vw, 40px);
+    border-radius: 16px;
+    background: #1c3f32;
+    color: #f8faf6;
+  }
+  .blog-bottom-callout .blog-eyebrow { color: #a8d4b4; }
+  .blog-bottom-callout h2 { color: #fffefa; }
+  .blog-bottom-callout > div > p:last-child { max-width: 54ch; margin: 10px 0 0; color: #d2dfd4; font-size: .88rem; line-height: 1.65; }
+  .blog-bottom-callout nav { display: flex; flex-wrap: wrap; gap: 8px; }
+  .blog-bottom-callout nav a { display: inline-flex; min-height: 38px; align-items: center; gap: 8px; padding: 0 11px; border: 1px solid rgba(255, 255, 255, .24); border-radius: 7px; color: white; font-size: .78rem; font-weight: 700; text-decoration: none; }
+  .blog-bottom-callout nav a:hover { background: rgba(255, 255, 255, .1); }
+  .blog-page a:focus-visible { outline: 3px solid #d38b43; outline-offset: 3px; }
+  @media (max-width: 800px) {
+    .blog-hero { grid-template-columns: minmax(0, 1fr); }
+    .blog-hero-note { display: grid; grid-template-columns: 48px minmax(0, 1fr); column-gap: 16px; align-items: center; }
+    .blog-note-mark { grid-row: span 2; margin: 0; }
+    .blog-hero-note .blog-eyebrow { margin: 0; }
+    .blog-hero-note > p:not(.blog-eyebrow) { grid-column: 2; font-size: 1.05rem; }
+    .blog-hero-note > a { grid-column: 2; margin-top: 12px; }
+    .blog-card-grid { grid-template-columns: 1fr; }
+    .blog-card { min-height: 0; }
+    .blog-card h3 { margin-top: 12px; }
+    .blog-article { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .blog-article-number { display: none; }
+    .blog-bottom-callout { align-items: flex-start; flex-direction: column; }
+  }
+  @media (max-width: 520px) {
+    .blog-page { width: min(calc(100% - 1.25rem), 76rem); padding-top: 1.25rem; }
+    .blog-hero { gap: 24px; padding: 24px 20px; border-radius: 18px; }
+    .blog-hero h1 { font-size: clamp(2.25rem, 12vw, 3.25rem); }
+    .blog-hero-actions { align-items: stretch; flex-direction: column; }
+    .blog-hero-actions a { justify-content: center; }
+    .blog-section-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
+    .blog-card { padding: 20px; }
+    .blog-article { padding: 22px 20px; }
+    .blog-bottom-callout nav { flex-direction: column; width: 100%; }
+  }
+</style>

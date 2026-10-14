@@ -10,7 +10,7 @@ const identityController = require('../controllers/identityController');
 const authMiddleware = require('../../middleware/authMiddleware');
 
 // Validators
-const { validateRegister, validateLogin } = require('../validators/identityValidator');
+const { validateRegister, validateLogin, validateProfileUpdate } = require('../validators/identityValidator');
 
 // ----------------------
 // Public Routes
@@ -26,7 +26,7 @@ router.post('/login', validateLogin, identityController.loginUser);
 
 router.get('/profile', authMiddleware.verifyToken, identityController.getProfile);
 
-router.put('/profile', authMiddleware.verifyToken, identityController.updateProfile);
+router.put('/profile', authMiddleware.verifyToken, validateProfileUpdate, identityController.updateProfile);
 
 router.post('/reputation/:userId', identityController.updateReputation);
 

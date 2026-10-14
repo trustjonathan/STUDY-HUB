@@ -1,6 +1,6 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import { availableSubjects } from '../data/availableSubjects';
+import { availableSubjects, subjectsUnderDevelopment } from '../data/availableSubjects';
 import { subjectCategories } from '../data/subjectCategories';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -8,73 +8,244 @@ const categories = subjectCategories.map((category) => ({
   ...category,
   subjects: availableSubjects.filter((subject) => subject.category === category.id)
 })).filter((category) => category.subjects.length > 0);
+const subjectCatalogCount = availableSubjects.length + subjectsUnderDevelopment.length;
 ---
 
 <SiteLayout
-  title="Browse Subjects | Study Hub"
-  description="Browse Study Hub's available Biology, Chemistry, Mathematics, and Physics learning resources."
+  title="Subjects, Classes & Learning Resources | Study Hub"
+  description={`Explore Study Hub's ${availableSubjects.length} currently available subject libraries, class levels, notes, past papers, and teaching resources.`}
 >
   <main class="subjects-directory">
-    <header class="directory-intro">
-      <p class="eyebrow">Find a subject</p>
-      <h1>Browse available subjects</h1>
-      <p>Explore the four subject libraries currently available. Other subject pages are being prepared.</p>
+    <header class="directory-intro guide-hero">
+      <p class="eyebrow">Study Hub · Learning guide</p>
+      <h1>Find the right resources for your learning journey.</h1>
+      <p>
+        Study Hub brings school learning resources together in one searchable library: choose a class,
+        explore an available subject, and find notes, exam papers, and teaching materials where they
+        are available.
+      </p>
+      <div class="guide-stats" aria-label="Current subject availability">
+        <div><strong>{availableSubjects.length}</strong><span>subjects available now</span></div>
+        <div><strong>{subjectCatalogCount}</strong><span>subjects in the catalog</span></div>
+        <div><strong>{subjectsUnderDevelopment.length}</strong><span>being prepared</span></div>
+      </div>
+      <nav class="guide-actions" aria-label="Subject guide actions">
+        <a class="guide-primary-link" href="#available-subjects">Explore available subjects <span aria-hidden="true">→</span></a>
+        <a href={`${base}/library.html`}>Browse the library</a>
+      </nav>
+      <p class="guide-availability-note">
+        Catalog totals describe subject pages, not the number of individual files. Only subjects
+        marked available below have a live public subject page; preparation is not a promise of a
+        launch date.
+      </p>
     </header>
 
-    <section class="directory-controls" aria-label="Filter subjects">
-      <label class="directory-search-label" for="subject-search">Search subjects</label>
-      <input id="subject-search" type="search" placeholder="Search subjects..." autocomplete="off" data-subject-search />
-      <div class="category-filters" role="group" aria-label="Subject category filters">
-        <button type="button" class="category-filter is-active" data-category-filter="all" aria-pressed="true">
-          All <span>{availableSubjects.length}</span>
-        </button>
-        {categories.map((category) => (
-          <button type="button" class="category-filter" data-category-filter={category.id} aria-pressed="false">
-            {category.filterLabel} <span>{category.subjects.length}</span>
-          </button>
-        ))}
-      </div>
-      <p class="directory-result-count" data-result-count aria-live="polite">Showing {availableSubjects.length} subjects</p>
-    </section>
-
-    <nav class="directory-jump-nav" aria-label="Jump to subject category">
-      {categories.map((category) => (
-        <a href={`#${category.id}`}>{category.label}</a>
-      ))}
+    <nav class="guide-toc" aria-label="On this page">
+      <a href="#how-it-works">How Study Hub works</a>
+      <a href="#classes-levels">Classes &amp; levels</a>
+      <a href="#resources">Resource types</a>
+      <a href="#available-subjects">Available subjects</a>
+      <a href="#university">University learning</a>
+      <a href="#using-resources">Using resources well</a>
     </nav>
 
-    <div class="directory-groups">
-      {categories.map((category) => (
-        <section class="directory-category" id={category.id} data-category-section={category.id} aria-labelledby={`${category.id}-heading`}>
-          <div class="directory-category-heading">
-            <div>
-              <p class="eyebrow">{category.filterLabel}</p>
-              <h2 id={`${category.id}-heading`}>{category.label}</h2>
+    <section class="guide-section" id="how-it-works" aria-labelledby="how-it-works-heading">
+      <div class="guide-section-heading">
+        <p class="eyebrow">01 · The service</p>
+        <h2 id="how-it-works-heading">A library for learners and educators</h2>
+      </div>
+      <p>
+        Study Hub helps learners find revision material and gives teachers and other educators a
+        place to discover useful classroom resources. Browse by class or subject, search descriptive
+        details, then open a resource in the document reader. The Study Assistant can also help
+        explain a topic, but it is a study aid rather than an official source or a replacement for
+        teaching.
+      </p>
+      <div class="guide-feature-grid">
+        <article class="guide-feature">
+          <span class="guide-feature-number">01</span>
+          <h3>Choose where you are studying</h3>
+          <p>Start with a class shelf or go directly to one of the public subject libraries.</p>
+        </article>
+        <article class="guide-feature">
+          <span class="guide-feature-number">02</span>
+          <h3>Find a useful resource</h3>
+          <p>Look for notes, papers, guides, and other materials using the available search and filters.</p>
+        </article>
+        <article class="guide-feature">
+          <span class="guide-feature-number">03</span>
+          <h3>Study and check your understanding</h3>
+          <p>Read at your own pace, practise with questions, and verify important information with your teacher.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="guide-section" id="classes-levels" aria-labelledby="classes-levels-heading">
+      <div class="guide-section-heading">
+        <p class="eyebrow">02 · Learning stages</p>
+        <h2 id="classes-levels-heading">Classes and levels</h2>
+      </div>
+      <p>
+        The library’s class shelves are arranged to help you browse from early learning through
+        primary and secondary school. The current class browser includes:
+      </p>
+      <div class="guide-level-grid">
+        <article><h3>Early childhood</h3><p>Baby Class, Middle Class, and Top Class.</p></article>
+        <article><h3>Primary</h3><p>Primary 1 through Primary 7 (P.1–P.7).</p></article>
+        <article><h3>O-Level · lower secondary</h3><p>Senior 1 through Senior 4 (S.1–S.4).</p></article>
+        <article><h3>A-Level · upper secondary</h3><p>Senior 5 and Senior 6 (S.5–S.6).</p></article>
+      </div>
+      <p class="guide-callout">
+        Class shelves describe how the library is organised; they do not mean that every subject or
+        class already has a complete collection. Subject pages currently cover O-Level and A-Level
+        materials for the four available subjects. Check each resource’s details and level before
+        using it.
+      </p>
+    </section>
+
+    <section class="guide-section" id="resources" aria-labelledby="resources-heading">
+      <div class="guide-section-heading">
+        <p class="eyebrow">03 · What you can find</p>
+        <h2 id="resources-heading">Papers, notes, and teaching materials</h2>
+      </div>
+      <p>
+        Resources are added and described over time. What appears depends on the subject, class,
+        source, and material currently available; use the library search and the details on each
+        item to confirm it suits your needs.
+      </p>
+      <div class="guide-resource-list">
+        <article>
+          <h3>Past and practice papers</h3>
+          <p>Use examination papers and practice questions to revisit topics, practise timing, and identify what to study next. Check the level, year, and examination source when those details are shown.</p>
+        </article>
+        <article>
+          <h3>Subject notes and study guides</h3>
+          <p>Review explanations and topic-based material alongside your class notes and current course guidance.</p>
+        </article>
+        <article>
+          <h3>Teachers’ guides</h3>
+          <p>Where published, teaching guides can support lesson preparation and help educators explore approaches to a subject.</p>
+        </article>
+        <article>
+          <h3>Schemes of work</h3>
+          <p>Where available, schemes of work can help with planning topics across a period. Always compare a scheme with your school’s calendar, syllabus, and current teacher guidance.</p>
+        </article>
+        <article>
+          <h3>Other learning materials</h3>
+          <p>The library may also include reference documents and supplementary resources. Resource labels and descriptions can vary by source.</p>
+        </article>
+      </div>
+      <p class="guide-callout">
+        A resource being listed does not mean it is an official, complete, or current syllabus.
+        Follow your school’s programme and the latest guidance from your teacher or examining body.
+      </p>
+    </section>
+
+    <section class="guide-section" id="available-subjects" aria-labelledby="available-subjects-heading">
+      <div class="guide-section-heading">
+        <p class="eyebrow">04 · Public subject libraries</p>
+        <h2 id="available-subjects-heading">{availableSubjects.length} subjects available now</h2>
+        <p>
+          These are the subject pages currently published with a resource library. Subject coverage
+          and file availability can differ by level and topic.
+        </p>
+      </div>
+
+      <section class="directory-controls" aria-label="Filter available subjects">
+        <label class="directory-search-label" for="subject-search">Search available subjects</label>
+        <input id="subject-search" type="search" placeholder="Search subjects..." autocomplete="off" data-subject-search />
+        <div class="category-filters" role="group" aria-label="Subject category filters">
+          <button type="button" class="category-filter is-active" data-category-filter="all" aria-pressed="true">
+            All <span>{availableSubjects.length}</span>
+          </button>
+          {categories.map((category) => (
+            <button type="button" class="category-filter" data-category-filter={category.id} aria-pressed="false">
+              {category.filterLabel} <span>{category.subjects.length}</span>
+            </button>
+          ))}
+        </div>
+        <p class="directory-result-count" data-result-count aria-live="polite">Showing {availableSubjects.length} subjects</p>
+      </section>
+
+      <nav class="directory-jump-nav" aria-label="Jump to subject category">
+        {categories.map((category) => (
+          <a href={`#${category.id}`}>{category.label}</a>
+        ))}
+      </nav>
+
+      <div class="directory-groups">
+        {categories.map((category) => (
+          <section class="directory-category" id={category.id} data-category-section={category.id} aria-labelledby={`${category.id}-heading`}>
+            <div class="directory-category-heading">
+              <div>
+                <p class="eyebrow">{category.filterLabel}</p>
+                <h3 id={`${category.id}-heading`}>{category.label}</h3>
+              </div>
+              <p>{category.description}</p>
             </div>
-            <p>{category.description}</p>
-          </div>
-          <div class="directory-subject-grid">
-            {category.subjects.map((subject) => (
-              <article
-                class="directory-subject"
-                data-subject-card
-                data-category={category.id}
-                data-search={`${subject.name} ${subject.focus} ${subject.description}`.toLowerCase()}
-              >
-                <span class="directory-subject-icon" aria-hidden="true">{subject.icon}</span>
-                <div>
-                  <h3><a href={`${base}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></h3>
-                  <p>{subject.description}</p>
-                  <span class="directory-subject-levels">{subject.tracks.join(' · ')}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ))}
-      <p class="directory-no-results" data-no-results hidden>No subjects match that search. Try another term or category.</p>
-    </div>
-    <p class="directory-development-note">Looking for another subject? See <a href={`${base}/under-development.html`}>pages under development</a>.</p>
+            <div class="directory-subject-grid">
+              {category.subjects.map((subject) => (
+                <article
+                  class="directory-subject"
+                  data-subject-card
+                  data-category={category.id}
+                  data-search={`${subject.name} ${subject.focus} ${subject.description} ${subject.tracks.join(' ')}`.toLowerCase()}
+                >
+                  <span class="directory-subject-icon" aria-hidden="true">{subject.icon}</span>
+                  <div>
+                    <h4><a href={`${base}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></h4>
+                    <p>{subject.description}</p>
+                    <span class="directory-subject-levels">{subject.tracks.join(' · ')}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+        <p class="directory-no-results" data-no-results hidden>No available subjects match that search. Try another term or category.</p>
+      </div>
+      <p class="directory-development-note">
+        The full catalog also lists {subjectsUnderDevelopment.length} subjects being prepared. They
+        are not public subject libraries yet. <a href={`${base}/under-development.html`}>See the current development list</a>.
+      </p>
+    </section>
+
+    <section class="guide-section guide-university" id="university" aria-labelledby="university-heading">
+      <div class="guide-section-heading">
+        <p class="eyebrow">05 · Future expansion</p>
+        <h2 id="university-heading">University learning is planned</h2>
+      </div>
+      <p>
+        Study Hub is planning to expand beyond school resources to include university-level work.
+        University materials are not yet part of the public subject catalog. As this collection is
+        developed, it can be organised around programmes and courses, year or semester, topic, and
+        resource type so that students can find relevant material without mixing it up with
+        school-level content.
+      </p>
+      <p>
+        If you have a university subject or type of resource you would like prioritised, <a href={`${base}/community-chat.html`}>send a suggestion</a>.
+        Please share only material you have permission to distribute.
+      </p>
+    </section>
+
+    <section class="guide-section" id="using-resources" aria-labelledby="using-resources-heading">
+      <div class="guide-section-heading">
+        <p class="eyebrow">06 · Study responsibly</p>
+        <h2 id="using-resources-heading">Make the most of each resource</h2>
+      </div>
+      <ol class="guide-checklist">
+        <li><strong>Check the context.</strong> Confirm the subject, class or level, year, and source where those details are available.</li>
+        <li><strong>Use papers for practice.</strong> Attempt questions before checking solutions, and review mistakes against your class notes.</li>
+        <li><strong>Compare teaching materials.</strong> Adapt guides and schemes to the syllabus and schedule followed by your school.</li>
+        <li><strong>Verify important information.</strong> Resources can differ in date, format, and completeness; ask your teacher when something is unclear.</li>
+        <li><strong>Use AI thoughtfully.</strong> Treat generated explanations as study support, check them against trusted materials, and do not submit personal or confidential information.</li>
+      </ol>
+      <div class="guide-end-links">
+        <a class="guide-primary-link" href={`${base}/library.html`}>Open the library <span aria-hidden="true">→</span></a>
+        <a href={`${base}/documentation.html`}>Read the site documentation</a>
+        <a href={`${base}/privacy.html`}>Review the privacy policy</a>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -123,3 +294,152 @@ const categories = subjectCategories.map((category) => ({
     updateSubjectList();
   </script>
 </SiteLayout>
+
+<style>
+  .guide-hero {
+    padding: clamp(2rem, 5vw, 3.5rem);
+    border: 1px solid #d8ded5;
+    background: linear-gradient(135deg, #fffefa 0%, #f3f7f1 100%);
+  }
+
+  .guide-hero h1 {
+    max-width: 18ch;
+    font-family: Manrope, sans-serif;
+    font-size: clamp(2.15rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .guide-hero > p:not(.eyebrow) {
+    max-width: 68ch;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .guide-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 2rem;
+    border: 1px solid #d8ded5;
+    background: rgba(255, 254, 250, .8);
+  }
+
+  .guide-stats > div {
+    display: grid;
+    min-width: 150px;
+    gap: 3px;
+    padding: 14px 20px;
+    border-right: 1px solid #d8ded5;
+  }
+
+  .guide-stats > div:last-child { border-right: 0; }
+  .guide-stats strong { color: #246b49; font: 800 1.5rem/1.1 Manrope, sans-serif; }
+  .guide-stats span { color: #617068; font-size: .75rem; }
+
+  .guide-actions, .guide-end-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-top: 1.25rem;
+  }
+
+  .guide-actions a, .guide-end-links a {
+    color: #285c3e;
+    font-size: .86rem;
+    font-weight: 700;
+    text-underline-offset: 3px;
+  }
+
+  .guide-actions .guide-primary-link, .guide-end-links .guide-primary-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 16px;
+    border-radius: 4px;
+    background: #246b49;
+    color: #fffefa;
+    text-decoration: none;
+  }
+
+  .guide-availability-note { color: #718078 !important; font-size: .78rem !important; }
+
+  .guide-toc {
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    display: flex;
+    gap: 4px;
+    margin: 0 -4px;
+    padding: 10px 4px;
+    overflow-x: auto;
+    border-bottom: 1px solid #d8ded5;
+    background: rgba(244, 245, 239, .97);
+    scrollbar-width: thin;
+  }
+
+  .guide-toc a {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    color: #435b4b;
+    font-size: .76rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .guide-toc a:hover, .guide-toc a:focus-visible { color: #246b49; text-decoration: underline; text-underline-offset: 3px; }
+
+  .guide-section {
+    padding: clamp(2.5rem, 5vw, 4rem) 0;
+    scroll-margin-top: 64px;
+    border-bottom: 1px solid #d8ded5;
+  }
+
+  .guide-section > p, .guide-section-heading > p:last-child {
+    max-width: 78ch;
+    color: #53645a;
+    font-size: .94rem;
+    line-height: 1.75;
+  }
+
+  .guide-section-heading { margin-bottom: 18px; }
+  .guide-section-heading .eyebrow { margin-bottom: 6px; }
+  .guide-section-heading h2 { margin: 0; color: #293b32; font: 800 clamp(1.45rem, 3vw, 2rem)/1.2 Manrope, sans-serif; }
+  .guide-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 22px; border: 1px solid #d8ded5; background: #fffefa; }
+  .guide-feature { padding: 22px; border-right: 1px solid #d8ded5; }
+  .guide-feature:last-child { border-right: 0; }
+  .guide-feature-number { color: #246b49; font: 800 .7rem/1 Manrope, sans-serif; letter-spacing: .12em; }
+  .guide-feature h3, .guide-level-grid h3, .guide-resource-list h3 { margin: 12px 0 7px; color: #293b32; font: 700 1rem/1.35 Manrope, sans-serif; }
+  .guide-feature p, .guide-level-grid p, .guide-resource-list p { margin: 0; color: #617068; font-size: .82rem; line-height: 1.65; }
+  .guide-level-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 20px; border-top: 1px solid #d8ded5; border-left: 1px solid #d8ded5; background: #fffefa; }
+  .guide-level-grid article { padding: 18px; border-right: 1px solid #d8ded5; border-bottom: 1px solid #d8ded5; }
+  .guide-level-grid h3 { margin-top: 0; }
+  .guide-resource-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 20px; border-top: 1px solid #d8ded5; border-left: 1px solid #d8ded5; background: #fffefa; }
+  .guide-resource-list article { padding: 20px; border-right: 1px solid #d8ded5; border-bottom: 1px solid #d8ded5; }
+  .guide-resource-list h3 { margin-top: 0; }
+  .guide-callout { margin-top: 20px; padding: 16px 18px; border-left: 3px solid #6b9478; background: #edf4ec; color: #435b4b !important; }
+  .guide-checklist { display: grid; gap: 12px; max-width: 80ch; padding-left: 22px; color: #53645a; font-size: .9rem; line-height: 1.7; }
+  .guide-checklist li::marker { color: #246b49; font-weight: 800; }
+  .guide-checklist strong { color: #293b32; }
+  .guide-university { padding-inline: clamp(1.25rem, 4vw, 2rem); border: 1px solid #d8ded5; border-top: 3px solid #6b9478; background: #fffefa; }
+  .guide-university + .guide-section { border-top: 0; }
+  .directory-development-note { margin-top: 20px; padding: 16px; background: #f0f5ef; color: #53645a; font-size: .86rem; line-height: 1.65; }
+  .directory-development-note a { color: #285c3e; font-weight: 700; }
+
+  @media (max-width: 700px) {
+    .guide-feature-grid { grid-template-columns: 1fr; }
+    .guide-feature { border-right: 0; border-bottom: 1px solid #d8ded5; }
+    .guide-feature:last-child { border-bottom: 0; }
+    .guide-stats > div { flex: 1 1 40%; }
+    .guide-stats > div:nth-child(2) { border-right: 0; }
+    .guide-stats > div:last-child { border-top: 1px solid #d8ded5; }
+  }
+
+  @media (max-width: 520px) {
+    .guide-level-grid, .guide-resource-list { grid-template-columns: 1fr; }
+    .guide-stats > div { min-width: 0; padding: 12px; }
+  }
+</style>

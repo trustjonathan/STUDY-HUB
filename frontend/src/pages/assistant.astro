@@ -1,0 +1,28 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import StudyWorkspace from '../components/StudyWorkspace';
+import '../styles/workspace.css';
+
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<SiteLayout title="Study Assistant | Study Hub" description="Ask Study Hub's AI tutor a question or explore a topic with a clear, exam-focused explanation.">
+  <div class="assistant-shell">
+    <StudyWorkspace
+      client:load
+      homeHref={`${base}`}
+      libraryHref={`${base}library.html`}
+      documentationHref={`${base}documentation.html`}
+      legalHref={`${base}legal.html`}
+    />
+  </div>
+</SiteLayout>
+
+<style>
+  /* Full-height workspace shell so the sidebar + prompt bar behave like an app. */
+  :global(main) { display: block; }
+  .assistant-shell {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+  }
+</style>

@@ -1,0 +1,41 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import DynamicLessonViewer from '../../components/DynamicLessonViewer';
+import { lessonTopics, findTopic } from '../../data/lessonTopics';
+import '../../styles/learn.css';
+
+export function getStaticPaths() {
+  return lessonTopics.map((topic) => ({
+    params: { slug: topic.slug },
+    props: { topic }
+  }));
+}
+
+const { topic } = Astro.props as { topic: { slug: string; title: string; subject: string } };
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const known = findTopic(topic.slug);
+---
+
+<SiteLayout title={`${topic.title} – AI Study Guide | Study Hub`} description={`An AI-generated study guide on ${topic.title} for ${topic.subject} learners.`}>
+  <main class="lesson-page">
+    <nav class="lesson-back">
+      <a href={`${base}learn.html`}>← Back to AI Library</a>
+    </nav>
+
+    <header class="lesson-header">
+      <span class="lesson-subject">{known?.subject ?? 'Study Hub'}</span>
+      <h1 class="capitalize">{topic.title}</h1>
+      <p class="lesson-tagline">A focused, exam-useful breakdown generated on demand.</p>
+    </header>
+
+    <DynamicLessonViewer client:load topic={topic.title} />
+
+    <footer class="lesson-footer">
+      Powered by Study Hub &amp; the Gemini AI Engine. Always check explanations against your notes and teacher’s guidance.
+    </footer>
+  </main>
+</SiteLayout>
+
+<style>
+  /* Page-specific styles live in ../styles/learn.css (imported in frontmatter). */
+</style>

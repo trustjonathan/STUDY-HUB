@@ -83,6 +83,37 @@
 .ela-contribute-toggle[aria-expanded="true"] { border-color: rgba(125, 211, 252, .5); background: #172b3d; color: #c7edff; }
 .related-toggle { display: none; }
 
+.reader-resume {
+  position: fixed;
+  z-index: 100;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  display: flex;
+  width: min(390px, calc(100vw - 32px));
+  box-sizing: border-box;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #304354;
+  border-radius: 14px;
+  background: #102a40;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .38);
+  color: #f7fafc;
+  font: 14px/1.4 Arial, sans-serif;
+}
+
+.reader-resume[hidden] { display: none; }
+.reader-resume-copy { min-width: 0; flex: 1; }
+.reader-resume-kicker { margin: 0; color: #75b8f3; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.reader-resume-message { margin: 3px 0 0; color: #d3dde5; font-size: 12px; }
+.reader-resume-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; }
+.reader-resume-button, .reader-resume-dismiss { min-height: 34px; border: 1px solid transparent; border-radius: 9px; cursor: pointer; font: 700 12px/1 Arial, sans-serif; }
+.reader-resume-button { padding: 0 12px; background: #2676cf; color: #fff; }
+.reader-resume-button:hover { background: #1e63b0; }
+.reader-resume-dismiss { width: 34px; padding: 0; background: #1b3a53; color: #d2dce4; font-size: 16px; }
+.reader-resume-dismiss:hover { background: #294a64; color: #fff; }
+.reader-resume button:focus-visible { outline: 2px solid var(--reader-accent); outline-offset: 2px; }
+
 .reader-layout {
   position: fixed;
   inset: 60px 0 0;
@@ -234,28 +265,48 @@ body.ad-panel-open .ad-rail { transform: translateX(0); visibility: visible; }
 .reader-drawer-backdrop:not([hidden]) { position: fixed; z-index: 14; inset: 60px 0 0; display: block; border: 0; background: rgba(3, 7, 15, .62); backdrop-filter: blur(2px); }
 
 @media (max-width: 760px) {
-  .ela-top { gap: 3px; padding-right: max(5px, env(safe-area-inset-right)); padding-left: max(5px, env(safe-area-inset-left)); }
-  .ela-btn { width: 36px; height: 38px; }
-  .ela-title { padding: 0 3px; }
-  .ela-t-title { font-size: 12px; }
+  :root { --reader-toolbar-width: 56px; }
+  .reader-resume { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); width: calc(100vw - 24px); gap: 9px; padding: 11px; }
+  .reader-resume-message { font-size: 11px; }
+  .reader-resume-actions { gap: 5px; }
+  .ela-top {
+    inset: 0 auto 0 0;
+    width: calc(var(--reader-toolbar-width) + env(safe-area-inset-left));
+    height: 100vh;
+    height: 100dvh;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: max(6px, env(safe-area-inset-top)) 4px max(6px, env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-right: 1px solid var(--reader-border);
+    border-bottom: 0;
+  }
+  .ela-btn { width: 44px; height: 40px; }
+  .ela-title { display: none; }
   .ela-t-author, .ela-hide-sm { display: none; }
-  .ela-tools { gap: 0; }
+  .ela-tools { flex-direction: column; gap: 3px; }
   .related-toggle { display: inline-grid; }
-  .ela-contribute-toggle { width: 36px; min-width: 36px; padding: 0; }
+  .ela-contribute-toggle { width: 44px; min-width: 44px; padding: 0; }
   .ela-contribute-label { display: none; }
-  .ela-pager { gap: 3px; }
-  .ela-pageinput input { width: 40px; }
-  .reader-layout { grid-template-columns: minmax(0, 1fr); }
+  .ela-pager { flex-direction: column; gap: 3px; padding: 3px 0 7px; border-bottom: 1px solid var(--reader-border); }
+  .ela-pageinput { flex-direction: column; gap: 2px; font-size: 10px; }
+  .ela-pageinput input { width: 38px; height: 32px; }
+  .ela-color select, .ela-zoom select { width: 46px; height: 36px; padding: 0 2px; font-size: 9px; }
+  .ad-toggle { width: 44px; min-width: 44px; padding: 0; }
+  .reader-layout { inset: 0 0 0 var(--reader-toolbar-width); grid-template-columns: minmax(0, 1fr); }
   .pdf-reader { padding: 16px 10px; }
   .pdf-pages { gap: 18px; }
   .pdf-page, .pdf-page-loading { min-height: 360px; }
   .related-rail {
     position: fixed;
     z-index: 15;
-    inset: 60px 0 0 auto;
-    width: min(360px, calc(100vw - 48px));
+    inset: 0 0 0 var(--reader-toolbar-width);
+    width: min(360px, calc(100vw - var(--reader-toolbar-width)));
     border-left: 1px solid var(--reader-border);
-    border-radius: 12px 0 0 0;
+    border-radius: 0;
     box-shadow: -14px 0 36px rgba(0, 0, 0, .4);
     transform: translateX(105%);
     visibility: hidden;
@@ -274,17 +325,22 @@ body.ad-panel-open .ad-rail { transform: translateX(0); visibility: visible; }
   .related-close { display: inline-grid; }
   .contribution-rail {
     z-index: 16;
-    width: min(400px, calc(100vw - 48px));
+    inset: 0 0 0 var(--reader-toolbar-width);
+    width: calc(100vw - var(--reader-toolbar-width));
     border-left: 1px solid var(--reader-border);
-    border-radius: 12px 0 0 0;
+    border-radius: 0;
     padding: 22px 20px;
   }
+  .ad-rail { inset: 0 0 0 var(--reader-toolbar-width); width: calc(100vw - var(--reader-toolbar-width)); border-radius: 0; }
+  .reading-panel { inset: 12px 12px 12px calc(var(--reader-toolbar-width) + 12px); width: auto; }
+  .ai-study-panel { inset: 0 0 0 var(--reader-toolbar-width); width: calc(100vw - var(--reader-toolbar-width)); }
+  .reader-drawer-backdrop:not([hidden]) { inset: 0 0 0 var(--reader-toolbar-width); }
 
   @media (max-width: 480px) {
     .related-rail {
-      inset: 60px 0 0;
-      width: 100vw;
-      padding: 20px max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+      inset: 0 0 0 var(--reader-toolbar-width);
+      width: calc(100vw - var(--reader-toolbar-width));
+      padding: 20px max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) 18px;
       border-left: 0;
       border-radius: 0;
     }
@@ -378,15 +434,10 @@ body.ad-panel-open .ad-rail { transform: translateX(0); visibility: visible; }
 .ai-study-submit:disabled { cursor: wait; opacity: .6; }
 
 @media (max-width: 420px) {
-  .ela-btn { width: 26px; height: 34px; }
+  .ela-btn { width: 44px; height: 38px; }
   .ela-btn svg { width: 20px; height: 20px; }
-  .ela-color select { width: 60px; padding: 0 3px; font-size: 12px; }
-  .ela-zoom select { width: 45px; padding: 0 3px; font-size: 12px; }
-  .ela-pager { gap: 2px; }
-  .ela-pageinput input { width: 36px; }
-  .ela-title { max-width: 105px; }
-  .ela-pageinput input { width: 34px; }
-  .ela-zoom select { max-width: 56px; height: 34px; padding: 0 4px; font-size: 12px; }
+  .ela-color select, .ela-zoom select { width: 46px; padding: 0 2px; font-size: 9px; }
+  .ela-pageinput input { width: 38px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

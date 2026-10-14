@@ -1,7 +1,6 @@
 ---
 // src/components/Partners.astro
-// "Our Partners & Supporters" section.
-// NOTE: This project does not use Tailwind, so styling is plain scoped CSS.
+// External referral links are listed only on the Ads & Partnerships page.
 
 interface Partner {
   name: string;
@@ -26,10 +25,10 @@ const partners: Partner[] = [
 <section class="partners-section" aria-labelledby="partners-heading">
   <div class="container">
     <div class="section-header">
-      <h3 id="partners-heading">Our Partners &amp; Supporters</h3>
+      <h3 id="partners-heading">External referral links</h3>
       <p>
-        We partner with trusted global networks to keep high-quality educational
-        materials accessible to everyone.
+        These links lead to external services. A referral relationship may benefit Study Hub if
+        you choose to register through a link; it does not change the learning resources.
       </p>
     </div>
 
@@ -38,10 +37,10 @@ const partners: Partner[] = [
         <div class="partner-card">
           {partner.badge && <span class="partner-badge">{partner.badge}</span>}
           <div class="partner-banner-wrapper">
-            <a href={partner.referralLink} target="_blank" rel="nofollow">
+            <a href={partner.referralLink} target="_blank" rel="sponsored nofollow noopener noreferrer">
               <img
                 src={partner.bannerImg}
-                alt={partner.altText}
+                alt={`${partner.name} referral banner`}
                 width={720}
                 height={90}
                 loading="lazy"

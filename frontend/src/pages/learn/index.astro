@@ -1,0 +1,74 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import DynamicLessonViewer from '../../components/DynamicLessonViewer';
+import { lessonTopics } from '../../data/lessonTopics';
+import '../../styles/learn.css';
+
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+
+// New topics arrive as /learn?topic=glycolysis and are generated on demand.
+const requestedTopic = Astro.url.searchParams.get('topic')?.trim() || '';
+const subjects = [...new Set(lessonTopics.map((topic) => topic.subject))];
+---
+
+<SiteLayout title="AI Study Guides – Study Hub" description="Open any topic to instantly generate an AI study guide with clear explanations and exam-focused notes.">
+  <main class="learn-index">
+    {requestedTopic ? (
+      <div class="lesson-page">
+        <nav class="lesson-back">
+          <a href={`${base}learn.html`}>← Back to AI Library</a>
+        </nav>
+        <header class="lesson-header">
+          <span class="lesson-subject">On-demand guide</span>
+          <h1 class="capitalize">{requestedTopic}</h1>
+          <p class="lesson-tagline">A focused, exam-useful breakdown generated on demand.</p>
+        </header>
+        <DynamicLessonViewer client:load topic={requestedTopic} />
+        <footer class="lesson-footer">
+          Powered by Study Hub &amp; the Gemini AI Engine. Always check explanations against your notes and teacher’s guidance.
+        </footer>
+      </div>
+    ) : (
+      <>
+        <header class="learn-index-header">
+          <p class="eyebrow">Instant AI guides</p>
+          <h1>Science &amp; Maths Digital Library</h1>
+          <p>
+            Pick a topic below, or type any topic to generate a brand-new study guide on demand. Each guide
+            is written with an introduction, core principles, and real-world importance.
+          </p>
+        </header>
+
+        <form class="learn-search" method="get" action={`${base}learn.html`} role="search">
+          <label class="sr-only" for="learn-topic-input">Topic to generate</label>
+          <input
+            id="learn-topic-input"
+            name="topic"
+            type="search"
+            placeholder="Type any topic, e.g. glycolysis, osmosis, matrices…"
+            autocomplete="off"
+          />
+          <button type="submit">Generate guide</button>
+        </form>
+
+        {subjects.map((subject) => (
+          <section class="learn-subject">
+            <h2>{subject}</h2>
+            <div class="learn-topic-grid">
+              {lessonTopics.filter((topic) => topic.subject === subject).map((topic) => (
+                <a class="learn-topic-card" href={`${base}learn/${topic.slug}.html`}>
+                  <h3>{topic.title}</h3>
+                  <span>Instant AI guide &amp; study notes →</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))}
+      </>
+    )}
+  </main>
+</SiteLayout>
+
+<style>
+  /* Page-specific styles live in ../styles/learn.css (imported in frontmatter). */
+</style>

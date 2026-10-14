@@ -1,0 +1,125 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import LibraryWorkspace from '../components/LibraryWorkspace';
+import '../styles/library.css';
+
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const home = base.replace(/\/$/, '');
+const supabaseUrl = (import.meta.env.PUBLIC_SUPABASE_URL || '').trim();
+const anonKey = (import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '').trim();
+---
+
+<SiteLayout title="Library – Browse by Class & Term | Study Hub" description="Browse the Study Hub academic library by class to find exam papers, notes, and other learning resources.">
+  <div class="library-shell">
+    <aside class="library-sidebar" aria-label="Study Hub navigation">
+      <a class="library-sidebar-brand" href={home} aria-label="Study Hub home">
+        <img src={`${base}favicon.svg`} width="34" height="34" alt="" />
+        <span>Study Hub</span>
+      </a>
+      <nav class="library-sidebar-main" aria-label="Main navigation">
+        <a class="is-current" href={`${base}library.html`} aria-current="page">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h5v15H4zM10 7h5v13h-5zM16 4h4v16h-4zM3 21h18" /></svg>
+          Library
+        </a>
+        <a href={home}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+          Home
+        </a>
+        <a href={`${base}subjects.html`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1.5" /><rect x="13" y="4" width="8" height="7" rx="1.5" /><rect x="3" y="13" width="8" height="7" rx="1.5" /><rect x="13" y="13" width="8" height="7" rx="1.5" /></svg>
+          Subjects
+        </a>
+        <a href={`${base}assistant.html`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1" /><circle cx="12" cy="12" r="5" /></svg>
+          AI Study
+        </a>
+        <a href={`${base}sign-in.html`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4M10 17l5-5-5-5m5 5H3" /></svg>
+          Sign in
+        </a>
+      </nav>
+      <nav class="library-sidebar-info" aria-label="Guides and policies">
+        <p>Guides &amp; policies</p>
+        <a href={`${base}library-guide.html`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v5h5M9 13h6M9 17h6" /></svg>
+          Library guide
+        </a>
+        <a href={`${base}documentation.html`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" /></svg>
+          Documentation
+        </a>
+        <a href={`${base}legal.html`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11zM9 12l2 2 4-4" /></svg>
+          Legal
+        </a>
+      </nav>
+      <a class="library-sidebar-partners" href={`${base}ads-and-partnerships.html`}>Ads &amp; partnerships</a>
+    </aside>
+    <LibraryWorkspace client:load homeHref={home} supabaseUrl={supabaseUrl} anonKey={anonKey} />
+  </div>
+</SiteLayout>
+
+<style>
+  .library-shell {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    width: 100%;
+    min-height: calc(100vh - 76px);
+  }
+  .library-sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: calc(100vh - 76px);
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px 14px;
+    border-right: 1px solid #1e293b;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+  .library-sidebar-brand {
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+    color: #f8fafc;
+    font: 800 1rem/1 Manrope, sans-serif;
+    text-decoration: none;
+  }
+  .library-sidebar-brand img { flex: 0 0 auto; }
+  .library-sidebar-main, .library-sidebar-info { display: grid; gap: 4px; }
+  .library-sidebar-main a, .library-sidebar-info a {
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: #aab8c8;
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .library-sidebar-main a:hover, .library-sidebar-info a:hover { background: #1e293b; color: #e2e8f0; }
+  .library-sidebar-main .is-current { background: #12372f; color: #6ee7b7; }
+  .library-sidebar-main svg, .library-sidebar-info svg { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .library-sidebar-info { margin-top: auto; padding-top: 14px; border-top: 1px solid #334155; }
+  .library-sidebar-info p { margin: 0 0 4px 10px; color: #718096; font: 700 .65rem/1.4 Manrope, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+  .library-sidebar-partners { padding: 8px 10px 0; border-top: 1px solid #334155; color: #718096; font-size: .72rem; text-decoration: none; }
+  .library-sidebar-partners:hover { color: #6ee7b7; }
+  :global(main) { display: block; }
+  @media (max-width: 720px) {
+    .library-shell { grid-template-columns: minmax(0, 1fr); }
+    .library-sidebar { position: sticky; z-index: 20; top: 0; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 8px 12px; overflow-x: auto; }
+    .library-sidebar-brand { min-width: max-content; padding: 0; }
+    .library-sidebar-brand img { width: 28px; height: 28px; }
+    .library-sidebar-main { display: flex; flex: 0 0 auto; }
+    .library-sidebar-main a { min-height: 36px; padding: 0 8px; white-space: nowrap; }
+    .library-sidebar-main svg { display: none; }
+    .library-sidebar-info { display: flex; flex: 0 0 auto; gap: 4px; margin: 0; padding: 0 0 0 10px; border-top: 0; border-left: 1px solid #334155; }
+    .library-sidebar-info p, .library-sidebar-info svg, .library-sidebar-partners { display: none; }
+    .library-sidebar-info a { min-height: 36px; padding: 0 8px; white-space: nowrap; }
+  }
+</style>
