@@ -94,6 +94,7 @@ const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
   let cache: Cache | undefined;
+  let staleResponse: Response | undefined;
   if ('caches' in window) {
     try {
       cache = await window.caches.open(LIBRARY_CATALOG_CACHE);
@@ -102,25 +103,35 @@ async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
       if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt < LIBRARY_CATALOG_CACHE_TTL) {
         return cached;
       }
+      staleResponse = cached;
     } catch (cacheError) {
       console.warn('Library catalog cache could not be read; loading the catalog from the network.', cacheError);
     }
   }
 
-  const response = await fetch(catalogUrl, { cache: 'no-cache' });
+  let response: Response;
+  try {
+    response = await fetch(catalogUrl, { cache: 'no-cache' });
+  } catch (networkError) {
+    if (staleResponse) {
+      console.warn('Library catalog refresh failed; showing the saved catalog instead.', networkError);
+      return staleResponse;
+    }
+    throw networkError;
+  }
   if (!response.ok || !cache) return response;
 
-  try {
-    const headers = new Headers(response.headers);
-    headers.set('x-study-hub-cached-at', String(Date.now()));
-    await cache.put(catalogUrl, new Response(await response.clone().arrayBuffer(), {
+  const headers = new Headers(response.headers);
+  headers.set('x-study-hub-cached-at', String(Date.now()));
+  void response.clone().arrayBuffer()
+    .then((body) => cache?.put(catalogUrl, new Response(body, {
       status: response.status,
       statusText: response.statusText,
       headers,
-    }));
-  } catch (cacheError) {
-    console.warn('Library catalog cache could not be updated; continuing with the network response.', cacheError);
-  }
+    })))
+    .catch((cacheError: unknown) => {
+      console.warn('Library catalog cache could not be updated; continuing with the network response.', cacheError);
+    });
   return response;
 }
 

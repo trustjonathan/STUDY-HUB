@@ -61,7 +61,9 @@ test('creates a verified Google account and returns a Study Hub session', async 
   assert.equal(res.body.user.email, 'learner@example.com');
   assert.equal(res.body.user.username, 'Study Learner');
   assert.equal(res.body.user.onboardingComplete, false);
-  assert.equal(jwt.verify(res.body.token, process.env.JWT_SECRET).userId, 42);
+  const session = jwt.verify(res.body.token, process.env.JWT_SECRET);
+  assert.equal(session.userId, 42);
+  assert.equal(session.exp - session.iat, 60 * 60);
 });
 
 test('links an existing email account only after Google verifies the same email', async () => {

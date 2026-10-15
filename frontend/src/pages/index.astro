@@ -13,6 +13,10 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
   description="See how Study Hub connects subject libraries, class-based resource discovery, a document reader, and AI study tools for Ugandan learners."
 >
   <main class="landing-page">
+    <section class="landing-spotlight" aria-label="Featured Study Hub highlights">
+      <StudyBillboard base={base} />
+    </section>
+
     <section class="landing-hero" id="overview">
       <div class="landing-hero-copy">
         <p class="landing-eyebrow"><span></span> A guided place to learn</p>
@@ -38,10 +42,6 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         </ol>
         <a href="#site-tour">Take the two-minute tour <span aria-hidden="true">↓</span></a>
       </aside>
-    </section>
-
-    <section class="landing-spotlight" aria-label="Featured Study Hub highlights">
-      <StudyBillboard base={base} />
     </section>
 
     <section class="landing-section landing-subjects" id="subjects">

@@ -74,10 +74,16 @@ const popularSubjects = availableSubjects;
   <body data-page={routeKey} class:list={{ 'policy-page': isPolicyPage }}>
     <header class="site-header clean-site-header" id="top">
       <div class="header-main">
-        <a class="brand" href={home} aria-label="Study Hub home">
-          <img src={`${base}favicon.svg`} width="40" height="40" alt="" />
-          <span>Study Hub</span>
-        </a>
+        <div class="brand-group">
+          <a class="brand" href={home} aria-label="Study Hub home">
+            <img src={`${base}favicon.svg`} width="40" height="40" alt="" />
+            <span>Study Hub</span>
+          </a>
+          <span class="service-anniversary" aria-label="Two years serving Uganda">
+            <span class="uganda-flag" role="img" aria-label="Ugandan flag">🇺🇬</span>
+            <span class="service-anniversary-copy"><strong>2 years</strong><span>serving Uganda</span></span>
+          </span>
+        </div>
         <nav class="site-nav" aria-label="Main navigation">
           <a href={home}>Home</a>
           <a href={`${home}/subjects.html`}>Subjects</a>

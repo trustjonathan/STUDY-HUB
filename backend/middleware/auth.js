@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { auth } = require('../config');
 const { getUserById } = require('../database/models/postgres/user');
 
 const authMiddleware = (requiredRoles = []) => {
@@ -8,7 +9,7 @@ const authMiddleware = (requiredRoles = []) => {
       if (!authHeader) return res.status(401).json({ message: 'No token provided' });
 
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { maxAge: auth.tokenExpiry });
       const user = await getUserById(decoded.userId);
 
       if (!user) return res.status(401).json({ message: 'User not found' });

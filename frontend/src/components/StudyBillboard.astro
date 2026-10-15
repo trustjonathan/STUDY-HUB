@@ -75,7 +75,7 @@ const notices: Notice[] = [
         aria-hidden={index === 0 ? 'false' : 'true'}
         inert={index !== 0}
       >
-        {notice.image && <img class="billboard-card-image" src={notice.image} alt="" />}
+        {notice.image && <img class="billboard-card-image" src={notice.image} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />}
         <div class="billboard-card-copy">
           <span class="billboard-card-badge">{notice.badge}</span>
           <h2>{notice.title}</h2>

@@ -1,6 +1,7 @@
 // backend/middleware/authMiddleware.js
 
 const jwt = require('jsonwebtoken');
+const { auth } = require('../config');
 
 // Verify JWT Token middleware
 const verifyToken = (req, res, next) => {
@@ -11,7 +12,7 @@ const verifyToken = (req, res, next) => {
   if (!token) return res.status(401).json({ message: 'Access denied. Token missing.' });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { maxAge: auth.tokenExpiry });
     req.user = decoded; // Attach user info to request
     next();
   } catch (err) {

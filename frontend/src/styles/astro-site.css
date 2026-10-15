@@ -604,7 +604,29 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   padding: 0 24px;
 }
 
-.site-header.clean-site-header .brand { order: 0; flex: 0 0 auto; }
+.site-header.clean-site-header .brand-group {
+  order: 0;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: clamp(10px, 1.5vw, 20px);
+}
+.site-header.clean-site-header .brand { flex: 0 0 auto; }
+.service-anniversary {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid #d8e4d7;
+  border-radius: 999px;
+  background: #f4f7ef;
+  color: #285c3e;
+}
+.uganda-flag { font-size: 1.1rem; line-height: 1; }
+.service-anniversary-copy { display: grid; gap: 1px; line-height: 1.1; white-space: nowrap; }
+.service-anniversary-copy strong { font: 800 .68rem/1.1 Manrope, sans-serif; }
+.service-anniversary-copy > span { color: #647568; font-size: .58rem; font-weight: 650; }
 .site-header.clean-site-header .site-nav {
   order: 1;
   flex: 1 1 auto;
@@ -615,6 +637,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   scroll-behavior: smooth;
   scrollbar-width: none;
 }
+.site-header.clean-site-header .site-nav { justify-content: flex-end; }
 .site-header.clean-site-header .site-nav::-webkit-scrollbar { display: none; }
 .site-header.clean-site-header .site-nav a { min-height: 42px; white-space: nowrap; }
 .site-header.clean-site-header .header-sign-in {
@@ -635,6 +658,10 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 }
 .site-header.clean-site-header .header-sign-in:hover { border-color: #8eaf96; background: #eef4ed; }
 .site-header.clean-site-header .header-sign-in svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (min-width: 1200px) {
+  .service-anniversary { display: inline-flex; }
+}
 
 @media (max-width: 980px) {
   .header-composition { grid-template-columns: minmax(210px, .75fr) minmax(0, 1.5fr); gap: 12px; }
@@ -685,8 +712,16 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   .header-composition { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .header-navigation { gap: 2px; padding: 0; border: 0; }
   .site-header.has-billboard { padding: 8px 12px; }
-  .site-header.clean-site-header .header-main { gap: 10px; padding: 0 14px; }
-  .site-header.clean-site-header .site-nav { gap: 0 14px; }
+  .site-header.clean-site-header .header-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "identity signin" "navigation navigation";
+    gap: 2px 10px;
+    padding: 5px 14px 7px;
+  }
+  .site-header.clean-site-header .brand-group { grid-area: identity; gap: 10px; }
+  .site-header.clean-site-header .site-nav { grid-area: navigation; width: 100%; justify-content: space-between; gap: 0 14px; }
+  .site-header.clean-site-header .header-sign-in { grid-area: signin; }
   .site-header.clean-site-header .site-nav a { font-size: .78rem; }
   .site-header.clean-site-header .header-sign-in { min-height: 34px; gap: 5px; padding: 0 9px; font-size: .74rem; }
   .site-header.clean-site-header .header-sign-in svg { width: 14px; height: 14px; }
@@ -699,11 +734,16 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 
 @media (max-width: 440px) {
   .site-header.has-billboard { padding: 7px 8px; }
-  .site-header.clean-site-header .header-main { gap: 8px; padding: 0 10px; }
+  .site-header.clean-site-header .header-main { gap: 2px 8px; padding: 4px 10px 6px; }
   .site-header.clean-site-header .brand { gap: 7px; font-size: .9rem; }
   .site-header.clean-site-header .brand img { width: 32px; height: 32px; }
-  .site-header.clean-site-header .site-nav { gap: 0 9px; }
-  .site-header.clean-site-header .site-nav a { font-size: .72rem; }
+  .site-header.clean-site-header .brand-group { gap: 7px; }
+  .site-header.clean-site-header .service-anniversary { gap: 4px; padding: 4px 6px; }
+  .site-header.clean-site-header .uganda-flag { font-size: .95rem; }
+  .site-header.clean-site-header .service-anniversary-copy strong { font-size: .58rem; }
+  .site-header.clean-site-header .service-anniversary-copy > span { font-size: .5rem; }
+  .site-header.clean-site-header .site-nav { gap: 0 8px; }
+  .site-header.clean-site-header .site-nav a { font-size: .68rem; }
   .site-header.clean-site-header .header-sign-in { min-height: 32px; gap: 4px; padding: 0 7px; font-size: .68rem; }
   .site-header.clean-site-header .header-sign-in svg { width: 13px; height: 13px; }
 }
