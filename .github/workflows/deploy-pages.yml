@@ -17,6 +17,8 @@ concurrency:
 
 jobs:
   build:
+    environment:
+      name: github-pages
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -30,13 +32,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: frontend
+      - name: Verify account service configuration
+        run: |
+          if [ -z "$PUBLIC_STUDY_HUB_API_URL" ]; then
+            echo "::error::Set PUBLIC_STUDY_HUB_API_URL as a repository variable or secret."
+            exit 1
+          fi
+          case "$PUBLIC_STUDY_HUB_API_URL" in
+            https://*) ;;
+            *)
+              echo "::error::PUBLIC_STUDY_HUB_API_URL must use HTTPS for the deployed site."
+              exit 1
+              ;;
+          esac
+          if [ -z "$PUBLIC_GOOGLE_CLIENT_ID" ]; then
+            echo "::error::Set PUBLIC_GOOGLE_CLIENT_ID as a repository variable or secret."
+            exit 1
+          fi
+        env:
+          PUBLIC_STUDY_HUB_API_URL: ${{ vars.PUBLIC_STUDY_HUB_API_URL || secrets.PUBLIC_STUDY_HUB_API_URL }}
+          PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.PUBLIC_GOOGLE_CLIENT_ID || secrets.PUBLIC_GOOGLE_CLIENT_ID }}
       - name: Build Astro site
         run: npm run build
         working-directory: frontend
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://ttuxelhyoctyshgvjykj.supabase.co' }}
-          PUBLIC_STUDY_HUB_API_URL: ${{ vars.PUBLIC_STUDY_HUB_API_URL }}
-          PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.PUBLIC_GOOGLE_CLIENT_ID }}
+          PUBLIC_STUDY_HUB_API_URL: ${{ vars.PUBLIC_STUDY_HUB_API_URL || secrets.PUBLIC_STUDY_HUB_API_URL }}
+          PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.PUBLIC_GOOGLE_CLIENT_ID || secrets.PUBLIC_GOOGLE_CLIENT_ID }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0dXhlbGh5b2N0eXNoZ3ZqeWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4MTUxMjAsImV4cCI6MjEwNTM5MTEyMH0.pHHm2jWhaWNMUkMR5wpUEFGf7kwk3wFJ_2Wr4oG1xrY' }}
       - name: Verify public upload configuration
         run: |
