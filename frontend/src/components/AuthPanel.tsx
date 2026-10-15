@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
+import { clearAuthSession, readAuthSession, saveAuthSession } from '../utils/authSession';
 
 interface Props {
   apiUrl: string;
@@ -29,6 +30,7 @@ declare global {
             logo_alignment: 'left';
             width: number;
           }) => void;
+          prompt: () => void;
         };
       };
     };
@@ -85,22 +87,12 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const googleButtonRef = useRef<HTMLDivElement>(null);
+  const oneTapPromptRequested = useRef(false);
 
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem('study-hub-auth');
-      if (!stored) return;
-      const parsed: unknown = JSON.parse(stored);
-      if (typeof parsed !== 'object' || parsed === null) {
-        sessionStorage.removeItem('study-hub-auth');
-        return;
-      }
-      const session = parsed as { token?: unknown; user?: Account };
-      if (typeof session.token === 'string' && session.user && typeof session.user.email === 'string') {
-        setAccount(session.user);
-      } else {
-        sessionStorage.removeItem('study-hub-auth');
-      }
+      const session = readAuthSession<Account>();
+      if (session && typeof session.user.email === 'string') setAccount(session.user);
     } catch {
       setError('Saved sign-in information could not be read in this browser. You can still sign in again.');
     }
@@ -123,7 +115,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
         throw new Error(getErrorMessage(result, 'Google sign-in could not be completed. Please try again.'));
       }
 
-      sessionStorage.setItem('study-hub-auth', JSON.stringify({ token: result.token, user: result.user }));
+      saveAuthSession(result.token, result.user);
       if (result.user.onboardingComplete !== true) {
         window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
         return;
@@ -169,6 +161,10 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
         logo_alignment: 'left',
         width: Math.min(360, Math.floor(button.clientWidth || 360)),
       });
+      if (!oneTapPromptRequested.current) {
+        oneTapPromptRequested.current = true;
+        window.google.accounts.id.prompt();
+      }
     };
 
     const scriptUrl = 'https://accounts.google.com/gsi/client';
@@ -211,7 +207,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
         throw new Error(getErrorMessage(result, 'Sign in could not be completed. Please try again.'));
       }
 
-      sessionStorage.setItem('study-hub-auth', JSON.stringify({ token: result.token, user: result.user }));
+      saveAuthSession(result.token, result.user);
       if (result.user.onboardingComplete !== true) {
         window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
         return;
@@ -231,7 +227,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
 
   function signOut() {
     try {
-      sessionStorage.removeItem('study-hub-auth');
+      clearAuthSession();
       setAccount(null);
       setNotice('You have signed out.');
       setError('');
@@ -241,10 +237,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   }
 
   async function updatePreferences(preferences: LearningPreferences) {
-    const stored = sessionStorage.getItem('study-hub-auth');
-    if (!stored || !apiBase) throw new Error('Sign in again to update your learning profile.');
-    const session = JSON.parse(stored) as { token?: unknown };
-    if (typeof session.token !== 'string') throw new Error('Your sign-in session has expired. Please sign in again.');
+    const session = readAuthSession<Account>();
+    if (!session || !apiBase) {
+      setAccount(null);
+      throw new Error('Your sign-in session has expired. Please sign in again.');
+    }
 
     const response = await fetch(`${apiBase}/api/auth/profile`, {
       method: 'PUT',
@@ -260,9 +257,13 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
     });
     const result: AuthResponse = await response.json().catch(() => ({}));
     if (!response.ok || !result.user || typeof result.user.email !== 'string') {
+      if (response.status === 401 || response.status === 403) {
+        clearAuthSession();
+        setAccount(null);
+      }
       throw new Error(getErrorMessage(result, 'Could not update your learning profile. Please try again.'));
     }
-    sessionStorage.setItem('study-hub-auth', JSON.stringify({ token: session.token, user: result.user }));
+    saveAuthSession(session.token, result.user);
     setAccount(result.user);
     setNotice('Your learning profile has been updated. Your Library and AI Study preferences are saved.');
     setError('');

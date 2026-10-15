@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { libraryClassGroups, libraryClasses } from '../data/libraryClasses';
 import { availableSubjects } from '../data/availableSubjects';
 import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
+import { clearAuthSession, readAuthSession, updateAuthSessionUser } from '../utils/authSession';
 
 interface Props {
   homeHref: string;
@@ -88,8 +89,43 @@ interface CatalogLoad {
   totalCount: number;
 }
 
+const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v1';
+const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
+
+async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
+  let cache: Cache | undefined;
+  if ('caches' in window) {
+    try {
+      cache = await window.caches.open(LIBRARY_CATALOG_CACHE);
+      const cached = await cache.match(catalogUrl);
+      const cachedAt = Number(cached?.headers.get('x-study-hub-cached-at'));
+      if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt < LIBRARY_CATALOG_CACHE_TTL) {
+        return cached;
+      }
+    } catch (cacheError) {
+      console.warn('Library catalog cache could not be read; loading the catalog from the network.', cacheError);
+    }
+  }
+
+  const response = await fetch(catalogUrl, { cache: 'no-cache' });
+  if (!response.ok || !cache) return response;
+
+  try {
+    const headers = new Headers(response.headers);
+    headers.set('x-study-hub-cached-at', String(Date.now()));
+    await cache.put(catalogUrl, new Response(await response.clone().arrayBuffer(), {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    }));
+  } catch (cacheError) {
+    console.warn('Library catalog cache could not be updated; continuing with the network response.', cacheError);
+  }
+  return response;
+}
+
 async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
-  const res = await fetch(catalogUrl);
+  const res = await fetchCachedCatalog(catalogUrl);
   if (!res.ok) throw new Error(`Additional subject catalog request failed (HTTP ${res.status}).`);
   const data = await res.json();
   const items: Array<{ classKey?: string; subject?: string; type?: string; title?: string; url?: string }>
@@ -219,28 +255,40 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Pro
     };
   }, [selected]);
 
+  useEffect(() => {
+    const compactViewport = window.matchMedia('(max-width: 640px)');
+    const updatePanels = () => {
+      setNavigationCollapsed(compactViewport.matches);
+      setFiltersCollapsed(compactViewport.matches);
+    };
+    updatePanels();
+    compactViewport.addEventListener('change', updatePanels);
+    return () => compactViewport.removeEventListener('change', updatePanels);
+  }, []);
+
   // Restore class + filters from the URL so refreshes and the reader's Back
   // button (which passes this page as ?return=…) land on the same view.
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem('study-hub-auth');
-      if (stored) {
-        const session = JSON.parse(stored) as { token?: unknown; user?: { classLevel?: unknown; subjects?: unknown; onboardingComplete?: unknown } };
-        if (typeof session.token === 'string' && session.user) {
-          setProfileToken(session.token);
-          const classLevel = typeof session.user.classLevel === 'string' ? session.user.classLevel : '';
-          const subjects = Array.isArray(session.user.subjects)
-            ? session.user.subjects.filter((subject): subject is string => typeof subject === 'string' && availableSubjects.some((available) => available.name === subject))
-            : [];
-          setProfileClass(classLevel);
-          setPreferredSubjects(subjects);
+      const session = readAuthSession<{
+        classLevel?: unknown;
+        subjects?: unknown;
+        onboardingComplete?: unknown;
+      }>();
+      if (session) {
+        setProfileToken(session.token);
+        const classLevel = typeof session.user.classLevel === 'string' ? session.user.classLevel : '';
+        const subjects = Array.isArray(session.user.subjects)
+          ? session.user.subjects.filter((subject): subject is string => typeof subject === 'string' && availableSubjects.some((available) => available.name === subject))
+          : [];
+        setProfileClass(classLevel);
+        setPreferredSubjects(subjects);
 
-          const params = new URLSearchParams(window.location.search);
-          const requestedClass = params.get('class');
-          const selectedClass = libraryClasses.find((item) => item.label === (requestedClass || classLevel));
-          if (selectedClass) setSelected(selectedClass);
-          if (params.get('welcome') === '1' && session.user.onboardingComplete !== true) setPreferencesOpen(true);
-        }
+        const params = new URLSearchParams(window.location.search);
+        const requestedClass = params.get('class');
+        const selectedClass = libraryClasses.find((item) => item.label === (requestedClass || classLevel));
+        if (selectedClass) setSelected(selectedClass);
+        if (params.get('welcome') === '1' && session.user.onboardingComplete !== true) setPreferencesOpen(true);
       }
     } catch {
       setPreferencesError('Your saved account profile could not be read. Sign in again to personalise your library.');
@@ -280,14 +328,14 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Pro
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.user || typeof result.user.email !== 'string') {
+      if (response.status === 401 || response.status === 403) {
+        clearAuthSession();
+        setProfileToken('');
+      }
       throw new Error(result.message || result.error || 'Could not save your learning profile. Please try again.');
     }
 
-    const stored = sessionStorage.getItem('study-hub-auth');
-    if (!stored) throw new Error('Your sign-in session ended. Sign in again to save preferences.');
-    const session = JSON.parse(stored) as { token?: unknown };
-    if (typeof session.token !== 'string') throw new Error('Your sign-in session ended. Sign in again to save preferences.');
-    sessionStorage.setItem('study-hub-auth', JSON.stringify({ token: session.token, user: result.user }));
+    updateAuthSessionUser(result.user);
     setProfileClass(preferences.classLevel);
     setPreferredSubjects(preferences.subjects);
     setShowAllSubjects(false);
@@ -509,6 +557,23 @@ function ClassDashboard(props: DashboardProps) {
     hoverCloseTimer.current = setTimeout(close, 400);
   }
 
+  function closeMobileFilters() {
+    if (window.matchMedia('(max-width: 640px)').matches && !filtersCollapsed) {
+      props.onToggleFilters();
+      setFiltersHovered(false);
+    }
+  }
+
+  function chooseSubject(subject: string) {
+    props.onSubjectFilter(subject);
+    closeMobileFilters();
+  }
+
+  function chooseType(type: string) {
+    props.onTypeFilter(type);
+    closeMobileFilters();
+  }
+
   useEffect(() => {
     if (!classDrawerOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -550,7 +615,9 @@ function ClassDashboard(props: DashboardProps) {
     });
   }, [classResources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects]);
 
-  useEffect(() => { setVisible(PAGE_SIZE); }, [selected.label, subjectFilter, typeFilter, search]);
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [selected.label, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects]);
 
   const shown = filtered.slice(0, visible);
 
@@ -579,11 +646,14 @@ function ClassDashboard(props: DashboardProps) {
             setClassesOpen((open) => !open);
             setClassesHovered(false);
           }}
-          onPointerEnter={() => {
+          onPointerEnter={(event) => {
+            if (event.pointerType !== 'mouse') return;
             cancelHoverClose();
             setClassesHovered(true);
           }}
-          onPointerLeave={() => scheduleHoverClose(() => setClassesHovered(false))}
+          onPointerLeave={(event) => {
+            if (event.pointerType === 'mouse') scheduleHoverClose(() => setClassesHovered(false));
+          }}
         ><LibraryIcon name="classes" /></button>
       </aside>
 
@@ -596,8 +666,14 @@ function ClassDashboard(props: DashboardProps) {
             id="lib-class-drawer"
             className="lib-class-drawer"
             aria-label="Browse all classes"
-            onPointerEnter={() => { cancelHoverClose(); setClassesHovered(true); }}
-            onPointerLeave={() => scheduleHoverClose(() => setClassesHovered(false))}
+            onPointerEnter={(event) => {
+              if (event.pointerType !== 'mouse') return;
+              cancelHoverClose();
+              setClassesHovered(true);
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType === 'mouse') scheduleHoverClose(() => setClassesHovered(false));
+            }}
           >
             <div className="lib-class-drawer-head">
               <div>
@@ -639,16 +715,25 @@ function ClassDashboard(props: DashboardProps) {
         </>
       )}
 
+      {!filtersCollapsed && (
+        <button
+          type="button"
+          className="lib-mobile-drawer-backdrop"
+          aria-label="Close class filters"
+          onClick={props.onToggleFilters}
+        />
+      )}
       <aside
         id="lib-class-filters"
         className="lib-side"
         aria-label="Class filters"
-        onPointerEnter={() => {
+        onPointerEnter={(event) => {
+          if (event.pointerType !== 'mouse') return;
           cancelHoverClose();
           if (filtersCollapsed) setFiltersHovered(true);
         }}
-        onPointerLeave={() => {
-          if (filtersCollapsed) scheduleHoverClose(() => setFiltersHovered(false));
+        onPointerLeave={(event) => {
+          if (event.pointerType === 'mouse' && filtersCollapsed) scheduleHoverClose(() => setFiltersHovered(false));
         }}
       >
         <div className="lib-side-head">
@@ -661,7 +746,7 @@ function ClassDashboard(props: DashboardProps) {
             <button
               type="button"
               className={`lib-cat ${subjectFilter === 'all' ? 'is-active' : ''}`}
-              onClick={() => props.onSubjectFilter('all')}
+              onClick={() => chooseSubject('all')}
             >
               All Subjects
               <span className="lib-cat-count">{classResources.length.toLocaleString()}</span>
@@ -671,7 +756,7 @@ function ClassDashboard(props: DashboardProps) {
                 key={subject}
                 type="button"
                 className={`lib-cat ${subjectFilter === subject ? 'is-active' : ''}`}
-                onClick={() => props.onSubjectFilter(subject)}
+                onClick={() => chooseSubject(subject)}
               >
                 {subject}
                 <span className="lib-cat-count">
@@ -682,9 +767,9 @@ function ClassDashboard(props: DashboardProps) {
           </div>
           <div className="lib-term">
             <div className="lib-term-label">Type</div>
-            <button type="button" className={`lib-cat ${typeFilter === 'all' ? 'is-active' : ''}`} onClick={() => props.onTypeFilter('all')}>All Types</button>
+            <button type="button" className={`lib-cat ${typeFilter === 'all' ? 'is-active' : ''}`} onClick={() => chooseType('all')}>All Types</button>
             {types.map((t) => (
-              <button key={t} type="button" className={`lib-cat ${typeFilter === t ? 'is-active' : ''}`} onClick={() => props.onTypeFilter(t)}>{t}</button>
+              <button key={t} type="button" className={`lib-cat ${typeFilter === t ? 'is-active' : ''}`} onClick={() => chooseType(t)}>{t}</button>
             ))}
           </div>
         </div>
@@ -714,12 +799,13 @@ function ClassDashboard(props: DashboardProps) {
               aria-expanded={!filtersCollapsed || filtersHovered}
               aria-controls="lib-class-filters"
               title={filtersCollapsed ? 'Show class filters' : 'Hide class filters'}
-              onPointerEnter={() => {
+              onPointerEnter={(event) => {
+                if (event.pointerType !== 'mouse') return;
                 cancelHoverClose();
                 if (filtersCollapsed) setFiltersHovered(true);
               }}
-              onPointerLeave={() => {
-                if (filtersCollapsed) scheduleHoverClose(() => setFiltersHovered(false));
+              onPointerLeave={(event) => {
+                if (event.pointerType === 'mouse' && filtersCollapsed) scheduleHoverClose(() => setFiltersHovered(false));
               }}
             >
               <LibraryIcon name={filtersCollapsed && !filtersHovered ? 'panel-right-open' : 'panel-right'} />

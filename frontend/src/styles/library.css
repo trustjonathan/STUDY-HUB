@@ -193,6 +193,7 @@
 /* Class browser drawer opened from the navigation rail. */
 .lib-class-drawer-backdrop { position: absolute; z-index: 5; inset: 0; border: 0; background: rgba(15, 23, 42, .28); cursor: default; }
 .lib-class-drawer { position: absolute; z-index: 6; inset: 0 auto 0 60px; display: flex; flex-direction: column; width: min(284px, calc(100% - 60px)); min-height: 0; border-right: 1px solid #dce5e1; background: #fbfdfb; box-shadow: 16px 0 40px rgba(15, 23, 42, .16); animation: lib-drawer-in .2s ease-out both; }
+.lib-mobile-drawer-backdrop { display: none; }
 .lib-dash.is-navigation-collapsed .lib-class-drawer { left: 0; width: min(284px, 100%); }
 .lib-dash.is-navigation-collapsed .lib-class-drawer-backdrop { left: 0; }
 .lib-class-drawer-head { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 16px 14px; border-bottom: 1px solid #e3eae6; background: #fff; }
@@ -312,12 +313,13 @@
 @media (max-width: 640px) {
   .lib-class-drawer { left: 52px; width: min(284px, calc(100% - 52px)); }
   .lib-dash.is-navigation-collapsed .lib-class-drawer { left: 0; width: min(284px, 100%); }
+  .lib-mobile-drawer-backdrop { position: absolute; z-index: 3; inset: 0; display: block; border: 0; background: rgba(15, 23, 42, .28); }
   .lib-side { position: absolute; z-index: 4; top: 0; bottom: 0; left: 52px; width: min(78vw, 256px); flex-basis: min(78vw, 256px); box-shadow: 14px 0 30px rgba(15, 23, 42, .16); }
   .lib-dash.is-navigation-collapsed .lib-side { left: 0; }
   .lib-dash.is-filters-collapsed .lib-side { width: 0; flex-basis: 0; }
   .lib-main-crumbs { align-items: flex-start; flex-direction: column; gap: 8px; padding: 10px 12px; }
   .lib-panel-actions { width: 100%; }
-  .lib-panel-toggle { flex: 1 1 0; justify-content: center; }
+  .lib-panel-toggle { flex: 1 1 0; justify-content: center; min-height: 40px; }
 }
 @media (max-width: 520px) {
   .lib-rail { flex-basis: 52px; width: 52px; }
@@ -342,6 +344,17 @@
   .lib-resource-cta { right: 18px; bottom: 18px; }
   .lib-main-head { align-items: stretch; flex-direction: column; }
   .lib-search { min-width: 0; width: 100%; min-height: 40px; }
+  .lib-table-wrap { overflow: visible; border: 0; }
+  .lib-table { display: block; min-width: 0; }
+  .lib-table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+  .lib-table tbody { display: grid; gap: 10px; }
+  .lib-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "subject action" "title title" "type type"; gap: 4px 12px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+  .lib-table tbody td { min-width: 0; padding: 2px 0; border: 0; overflow-wrap: anywhere; }
+  .lib-table tbody .lib-subject { grid-area: subject; }
+  .lib-table tbody .lib-title { grid-area: title; color: #334155; font-size: 13px; }
+  .lib-table tbody td:nth-child(3) { grid-area: type; }
+  .lib-table tbody td:nth-child(4) { grid-area: action; align-self: start; justify-self: end; }
+  .lib-table tbody td:nth-child(3)::before { margin-right: 7px; color: #64748b; content: "Type"; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 }
 
 @media (prefers-reduced-motion: reduce) {

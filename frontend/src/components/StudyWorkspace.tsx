@@ -1,5 +1,6 @@
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { renderMarkdown } from './markdown';
+import { readAuthSession } from '../utils/authSession';
 
 interface Props {
   homeHref: string;
@@ -106,13 +107,13 @@ export default function StudyWorkspace({
 
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem('study-hub-auth');
-      if (!stored) return;
-      const session = JSON.parse(stored) as {
-        token?: unknown;
-        user?: { username?: unknown; classLevel?: unknown; subjects?: unknown; onboardingComplete?: unknown };
-      };
-      if (typeof session.token !== 'string' || !session.user) return;
+      const session = readAuthSession<{
+        username?: unknown;
+        classLevel?: unknown;
+        subjects?: unknown;
+        onboardingComplete?: unknown;
+      }>();
+      if (!session) return;
       const user = session.user;
       const subjects = Array.isArray(user.subjects)
         ? user.subjects.filter((subject): subject is string => typeof subject === 'string')
