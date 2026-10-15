@@ -8,6 +8,7 @@ interface Props {
   homeHref: string;
   supabaseUrl: string;
   anonKey: string;
+  apiUrl: string;
 }
 
 type Source = 'study-hub' | 'fresh-teacher';
@@ -21,6 +22,12 @@ interface Resource {
   title: string;
   url: string;
   keys: string[];
+}
+
+interface ResourceStats {
+  resourceId: string;
+  upVotes: number;
+  totalVotes: number;
 }
 
 function LibraryIcon({ name }: { name: LibraryIconName }) {
@@ -143,10 +150,10 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
     = Array.isArray(data?.items) ? data.items : [];
   const resources = items
     .filter((i) => typeof i.url === 'string' && i.url)
-    .map((i, idx) => {
+    .map((i) => {
       const subject = titleCase(i.subject || 'General');
       return {
-        id: `ft-${idx}`,
+        id: `ft:${i.url}`,
         subject: subject === 'All Subjects' ? 'General' : subject,
         type: i.type || 'Resources',
         source: 'fresh-teacher' as Source,
@@ -163,6 +170,7 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
   endpoint.searchParams.set('select', 'subject,category,storage_bucket,storage_path,original_filename,title,size_bytes,level,year,resource_type');
   endpoint.searchParams.set('order', 'uploaded_at.desc,title.asc');
   endpoint.searchParams.set('limit', '1000');
+  endpoint.searchParams.set('offset', '0');
   const headers: Record<string, string> = { apikey: anonKey, Prefer: 'count=exact' };
   if (anonKey.startsWith('eyJ')) headers.Authorization = `Bearer ${anonKey}`;
 
@@ -170,15 +178,28 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
   if (!res.ok) throw new Error(`Study Hub catalog request failed (HTTP ${res.status}).`);
   const totalCount = res.headers.get('content-range')?.match(/\/(\d+)$/)?.[1];
   if (totalCount === undefined) throw new Error('Study Hub catalog did not provide an exact resource count.');
-  const rows: unknown = await res.json();
-  if (!Array.isArray(rows)) throw new Error('Study Hub catalog returned an invalid list.');
-  const resources = (rows as Array<Record<string, unknown>>).map((row, idx) => {
+  const firstPage: unknown = await res.json();
+  if (!Array.isArray(firstPage)) throw new Error('Study Hub catalog returned an invalid list.');
+  const count = Number(totalCount);
+  if (!Number.isSafeInteger(count) || count < 0) throw new Error('Study Hub catalog returned an invalid resource count.');
+  const offsets = Array.from({ length: Math.ceil(count / 1000) - 1 }, (_, index) => (index + 1) * 1000);
+  const nextPages = await Promise.all(offsets.map(async (offset) => {
+    const pageUrl = new URL(endpoint);
+    pageUrl.searchParams.set('offset', String(offset));
+    const pageResponse = await fetch(pageUrl, { headers });
+    if (!pageResponse.ok) throw new Error(`Study Hub catalog page request failed (HTTP ${pageResponse.status}).`);
+    const page: unknown = await pageResponse.json();
+    if (!Array.isArray(page)) throw new Error('Study Hub catalog returned an invalid page.');
+    return page;
+  }));
+  const rows = [...firstPage, ...nextPages.flat()] as Array<Record<string, unknown>>;
+  const resources = rows.map((row) => {
     const bucket = String(row.storage_bucket || 'study-hub-resources');
     const storagePath = String(row.storage_path || '');
     const publicUrl = storagePath ? `${url}/storage/v1/object/public/${bucket}/${storagePath}` : '';
     const level = typeof row.level === 'string' ? row.level : '';
     return {
-      id: `sh-${idx}`,
+      id: `sh:${storagePath}`,
       subject: titleCase(String(row.subject || 'General')),
       type: supaType(String(row.category || ''), String(row.resource_type || '')),
       source: 'study-hub' as Source,
@@ -187,10 +208,10 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
       keys: SUPA_LEVEL_KEYS[level] || [],
     };
   }).filter((r) => r.url);
-  return { resources, totalCount: Number(totalCount) };
+  return { resources, totalCount: count };
 }
 
-export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Props) {
+export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUrl }: Props) {
   const [selected, setSelected] = useState<{ label: string; keys: string[] } | null>(null);
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -207,10 +228,82 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Pro
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [preferencesError, setPreferencesError] = useState('');
+  const [resourceStats, setResourceStats] = useState<Record<string, ResourceStats>>({});
+  const [myVotes, setMyVotes] = useState<Record<string, 1>>({});
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const [engagementError, setEngagementError] = useState('');
 
   const base = homeHref.endsWith('/') ? homeHref : `${homeHref}/`;
   const catalogUrl = `${base}fresh-teacher-catalog.json`;
   const readerBase = `${base}full_page_flipbook_viewer/index.html`;
+  const apiBase = apiUrl.replace(/\/+$/, '');
+
+  async function refreshResourceStats() {
+    if (!apiBase) throw new Error('Resource ratings are unavailable because the account service is not configured.');
+    const response = await fetch(`${apiBase}/api/resources/stats`);
+    if (!response.ok) throw new Error(`Resource ratings request failed (HTTP ${response.status}).`);
+    const result: { resources?: ResourceStats[] } = await response.json();
+    if (!Array.isArray(result.resources)) throw new Error('Resource ratings response is invalid.');
+    setResourceStats(Object.fromEntries(result.resources.map((item) => [item.resourceId, item])));
+  }
+
+  function signInHref(): string {
+    const url = new URL(`${base}sign-in.html`, window.location.origin);
+    url.searchParams.set('return', window.location.href);
+    return url.href;
+  }
+
+  useEffect(() => {
+    let active = true;
+    async function loadEngagement() {
+      if (!apiBase) return;
+      try {
+        const response = await fetch(`${apiBase}/api/resources/stats`);
+        if (!response.ok) throw new Error(`Resource ratings request failed (HTTP ${response.status}).`);
+        const result: { resources?: ResourceStats[] } = await response.json();
+        if (!Array.isArray(result.resources)) throw new Error('Resource ratings response is invalid.');
+        if (active) setResourceStats(Object.fromEntries(result.resources.map((item) => [item.resourceId, item])));
+
+        const session = readAuthSession();
+        if (!session) {
+          if (active) {
+            setMyVotes({});
+            setBookmarks([]);
+          }
+          return;
+        }
+        const mineResponse = await fetch(`${apiBase}/api/resources/mine`, {
+          headers: { Authorization: `Bearer ${session.token}` },
+        });
+        if (mineResponse.status === 401 || mineResponse.status === 403) {
+          clearAuthSession();
+          if (active) {
+            setMyVotes({});
+            setBookmarks([]);
+          }
+          return;
+        }
+        if (!mineResponse.ok) throw new Error(`Saved resources request failed (HTTP ${mineResponse.status}).`);
+        const mine: { ratings?: Array<{ resourceId: string; vote: number }>; bookmarks?: string[] } = await mineResponse.json();
+        if (active) {
+          setMyVotes(Object.fromEntries((mine.ratings || [])
+            .filter((item) => item.vote === 1)
+            .map((item) => [item.resourceId, 1 as const])));
+          setBookmarks(mine.bookmarks || []);
+        }
+      } catch (loadError) {
+        console.error('Resource engagement could not be loaded.', loadError);
+        if (active) setEngagementError('Ratings or saved documents could not be loaded.');
+      }
+    }
+    void loadEngagement();
+    const reload = () => { void loadEngagement(); };
+    window.addEventListener('study-hub-auth-change', reload);
+    return () => {
+      active = false;
+      window.removeEventListener('study-hub-auth-change', reload);
+    };
+  }, [apiBase]);
 
   useEffect(() => {
     let active = true;
@@ -329,7 +422,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Pro
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-      Authorization: `Bearer ${profileToken}`,
+        Authorization: `Bearer ${profileToken}`,
     },
       body: JSON.stringify({
         classLevel: preferences.classLevel,
@@ -452,6 +545,29 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey }: Pro
           showAllSubjects={showAllSubjects}
           navigationCollapsed={navigationCollapsed}
           filtersCollapsed={filtersCollapsed}
+          apiBase={apiBase}
+          resourceStats={resourceStats}
+          myVotes={myVotes}
+          bookmarks={bookmarks}
+          engagementError={engagementError}
+          signInHref={signInHref}
+          onVoteSaved={(resourceId, vote) => {
+            setMyVotes((current) => {
+              const next = { ...current };
+              if (vote === null) delete next[resourceId];
+              else next[resourceId] = vote;
+              return next;
+            });
+            void refreshResourceStats().catch((refreshError: unknown) => {
+              console.error('Resource ratings could not be refreshed.', refreshError);
+              setEngagementError('Your rating was saved, but the public rating could not be refreshed.');
+            });
+          }}
+          onBookmarkChanged={(resourceId, saved) => {
+            setBookmarks((current) => saved
+              ? current.includes(resourceId) ? current : [...current, resourceId]
+              : current.filter((item) => item !== resourceId));
+          }}
           onSubjectFilter={(value) => { setSubjectFilter(value); setShowAllSubjects(true); }}
           onShowAllSubjects={() => { setSubjectFilter('all'); setShowAllSubjects((current) => !current); }}
           onTypeFilter={setTypeFilter}
@@ -535,6 +651,14 @@ interface DashboardProps {
   showAllSubjects: boolean;
   navigationCollapsed: boolean;
   filtersCollapsed: boolean;
+  apiBase: string;
+  resourceStats: Record<string, ResourceStats>;
+  myVotes: Record<string, 1>;
+  bookmarks: string[];
+  engagementError: string;
+  signInHref: () => string;
+  onVoteSaved: (resourceId: string, vote: 1 | null) => void;
+  onBookmarkChanged: (resourceId: string, saved: boolean) => void;
   onSubjectFilter: (v: string) => void;
   onShowAllSubjects: () => void;
   onTypeFilter: (v: string) => void;
@@ -550,9 +674,174 @@ interface DashboardProps {
 
 const PAGE_SIZE = 50;
 
+function ResourceShare({ row, readerHref }: { row: Resource; readerHref: (row: Resource) => string }) {
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  async function shareResource() {
+    const url = readerHref(row);
+    setMessage('');
+    setError('');
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: row.title, text: `Study Hub resource: ${row.title}`, url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setMessage('Link copied');
+      } else {
+        throw new Error('Sharing is not available in this browser.');
+      }
+    } catch (shareError) {
+      if (shareError instanceof Error && shareError.name === 'AbortError') return;
+      setError(shareError instanceof Error ? shareError.message : 'This resource could not be shared.');
+    }
+  }
+
+  return (
+    <span className="lib-resource-share">
+      <button type="button" className="lib-resource-action" onClick={() => void shareResource()} aria-label={`Share ${row.title}`}>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.7 10.6 6.6-4.2m-6.6 7 6.6 4.2" /></svg>
+        <span>Share</span>
+      </button>
+      {message && <span className="lib-resource-action-message" role="status">{message}</span>}
+      {error && <span className="lib-resource-action-error" role="alert">{error}</span>}
+    </span>
+  );
+}
+
+interface ResourceEngagementProps {
+  row: Resource;
+  apiBase: string;
+  stats?: ResourceStats;
+  vote?: 1;
+  bookmarked: boolean;
+  signInHref: () => string;
+  readerHref: (row: Resource) => string;
+  onVoteSaved: (resourceId: string, vote: 1 | null) => void;
+  onBookmarkChanged: (resourceId: string, saved: boolean) => void;
+}
+
+function ResourceEngagement({
+  row,
+  apiBase,
+  stats,
+  vote,
+  bookmarked,
+  signInHref,
+  readerHref,
+  onVoteSaved,
+  onBookmarkChanged,
+}: ResourceEngagementProps) {
+  const [working, setWorking] = useState(false);
+  const [signInPrompt, setSignInPrompt] = useState(false);
+  const [error, setError] = useState('');
+
+  async function updateVote(nextVote: 1) {
+    const session = readAuthSession();
+    if (!session) {
+      setSignInPrompt(true);
+      return;
+    }
+    if (!apiBase) {
+      setError('Ratings are unavailable right now.');
+      return;
+    }
+
+    const removeVote = vote === nextVote;
+    setWorking(true);
+    setError('');
+    try {
+      const response = await fetch(`${apiBase}/api/resources/vote`, {
+        method: removeVote ? 'DELETE' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ resourceId: row.id, ...(removeVote ? {} : { vote: nextVote }) }),
+      });
+      if (response.status === 401 || response.status === 403) {
+        clearAuthSession();
+        setSignInPrompt(true);
+        return;
+      }
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || 'Your rating could not be saved.');
+      }
+      onVoteSaved(row.id, removeVote ? null : nextVote);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Your rating could not be saved.');
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function toggleBookmark() {
+    const session = readAuthSession();
+    if (!session) {
+      setSignInPrompt(true);
+      return;
+    }
+    if (!apiBase) {
+      setError('Bookmarks are unavailable right now.');
+      return;
+    }
+
+    setWorking(true);
+    setError('');
+    try {
+      const response = await fetch(`${apiBase}/api/resources/bookmark`, {
+        method: bookmarked ? 'DELETE' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ resourceId: row.id }),
+      });
+      if (response.status === 401 || response.status === 403) {
+        clearAuthSession();
+        setSignInPrompt(true);
+        return;
+      }
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || 'This document could not be saved.');
+      }
+      onBookmarkChanged(row.id, !bookmarked);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'This document could not be saved.');
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  const voteCount = stats?.upVotes ?? 0;
+  return (
+    <div className="lib-engagement">
+      <span className="lib-rating-summary" aria-label={voteCount ? `${voteCount} thumbs-up ratings` : 'No ratings yet'}>
+        {voteCount ? `${voteCount} ${voteCount === 1 ? 'like' : 'likes'}` : 'No ratings'}
+      </span>
+      <button type="button" className={`lib-resource-action lib-vote-action ${vote === 1 ? 'is-active' : ''}`} aria-pressed={vote === 1} disabled={working} onClick={() => void updateVote(1)} aria-label={`Recommend ${row.title}`}>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8a3 3 0 0 1 2 3v4h5a3 3 0 0 1 3 3l-1.5 7a3 3 0 0 1-3 2H7" /></svg>
+      </button>
+      <button type="button" className={`lib-resource-action lib-bookmark-action ${bookmarked ? 'is-active' : ''}`} aria-pressed={bookmarked} disabled={working} onClick={() => void toggleBookmark()} aria-label={bookmarked ? `Remove bookmark for ${row.title}` : `Bookmark ${row.title}`}>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" /></svg>
+      </button>
+      {signInPrompt && (
+        <span className="lib-sign-in-prompt" role="status">
+          <a href={signInHref()}>Sign in to rate or bookmark</a>
+        </span>
+      )}
+      {error && <span className="lib-resource-action-error" role="alert">{error}</span>}
+    </div>
+  );
+}
+
 function ClassDashboard(props: DashboardProps) {
   const { selected, resources, loading, error, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, navigationCollapsed, filtersCollapsed, base } = props;
   const [visible, setVisible] = useState(PAGE_SIZE);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [savedSignInPrompt, setSavedSignInPrompt] = useState(false);
   const [classesOpen, setClassesOpen] = useState(false);
   const [classesHovered, setClassesHovered] = useState(false);
   const [filtersHovered, setFiltersHovered] = useState(false);
@@ -617,18 +906,30 @@ function ClassDashboard(props: DashboardProps) {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return classResources.filter((r) => {
-      if (!showAllSubjects && preferredSubjects.length && !preferredSubjects.includes(r.subject)) return false;
-      if (subjectFilter !== 'all' && r.subject !== subjectFilter) return false;
-      if (typeFilter !== 'all' && r.type !== typeFilter) return false;
+    const searchAcrossSite = Boolean(q);
+    const searchSource = searchAcrossSite || savedOnly ? resources : classResources;
+    return searchSource.filter((r) => {
+      if (!searchAcrossSite && !savedOnly && !showAllSubjects && preferredSubjects.length && !preferredSubjects.includes(r.subject)) return false;
+      if (savedOnly && !props.bookmarks.includes(r.id)) return false;
+      if (!savedOnly && subjectFilter !== 'all' && r.subject !== subjectFilter) return false;
+      if (!savedOnly && typeFilter !== 'all' && r.type !== typeFilter) return false;
       if (q && !(`${r.subject} ${r.title} ${r.type}`.toLowerCase().includes(q))) return false;
       return true;
+    }).sort((left, right) => {
+      const leftStats = props.resourceStats[left.id];
+      const rightStats = props.resourceStats[right.id];
+      const leftRated = leftStats?.totalVotes ? 1 : 0;
+      const rightRated = rightStats?.totalVotes ? 1 : 0;
+      return rightRated - leftRated
+        || (rightStats?.upVotes ?? 0) - (leftStats?.upVotes ?? 0)
+        || (rightStats?.totalVotes ?? 0) - (leftStats?.totalVotes ?? 0)
+        || left.title.localeCompare(right.title);
     });
-  }, [classResources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects]);
+  }, [classResources, resources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, savedOnly, props.bookmarks, props.resourceStats]);
 
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [selected.label, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects]);
+  }, [selected.label, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, savedOnly]);
 
   const shown = filtered.slice(0, visible);
 
@@ -843,17 +1144,39 @@ function ClassDashboard(props: DashboardProps) {
           <div className="lib-main-head">
             <div className="lib-resource-list-heading">
               <span className="lib-shelf-section-kicker">Made for your class</span>
-              <h2>Browse resources <span>{filtered.length.toLocaleString()}</span></h2>
+              <h2>{savedOnly ? 'Your bookmarks' : search.trim() ? 'Search all resources' : 'Browse resources'} <span>{filtered.length.toLocaleString()}</span></h2>
             </div>
-            <input
-              type="search"
-              className="lib-search"
-              placeholder="Search subject or title…"
-              value={search}
-              onChange={(e) => props.onSearch(e.target.value)}
-              aria-label="Search resources"
-            />
+            <div className="lib-main-tools">
+              <input
+                type="search"
+                className="lib-search"
+                placeholder="Search all resources…"
+                value={search}
+                onChange={(e) => props.onSearch(e.target.value)}
+                aria-label="Search resources"
+              />
+              <button
+                type="button"
+                className={`lib-saved-toggle ${savedOnly ? 'is-active' : ''}`}
+                aria-pressed={savedOnly}
+                onClick={() => {
+                  if (!readAuthSession()) {
+                    setSavedSignInPrompt(true);
+                    return;
+                  }
+                  setSavedSignInPrompt(false);
+                  setSavedOnly((current) => !current);
+                }}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" /></svg>
+                Saved ({props.bookmarks.length})
+              </button>
+            </div>
           </div>
+          {search.trim() && <p className="lib-search-scope">Searching all available resources across Study Hub.</p>}
+          {savedSignInPrompt && <p className="lib-search-scope"><a href={props.signInHref()}>Sign in to access your saved documents.</a></p>}
+          {savedOnly && <p className="lib-search-scope">Your bookmarks are private to your account. Click “Saved” again to return to the class list.</p>}
+          {props.engagementError && <p className="lib-banner" role="status">{props.engagementError}</p>}
           {preferredSubjects.length > 0 && (
             <p className="lib-personalization-note">
               {showAllSubjects ? `Showing all ${selected.label} subjects.` : `Showing your saved subjects: ${preferredSubjects.join(', ')}.`}
@@ -877,6 +1200,8 @@ function ClassDashboard(props: DashboardProps) {
                       <th>Subject</th>
                       <th>Title</th>
                       <th>Type</th>
+                      <th>Rating</th>
+                      <th>Save &amp; share</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -886,6 +1211,22 @@ function ClassDashboard(props: DashboardProps) {
                         <td className="lib-subject">{row.subject}</td>
                         <td className="lib-title">{row.title}</td>
                         <td><span className={`lib-tag ${row.type === 'Past Papers' ? 'lib-tag-exam' : 'lib-tag-notes'}`}>{row.type}</span></td>
+                        <td>
+                          <ResourceEngagement
+                            row={row}
+                            apiBase={props.apiBase}
+                            stats={props.resourceStats[row.id]}
+                            vote={props.myVotes[row.id]}
+                            bookmarked={props.bookmarks.includes(row.id)}
+                            signInHref={props.signInHref}
+                            readerHref={props.readerHref}
+                            onVoteSaved={props.onVoteSaved}
+                            onBookmarkChanged={props.onBookmarkChanged}
+                          />
+                        </td>
+                        <td className="lib-resource-share-cell">
+                          <ResourceShare row={row} readerHref={props.readerHref} />
+                        </td>
                         <td><a className="lib-view" href={props.readerHref(row)}>Read →</a></td>
                       </tr>
                     ))}

@@ -76,6 +76,24 @@ function getErrorMessage(result: AuthResponse, fallback: string): string {
   return validationMessage || result.message || result.error || fallback;
 }
 
+function getReturnHref(homeHref: string): string | null {
+  const candidate = new URLSearchParams(window.location.search).get('return');
+  if (!candidate) return null;
+  try {
+    const target = new URL(candidate, window.location.origin);
+    const homePath = new URL(homeHref, window.location.origin).pathname.replace(/\/+$/, '');
+    if (
+      target.origin !== window.location.origin
+      || target.username
+      || target.password
+      || !(target.pathname === homePath || target.pathname.startsWith(`${homePath}/`))
+    ) return null;
+    return target.href;
+  } catch {
+    return null;
+  }
+}
+
 export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   const apiBase = getApiBase(apiUrl);
   const [mode, setMode] = useState<AuthMode>('login');
@@ -153,6 +171,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
       rememberAccountEmail(result.user.email);
       if (result.user.onboardingComplete !== true) {
         window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
+        return;
+      }
+      const returnHref = getReturnHref(homeHref);
+      if (returnHref) {
+        window.location.assign(returnHref);
         return;
       }
       setAccount(result.user);
@@ -242,6 +265,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
       rememberAccountEmail(result.user.email);
       if (result.user.onboardingComplete !== true) {
         window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
+        return;
+      }
+      const returnHref = getReturnHref(homeHref);
+      if (returnHref) {
+        window.location.assign(returnHref);
         return;
       }
       setAccount(result.user);
