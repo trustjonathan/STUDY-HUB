@@ -24,6 +24,10 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan("dev"))
 
+app.get("/health", (req, res) => {
+   res.status(200).type("text/plain").send("Server is alive!")
+})
+
 // Routes
 const identityRoutes = require("./api/routes/identityRoutes")
 const aiTutorRoutes = require("./api/routes/aiRoutes.js")
