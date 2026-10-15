@@ -30,7 +30,6 @@ declare global {
             logo_alignment: 'left';
             width: number;
           }) => void;
-          prompt: () => void;
         };
       };
     };
@@ -56,6 +55,7 @@ interface AuthResponse {
 }
 
 type AuthMode = 'login' | 'register';
+const REMEMBERED_ACCOUNT_KEY = 'study-hub-remembered-account-email';
 
 function getApiBase(configured: string): string {
   if (!configured) return '';
@@ -84,10 +84,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
+  const [rememberedEmail, setRememberedEmail] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const googleButtonRef = useRef<HTMLDivElement>(null);
-  const oneTapPromptRequested = useRef(false);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
@@ -96,7 +97,40 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
     } catch {
       setError('Saved sign-in information could not be read in this browser. You can still sign in again.');
     }
+    try {
+      const storedEmail = localStorage.getItem(REMEMBERED_ACCOUNT_KEY)?.trim() || '';
+      if (storedEmail && storedEmail.length <= 254 && !/[\s<>]/.test(storedEmail)) {
+        setRememberedEmail(storedEmail);
+      }
+    } catch {
+      setNotice('This browser does not allow Study Hub to remember an email address on this device.');
+    }
   }, []);
+
+  function rememberAccountEmail(accountEmail: string) {
+    const normalizedEmail = accountEmail.trim().toLowerCase();
+    try {
+      localStorage.setItem(REMEMBERED_ACCOUNT_KEY, normalizedEmail);
+      setRememberedEmail(normalizedEmail);
+    } catch {
+      setNotice('You are signed in, but this browser could not remember your email for next time.');
+    }
+  }
+
+  function continueAsRememberedAccount() {
+    setMode('login');
+    setEmail(rememberedEmail);
+    window.setTimeout(() => passwordInputRef.current?.focus(), 0);
+  }
+
+  function forgetRememberedAccount() {
+    try {
+      localStorage.removeItem(REMEMBERED_ACCOUNT_KEY);
+      setRememberedEmail('');
+    } catch {
+      setError('This browser could not remove the remembered email address.');
+    }
+  }
 
   async function signInWithGoogle(credential: string) {
     if (busy || !apiBase) return;
@@ -116,6 +150,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
       }
 
       saveAuthSession(result.token, result.user);
+      rememberAccountEmail(result.user.email);
       if (result.user.onboardingComplete !== true) {
         window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
         return;
@@ -161,10 +196,6 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
         logo_alignment: 'left',
         width: Math.min(360, Math.floor(button.clientWidth || 360)),
       });
-      if (!oneTapPromptRequested.current) {
-        oneTapPromptRequested.current = true;
-        window.google.accounts.id.prompt();
-      }
     };
 
     const scriptUrl = 'https://accounts.google.com/gsi/client';
@@ -208,6 +239,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
       }
 
       saveAuthSession(result.token, result.user);
+      rememberAccountEmail(result.user.email);
       if (result.user.onboardingComplete !== true) {
         window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
         return;
@@ -313,6 +345,17 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
             </>
           ) : (
             <>
+              {mode === 'login' && rememberedEmail && (
+                <aside className="auth-remembered-account" aria-label="Remembered account">
+                  <span className="auth-remembered-avatar" aria-hidden="true">{rememberedEmail[0].toUpperCase()}</span>
+                  <span className="auth-remembered-copy">
+                    <strong>Continue as</strong>
+                    <span>{rememberedEmail}</span>
+                  </span>
+                  <button type="button" className="auth-remembered-continue" onClick={continueAsRememberedAccount}>Continue</button>
+                  <button type="button" className="auth-remembered-forget" onClick={forgetRememberedAccount} aria-label="Forget remembered email">×</button>
+                </aside>
+              )}
               <div className="auth-mode-tabs" role="tablist" aria-label="Account options">
                 <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => { setMode('login'); setError(''); setNotice(''); }}>Sign in</button>
                 <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => { setMode('register'); setError(''); setNotice(''); }}>Create account</button>
@@ -354,6 +397,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
                 <label>
                   Password
                   <input
+                    ref={passwordInputRef}
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}

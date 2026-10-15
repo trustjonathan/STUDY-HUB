@@ -12,7 +12,7 @@ const config = {
   // JWT / Auth
   auth: {
     jwtSecret: process.env.JWT_SECRET || '',
-    tokenExpiry: '1h',
+    tokenExpiry: '30d',
   },
 
   // Databases

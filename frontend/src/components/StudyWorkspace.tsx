@@ -17,6 +17,7 @@ interface Note {
 }
 interface StudyProfile {
   username: string;
+  email: string;
   classLevel: string;
   subjects: string[];
   onboardingComplete: boolean;
@@ -109,6 +110,7 @@ export default function StudyWorkspace({
     try {
       const session = readAuthSession<{
         username?: unknown;
+        email?: unknown;
         classLevel?: unknown;
         subjects?: unknown;
         onboardingComplete?: unknown;
@@ -120,6 +122,7 @@ export default function StudyWorkspace({
         : [];
       const studyProfile = {
         username: typeof user.username === 'string' ? user.username : '',
+        email: typeof user.email === 'string' ? user.email : '',
         classLevel: typeof user.classLevel === 'string' ? user.classLevel : '',
         subjects,
         onboardingComplete: user.onboardingComplete === true,
@@ -341,8 +344,15 @@ export default function StudyWorkspace({
         </nav>
 
         <div className="ws-sidebar-foot">
-          <span className="ws-avatar" aria-hidden="true">MJ</span>
-          <span>Mwesigwa Jonathan</span>
+          <span className="ws-avatar" aria-hidden="true">
+            {(profile?.username || profile?.email || 'Guest learner')
+              .split(/\s+/)
+              .slice(0, 2)
+              .map((part) => part[0])
+              .join('')
+              .toUpperCase()}
+          </span>
+          <span>{profile?.username || profile?.email || 'Guest learner'}</span>
         </div>
       </aside>
 

@@ -24,6 +24,15 @@
 .auth-mode-tabs button { position: relative; min-height: 42px; padding: 0 2px; border: 0; background: transparent; color: #6c786e; cursor: pointer; font: 700 .85rem 'DM Sans', sans-serif; }
 .auth-mode-tabs button.is-active { color: #246b49; }
 .auth-mode-tabs button.is-active::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: #246b49; content: ''; }
+.auth-remembered-account { display: flex; min-width: 0; align-items: center; gap: 10px; margin: 0 0 20px; padding: 11px; border: 1px solid #d6e2d6; border-radius: 11px; background: #fffefa; box-shadow: 0 8px 25px rgba(29, 58, 42, .08); }
+.auth-remembered-avatar { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: 50%; background: #246b49; color: #fffefa; font: 800 .85rem Manrope, sans-serif; text-transform: uppercase; }
+.auth-remembered-copy { display: grid; min-width: 0; flex: 1; gap: 3px; }
+.auth-remembered-copy strong { color: #30463a; font-size: .76rem; }
+.auth-remembered-copy > span { overflow: hidden; color: #647568; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.auth-remembered-continue { min-height: 34px; padding: 0 11px; border: 1px solid #246b49; border-radius: 7px; background: #246b49; color: #fffefa; cursor: pointer; font: 700 .74rem 'DM Sans', sans-serif; }
+.auth-remembered-continue:hover { background: #18583a; }
+.auth-remembered-forget { display: grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #647568; cursor: pointer; font-size: 1.2rem; }
+.auth-remembered-forget:hover { background: #eef4ed; color: #30463a; }
 .auth-form { display: grid; gap: 15px; }
 .auth-form label { display: grid; gap: 7px; color: #35483c; font-size: .8rem; font-weight: 700; }
 .auth-form input { width: 100%; min-height: 46px; box-sizing: border-box; padding: 0 12px; border: 1px solid #cfd9d0; border-radius: 7px; outline: none; background: #fff; color: #243a2f; font: 400 .9rem 'DM Sans', sans-serif; }
@@ -62,6 +71,9 @@
 .auth-card-aside > a { display: inline-flex; gap: 8px; margin-top: 22px; color: #246b49; font-size: .82rem; font-weight: 750; text-decoration: none; }
 .auth-page-note { margin: 14px 0 0; color: #738076; font-size: .75rem; text-align: center; }
 .auth-page a:focus-visible, .auth-page button:focus-visible { outline: 3px solid #d38b43; outline-offset: 3px; }
+@media (min-width: 960px) {
+  .auth-remembered-account { position: fixed; z-index: 40; top: 16px; right: 18px; width: min(360px, calc(100vw - 36px)); margin: 0; }
+}
 @media (max-width: 720px) {
   .auth-card { grid-template-columns: minmax(0, 1fr); }
   .auth-card-aside { padding: 25px; }
