@@ -79,6 +79,11 @@
 .lib-crumb:focus-visible { outline: 2px solid #10b981; outline-offset: 2px; border-radius: 4px; }
 .lib-crumb.is-active { color: #34d399; font-weight: 800; cursor: default; }
 .lib-crumb-sep { color: #334155; user-select: none; }
+.lib-resource-actions { min-width: 160px; white-space: nowrap; }
+.lib-resource-actions .lib-view { margin-right: 8px; }
+.lib-download-button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; padding: 7px 12px; border: 0; border-radius: 8px; background: linear-gradient(110deg, #b6ff47, #55e2ae); box-shadow: 0 5px 15px #48c9952e; color: #10231c; font-size: .75rem; font-weight: 900; text-decoration: none; transition: filter .16s ease, transform .16s ease; }
+.lib-download-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.lib-download-button:focus-visible { outline: 2px solid #d9ff89; outline-offset: 3px; }
 
 /* ---- Class shelf ---- */
 .lib-shelf { flex: 1 1 auto; padding: 28px clamp(18px, 4vw, 56px) 48px; }
@@ -378,13 +383,17 @@
   .lib-table { display: block; min-width: 0; }
   .lib-table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
   .lib-table tbody { display: grid; gap: 10px; }
-  .lib-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "subject action" "title title" "type type"; gap: 4px 12px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+  .lib-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "subject subject" "title title" "type type" "rating rating" "shares shares" "action action"; gap: 6px 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
   .lib-table tbody td { min-width: 0; padding: 2px 0; border: 0; overflow-wrap: anywhere; }
   .lib-table tbody .lib-subject { grid-area: subject; }
   .lib-table tbody .lib-title { grid-area: title; color: #334155; font-size: 13px; }
   .lib-table tbody td:nth-child(3) { grid-area: type; }
-  .lib-table tbody td:nth-child(4) { grid-area: action; align-self: start; justify-self: end; }
+  .lib-table tbody td:nth-child(4) { grid-area: rating; }
+  .lib-table tbody td:nth-child(5) { grid-area: shares; }
+  .lib-table tbody td:nth-child(6) { grid-area: action; justify-self: start; }
   .lib-table tbody td:nth-child(3)::before { margin-right: 7px; color: #64748b; content: "Type"; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .lib-table tbody td:nth-child(4)::before { margin-right: 7px; color: #64748b; content: "Rating"; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .lib-table tbody td:nth-child(5)::before { margin-right: 7px; color: #64748b; content: "Shares"; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 }
 
 @media (prefers-reduced-motion: reduce) {

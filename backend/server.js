@@ -31,6 +31,7 @@ app.get("/health", (req, res) => {
 // Routes
 const identityRoutes = require("./api/routes/identityRoutes")
 const resourceEngagementRoutes = require("./api/routes/resourceEngagementRoutes")
+const documentPaymentRoutes = require("./api/routes/documentPaymentRoutes")
 const aiTutorRoutes = require("./api/routes/aiRoutes.js")
 const aiStudyCompanionRoutes = require("./api/routes/aiStudyCompanion.routes.js")
 const lessonGuideRoutes = require("./api/routes/lessonGuide.routes.js")
@@ -50,6 +51,7 @@ catch (err) { console.warn("timetableRoutes not found yet") }
 
 app.use("/api/auth", identityRoutes)
 app.use("/api/resources", resourceEngagementRoutes)
+app.use("/api/document-payments", documentPaymentRoutes)
 app.use("/api/bio-gpt", aiTutorRoutes)
 app.use("/api/ai-study-companion", aiStudyCompanionRoutes)
 app.use("/api/lesson-guide", lessonGuideRoutes)

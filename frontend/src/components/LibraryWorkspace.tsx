@@ -489,6 +489,13 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     return url.href;
   }
 
+  function checkoutHref(row: Resource): string {
+    const url = new URL(`${base}document-payment.html`, window.location.origin);
+    url.searchParams.set('resource_id', row.id);
+    url.searchParams.set('title', row.title);
+    return url.href;
+  }
+
   const path = selected ? ['Home', 'Library', selected.label] : ['Home', 'Library'];
 
 
@@ -591,6 +598,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           onToggleFilters={() => setFiltersCollapsed((c) => !c)}
           onSelectClass={setSelected}
           readerHref={readerHref}
+          checkoutHref={checkoutHref}
           base={base}
           homeHref={homeHref}
           onBackToShelf={() => setSelected(null)}
@@ -683,6 +691,7 @@ interface DashboardProps {
   onToggleFilters: () => void;
   onSelectClass: (selection: { label: string; keys: string[] }) => void;
   readerHref: (row: Resource) => string;
+  checkoutHref: (row: Resource) => string;
   base: string;
   homeHref: string;
   onBackToShelf: () => void;
@@ -1278,7 +1287,10 @@ function ClassDashboard(props: DashboardProps) {
                             onShareTracked={props.onShareTracked}
                           />
                         </td>
-                        <td><a className="lib-view" href={props.readerHref(row)}>Read →</a></td>
+                        <td className="lib-resource-actions">
+                          <a className="lib-view" href={props.readerHref(row)}>Read →</a>
+                          <a className="lib-download-button" href={props.checkoutHref(row)}>Download</a>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -461,3 +461,20 @@ body.ad-panel-open .ad-rail { transform: translateX(0); visibility: visible; }
 @media (prefers-reduced-motion: reduce) {
   .related-card, .related-rail, .contribution-rail, .ai-study-panel { transition: none; }
 }
+.reader-download-button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: linear-gradient(110deg, #b6ff47, #55e2ae);
+  color: #10231c;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.reader-download-button:hover { filter: brightness(1.08); }
+.reader-download-button:focus-visible { outline: 2px solid #d9ff89; outline-offset: 3px; }

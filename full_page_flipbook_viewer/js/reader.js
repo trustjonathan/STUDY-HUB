@@ -45,6 +45,7 @@ import * as tus from 'tus-js-client';
   const bookmarkButton = document.querySelector('#bookmark-current');
   const contributionForm = document.querySelector('#contribution-form');
   const resourceEngagement = document.querySelector('#resource-engagement');
+  const resourceDownloadButton = document.querySelector('#resource-download');
   const resourceLikes = document.querySelector('#resource-likes');
   const resourceLikeButton = document.querySelector('#resource-like');
   const resourceDislikeButton = document.querySelector('#resource-dislike');
@@ -93,6 +94,13 @@ import * as tus from 'tus-js-client';
 
   document.title = `${title} | Study Hub`;
   document.querySelector('.ela-t-title').textContent = title;
+  if (/^(sh|ft):/.test(resourceId) && !reviewMode) {
+    const checkout = new URL('../document-payment.html', window.location.href);
+    checkout.searchParams.set('resource_id', resourceId);
+    checkout.searchParams.set('title', title);
+    resourceDownloadButton.href = checkout.href;
+    resourceDownloadButton.hidden = false;
+  }
 
   function setUploadMessage(message, stateName = '') {
     uploadStatus.textContent = message;

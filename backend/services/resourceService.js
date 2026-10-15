@@ -170,10 +170,10 @@ class ResourceService {
   }
 
   // Only needed if the bucket is switched to private later.
-  async createSignedUrl(storagePath, expiresIn = 3600) {
+  async createSignedUrl(storagePath, expiresIn = 3600, bucket = RESOURCES_BUCKET) {
     const supabase = getSupabaseClient({ role: 'service' });
     const { data, error } = await supabase.storage
-      .from(RESOURCES_BUCKET)
+      .from(bucket)
       .createSignedUrl(storagePath, expiresIn);
 
     if (error) throw new Error(error.message);
