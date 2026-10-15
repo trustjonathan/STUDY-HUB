@@ -16,17 +16,17 @@ interface Props {
   onSkip?: () => Promise<void>;
 }
 
-function levelForClass(classLevel: string): 'O-Level' | 'A-Level' | null {
+function levelsForClass(classLevel: string): readonly string[] | null {
   const selectedClass = libraryClasses.find((item) => item.label === classLevel);
   const classKey = selectedClass?.keys[0] || '';
   if (!/^s[1-6]$/.test(classKey)) return null;
-  return Number(classKey.slice(1)) <= 4 ? 'O-Level' : 'A-Level';
+  return Number(classKey.slice(1)) <= 4 ? ['O-Level'] : ['A-Level', 'Subsidiary'];
 }
 
 function subjectsForClass(classLevel: string) {
-  const level = levelForClass(classLevel);
-  return level
-    ? preferenceSubjects.filter((subject) => subject.levels.includes(level))
+  const levels = levelsForClass(classLevel);
+  return levels
+    ? preferenceSubjects.filter((subject) => subject.levels.some((level) => levels.includes(level)))
     : preferenceSubjects;
 }
 
@@ -109,8 +109,8 @@ export default function LearningPreferencesForm({
       <fieldset className="learning-subject-field">
         <legend>Your subjects</legend>
         <p>
-          {levelForClass(classLevel)
-            ? `Choose subjects available at ${levelForClass(classLevel)}.`
+          {levelsForClass(classLevel)
+            ? `Choose subjects available at ${levelsForClass(classLevel)?.join(' and ')}.`
             : 'Choose subjects from the Study Hub catalogue. Primary class-specific subject mappings are not yet available.'}
         </p>
         <div className="learning-subject-options">

@@ -1,7 +1,7 @@
 // backend/api/validators/identityValidator.js
 
 const { body, validationResult } = require('express-validator');
-const { allowedSubjectSet, allowedClassSet } = require('../constants/learningProfile');
+const { allowedSubjectSet, allowedClassSet, subjectLevels, levelsForClass } = require('../constants/learningProfile');
 
 // Validate registration input
 const validateRegister = [
@@ -64,7 +64,12 @@ const validateProfileUpdate = [
     .optional()
     .isArray({ max: allowedSubjectSet.size })
     .bail()
-    .custom((values) => new Set(values).size === values.length && values.every((value) => allowedSubjectSet.has(value)))
+    .custom((values, { req }) => {
+      const levels = levelsForClass(req.body.classLevel);
+      return new Set(values).size === values.length
+        && values.every((value) => allowedSubjectSet.has(value))
+        && (!levels || values.every((value) => subjectLevels.get(value)?.some((level) => levels.includes(level))));
+    })
     .withMessage('Choose only available Study Hub subjects.'),
   body('onboardingComplete')
     .optional()
