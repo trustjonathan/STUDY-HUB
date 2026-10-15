@@ -7,6 +7,8 @@ export const contentSubjectSlugs = [
   'physics',
 ] as const;
 
+export const preferenceSubjects = subjectCatalog;
+
 const contentSubjectSlugSet = new Set<string>(contentSubjectSlugs);
 
 export const availableSubjects = subjectCatalog.filter((subject) =>

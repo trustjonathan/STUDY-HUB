@@ -613,7 +613,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 }
 .site-header.clean-site-header .brand { flex: 0 0 auto; }
 .service-anniversary {
-  display: none;
+  display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
   gap: 7px;
@@ -670,10 +670,6 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .header-account-dropdown > span { overflow: hidden; color: #647568; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
 .header-account-dropdown > a, .header-account-dropdown > button { display: flex; min-height: 38px; align-items: center; padding: 0 10px; border: 1px solid #d8e4d7; border-radius: 7px; background: #f7f9f5; color: #285c3e; font: 700 .8rem/1.2 "DM Sans", sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
 .header-account-dropdown > a:hover, .header-account-dropdown > button:hover { border-color: #8eaf96; background: #eef4ed; }
-
-@media (min-width: 1200px) {
-  .service-anniversary { display: inline-flex; }
-}
 
 @media (max-width: 980px) {
   .header-composition { grid-template-columns: minmax(210px, .75fr) minmax(0, 1.5fr); gap: 12px; }
@@ -751,8 +747,9 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   .site-header.clean-site-header .brand { gap: 7px; font-size: .9rem; }
   .site-header.clean-site-header .brand img { width: 32px; height: 32px; }
   .site-header.clean-site-header .brand-group { gap: 7px; }
-  .site-header.clean-site-header .service-anniversary { gap: 4px; padding: 4px 6px; }
-  .site-header.clean-site-header .uganda-flag { width: 30px; height: 20px; }
+  .site-header.clean-site-header .service-anniversary { gap: 4px; padding: 3px 5px; }
+  .site-header.clean-site-header .uganda-flag { width: 22px; height: 15px; }
+  .site-header.clean-site-header .service-anniversary-copy { max-width: 68px; white-space: normal; }
   .site-header.clean-site-header .service-anniversary-copy strong { font-size: .58rem; }
   .site-header.clean-site-header .service-anniversary-copy > span { font-size: .5rem; }
   .site-header.clean-site-header .site-nav { gap: 0 8px; }

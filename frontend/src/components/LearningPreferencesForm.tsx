@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from 'react';
-import { availableSubjects } from '../data/availableSubjects';
+import { preferenceSubjects } from '../data/availableSubjects';
 import { libraryClasses } from '../data/libraryClasses';
 import '../styles/learning-preferences.css';
 
@@ -16,6 +16,20 @@ interface Props {
   onSkip?: () => Promise<void>;
 }
 
+function levelForClass(classLevel: string): 'O-Level' | 'A-Level' | null {
+  const selectedClass = libraryClasses.find((item) => item.label === classLevel);
+  const classKey = selectedClass?.keys[0] || '';
+  if (!/^s[1-6]$/.test(classKey)) return null;
+  return Number(classKey.slice(1)) <= 4 ? 'O-Level' : 'A-Level';
+}
+
+function subjectsForClass(classLevel: string) {
+  const level = levelForClass(classLevel);
+  return level
+    ? preferenceSubjects.filter((subject) => subject.levels.includes(level))
+    : preferenceSubjects;
+}
+
 export default function LearningPreferencesForm({
   initialClassLevel,
   initialSubjects,
@@ -24,9 +38,13 @@ export default function LearningPreferencesForm({
   onSkip,
 }: Props) {
   const [classLevel, setClassLevel] = useState(initialClassLevel);
-  const [subjects, setSubjects] = useState(initialSubjects);
+  const [subjects, setSubjects] = useState(() => {
+    const eligibleSubjects = new Set(subjectsForClass(initialClassLevel).map((subject) => subject.name));
+    return initialSubjects.filter((subject) => eligibleSubjects.has(subject));
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const filteredSubjects = subjectsForClass(classLevel);
 
   function toggleSubject(subject: string) {
     setSubjects((current) => current.includes(subject)
@@ -74,16 +92,29 @@ export default function LearningPreferencesForm({
     <form className="learning-preferences-form" onSubmit={submit}>
       <label className="learning-class-field">
         Your class or level
-        <select value={classLevel} onChange={(event) => setClassLevel(event.target.value)} disabled={busy}>
+        <select
+          value={classLevel}
+          onChange={(event) => {
+            const nextClassLevel = event.target.value;
+            const nextEligibleSubjects = new Set(subjectsForClass(nextClassLevel).map((subject) => subject.name));
+            setClassLevel(nextClassLevel);
+            setSubjects((current) => current.filter((subject) => nextEligibleSubjects.has(subject)));
+          }}
+          disabled={busy}
+        >
           <option value="">Choose a class</option>
           {libraryClasses.map((item) => <option key={item.label} value={item.label}>{item.label}</option>)}
         </select>
       </label>
       <fieldset className="learning-subject-field">
         <legend>Your subjects</legend>
-        <p>Select each subject you want to see in your library and use for AI Study.</p>
+        <p>
+          {levelForClass(classLevel)
+            ? `Choose subjects available at ${levelForClass(classLevel)}.`
+            : 'Choose subjects from the Study Hub catalogue. Primary class-specific subject mappings are not yet available.'}
+        </p>
         <div className="learning-subject-options">
-          {availableSubjects.map((subject) => (
+          {filteredSubjects.map((subject) => (
             <label key={subject.slug} className={`learning-subject-option ${subjects.includes(subject.name) ? 'is-selected' : ''}`}>
               <input
                 type="checkbox"
