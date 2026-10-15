@@ -311,13 +311,15 @@
 .lib-tag-notes { background: #ecfdf5; color: #047857; }
 .lib-view { color: #059669; font-weight: 700; text-decoration: none; }
 .lib-view:hover { text-decoration: underline; }
-.lib-engagement { position: relative; display: flex; min-width: 175px; align-items: center; gap: 4px; }
-.lib-rating-summary { min-width: 66px; color: #475569; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.lib-engagement { position: relative; display: flex; min-width: 195px; flex-wrap: wrap; align-items: center; gap: 2px; }
+.lib-rating-summary { flex: 0 0 100%; color: #475569; font-size: 10px; font-weight: 700; white-space: nowrap; }
 .lib-resource-action { display: inline-flex; min-height: 32px; align-items: center; justify-content: center; gap: 4px; padding: 0 6px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #64748b; cursor: pointer; font: 650 10px/1 'DM Sans', Arial, sans-serif; white-space: nowrap; }
 .lib-resource-action svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .lib-resource-action:hover:not(:disabled) { border-color: #dbe4e0; background: #f8fafc; color: #0f766e; }
 .lib-resource-action:disabled { cursor: wait; opacity: .55; }
 .lib-vote-action.is-active { background: #ecfdf5; color: #047857; }
+.lib-dislike-action.is-active { background: #fef2f2; color: #b91c1c; }
+.lib-dislike-action svg { transform: rotate(180deg); }
 .lib-vote-action[aria-pressed="true"] svg { fill: currentColor; }
 .lib-bookmark-action.is-active { background: #eff6ff; color: #2563eb; }
 .lib-bookmark-action.is-active svg { fill: currentColor; }
@@ -325,6 +327,7 @@
 .lib-sign-in-prompt a { color: #047857; font-size: 11px; font-weight: 700; }
 .lib-resource-share { display: inline-flex; align-items: center; gap: 5px; }
 .lib-resource-share .lib-resource-action { border-color: #dbe4e0; background: #fff; }
+.lib-resource-share-count { color: #64748b; font-size: 10px; white-space: nowrap; }
 .lib-resource-action-message { color: #047857; font-size: 10px; white-space: nowrap; }
 .lib-resource-action-error { color: #b42318; font-size: 10px; }
 .lib-empty { padding: 40px 12px; color: #94a3b8; text-align: center; font-size: 13px; }
@@ -334,7 +337,7 @@
   .lib-side { width: 224px; flex-basis: 224px; }
 }
 @media (max-width: 640px) {
-  .lib-engagement { min-width: 168px; }
+  .lib-engagement { min-width: 148px; }
   .lib-main-body { padding-right: 14px; padding-left: 14px; }
   .lib-class-drawer { left: 52px; width: min(284px, calc(100% - 52px)); }
   .lib-dash.is-navigation-collapsed .lib-class-drawer { left: 0; width: min(284px, 100%); }

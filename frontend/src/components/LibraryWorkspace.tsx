@@ -27,7 +27,9 @@ interface Resource {
 interface ResourceStats {
   resourceId: string;
   upVotes: number;
+  downVotes: number;
   totalVotes: number;
+  shareCount: number;
 }
 
 function LibraryIcon({ name }: { name: LibraryIconName }) {
@@ -229,7 +231,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [preferencesError, setPreferencesError] = useState('');
   const [resourceStats, setResourceStats] = useState<Record<string, ResourceStats>>({});
-  const [myVotes, setMyVotes] = useState<Record<string, 1>>({});
+  const [myVotes, setMyVotes] = useState<Record<string, 1 | -1>>({});
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [engagementError, setEngagementError] = useState('');
 
@@ -287,8 +289,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
         const mine: { ratings?: Array<{ resourceId: string; vote: number }>; bookmarks?: string[] } = await mineResponse.json();
         if (active) {
           setMyVotes(Object.fromEntries((mine.ratings || [])
-            .filter((item) => item.vote === 1)
-            .map((item) => [item.resourceId, 1 as const])));
+            .filter((item): item is { resourceId: string; vote: 1 | -1 } => item.vote === 1 || item.vote === -1)
+            .map((item) => [item.resourceId, item.vote])));
           setBookmarks(mine.bookmarks || []);
         }
       } catch (loadError) {
@@ -478,6 +480,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     url.searchParams.set('file', row.url);
     url.searchParams.set('title', row.title);
     url.searchParams.set('subject', row.subject.toLowerCase());
+    url.searchParams.set('resource_id', row.id);
     if (row.source === 'fresh-teacher') {
       url.searchParams.set('source', 'fresh-teacher');
       if (row.keys[0]) url.searchParams.set('class_key', row.keys[0]);
@@ -562,6 +565,18 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
               console.error('Resource ratings could not be refreshed.', refreshError);
               setEngagementError('Your rating was saved, but the public rating could not be refreshed.');
             });
+          }}
+          onShareTracked={(resourceId) => {
+            setResourceStats((current) => ({
+              ...current,
+              [resourceId]: {
+                resourceId,
+                upVotes: current[resourceId]?.upVotes ?? 0,
+                downVotes: current[resourceId]?.downVotes ?? 0,
+                totalVotes: current[resourceId]?.totalVotes ?? 0,
+                shareCount: (current[resourceId]?.shareCount ?? 0) + 1,
+              },
+            }));
           }}
           onBookmarkChanged={(resourceId, saved) => {
             setBookmarks((current) => saved
@@ -653,11 +668,12 @@ interface DashboardProps {
   filtersCollapsed: boolean;
   apiBase: string;
   resourceStats: Record<string, ResourceStats>;
-  myVotes: Record<string, 1>;
+  myVotes: Record<string, 1 | -1>;
   bookmarks: string[];
   engagementError: string;
   signInHref: () => string;
-  onVoteSaved: (resourceId: string, vote: 1 | null) => void;
+  onVoteSaved: (resourceId: string, vote: 1 | -1 | null) => void;
+  onShareTracked: (resourceId: string) => void;
   onBookmarkChanged: (resourceId: string, saved: boolean) => void;
   onSubjectFilter: (v: string) => void;
   onShowAllSubjects: () => void;
@@ -674,7 +690,13 @@ interface DashboardProps {
 
 const PAGE_SIZE = 50;
 
-function ResourceShare({ row, readerHref }: { row: Resource; readerHref: (row: Resource) => string }) {
+function ResourceShare({ row, apiBase, shareCount, readerHref, onShareTracked }: {
+  row: Resource;
+  apiBase: string;
+  shareCount: number;
+  readerHref: (row: Resource) => string;
+  onShareTracked: (resourceId: string) => void;
+}) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -694,6 +716,24 @@ function ResourceShare({ row, readerHref }: { row: Resource; readerHref: (row: R
     } catch (shareError) {
       if (shareError instanceof Error && shareError.name === 'AbortError') return;
       setError(shareError instanceof Error ? shareError.message : 'This resource could not be shared.');
+      return;
+    }
+    try {
+      if (!apiBase) throw new Error('The share count service is not configured.');
+      const response = await fetch(`${apiBase}/api/resources/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceId: row.id }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || `Share count request failed (HTTP ${response.status}).`);
+      }
+      onShareTracked(row.id);
+    } catch (trackingError) {
+      setError(trackingError instanceof Error
+        ? `Shared successfully, but the share count could not be recorded: ${trackingError.message}`
+        : 'Shared successfully, but the share count could not be recorded.');
     }
   }
 
@@ -703,6 +743,9 @@ function ResourceShare({ row, readerHref }: { row: Resource; readerHref: (row: R
         <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.7 10.6 6.6-4.2m-6.6 7 6.6 4.2" /></svg>
         <span>Share</span>
       </button>
+      <span className="lib-resource-share-count" aria-label={`${shareCount} ${shareCount === 1 ? 'recorded share' : 'recorded shares'}`}>
+        {shareCount} {shareCount === 1 ? 'share' : 'shares'}
+      </span>
       {message && <span className="lib-resource-action-message" role="status">{message}</span>}
       {error && <span className="lib-resource-action-error" role="alert">{error}</span>}
     </span>
@@ -713,11 +756,10 @@ interface ResourceEngagementProps {
   row: Resource;
   apiBase: string;
   stats?: ResourceStats;
-  vote?: 1;
+  vote?: 1 | -1;
   bookmarked: boolean;
   signInHref: () => string;
-  readerHref: (row: Resource) => string;
-  onVoteSaved: (resourceId: string, vote: 1 | null) => void;
+  onVoteSaved: (resourceId: string, vote: 1 | -1 | null) => void;
   onBookmarkChanged: (resourceId: string, saved: boolean) => void;
 }
 
@@ -728,7 +770,6 @@ function ResourceEngagement({
   vote,
   bookmarked,
   signInHref,
-  readerHref,
   onVoteSaved,
   onBookmarkChanged,
 }: ResourceEngagementProps) {
@@ -736,7 +777,7 @@ function ResourceEngagement({
   const [signInPrompt, setSignInPrompt] = useState(false);
   const [error, setError] = useState('');
 
-  async function updateVote(nextVote: 1) {
+  async function updateVote(nextVote: 1 | -1) {
     const session = readAuthSession();
     if (!session) {
       setSignInPrompt(true);
@@ -815,13 +856,18 @@ function ResourceEngagement({
     }
   }
 
-  const voteCount = stats?.upVotes ?? 0;
+  const totalVotes = stats?.totalVotes ?? 0;
+  const upPercent = totalVotes ? Math.round(((stats?.upVotes ?? 0) / totalVotes) * 100) : 0;
+  const downPercent = totalVotes ? 100 - upPercent : 0;
   return (
     <div className="lib-engagement">
-      <span className="lib-rating-summary" aria-label={voteCount ? `${voteCount} thumbs-up ratings` : 'No ratings yet'}>
-        {voteCount ? `${voteCount} ${voteCount === 1 ? 'like' : 'likes'}` : 'No ratings'}
+      <span className="lib-rating-summary" aria-label={totalVotes ? `${upPercent}% thumbs-up, ${downPercent}% thumbs-down, ${totalVotes} ratings` : 'No ratings yet'}>
+        {totalVotes ? `${upPercent}% up · ${downPercent}% down` : 'No ratings'}
       </span>
-      <button type="button" className={`lib-resource-action lib-vote-action ${vote === 1 ? 'is-active' : ''}`} aria-pressed={vote === 1} disabled={working} onClick={() => void updateVote(1)} aria-label={`Recommend ${row.title}`}>
+      <button type="button" className={`lib-resource-action lib-vote-action ${vote === 1 ? 'is-active' : ''}`} aria-pressed={vote === 1} disabled={working} onClick={() => void updateVote(1)} aria-label={`Thumbs up ${row.title}`}>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8a3 3 0 0 1 2 3v4h5a3 3 0 0 1 3 3l-1.5 7a3 3 0 0 1-3 2H7" /></svg>
+      </button>
+      <button type="button" className={`lib-resource-action lib-vote-action lib-dislike-action ${vote === -1 ? 'is-active' : ''}`} aria-pressed={vote === -1} disabled={working} onClick={() => void updateVote(-1)} aria-label={`Thumbs down ${row.title}`}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8a3 3 0 0 1 2 3v4h5a3 3 0 0 1 3 3l-1.5 7a3 3 0 0 1-3 2H7" /></svg>
       </button>
       <button type="button" className={`lib-resource-action lib-bookmark-action ${bookmarked ? 'is-active' : ''}`} aria-pressed={bookmarked} disabled={working} onClick={() => void toggleBookmark()} aria-label={bookmarked ? `Remove bookmark for ${row.title}` : `Bookmark ${row.title}`}>
@@ -918,11 +964,11 @@ function ClassDashboard(props: DashboardProps) {
     }).sort((left, right) => {
       const leftStats = props.resourceStats[left.id];
       const rightStats = props.resourceStats[right.id];
-      const leftRated = leftStats?.totalVotes ? 1 : 0;
-      const rightRated = rightStats?.totalVotes ? 1 : 0;
-      return rightRated - leftRated
-        || (rightStats?.upVotes ?? 0) - (leftStats?.upVotes ?? 0)
+      const leftPercent = leftStats?.totalVotes ? leftStats.upVotes / leftStats.totalVotes : -1;
+      const rightPercent = rightStats?.totalVotes ? rightStats.upVotes / rightStats.totalVotes : -1;
+      return rightPercent - leftPercent
         || (rightStats?.totalVotes ?? 0) - (leftStats?.totalVotes ?? 0)
+        || (rightStats?.shareCount ?? 0) - (leftStats?.shareCount ?? 0)
         || left.title.localeCompare(right.title);
     });
   }, [classResources, resources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, savedOnly, props.bookmarks, props.resourceStats]);
@@ -1219,13 +1265,18 @@ function ClassDashboard(props: DashboardProps) {
                             vote={props.myVotes[row.id]}
                             bookmarked={props.bookmarks.includes(row.id)}
                             signInHref={props.signInHref}
-                            readerHref={props.readerHref}
                             onVoteSaved={props.onVoteSaved}
                             onBookmarkChanged={props.onBookmarkChanged}
                           />
                         </td>
                         <td className="lib-resource-share-cell">
-                          <ResourceShare row={row} readerHref={props.readerHref} />
+                          <ResourceShare
+                            row={row}
+                            apiBase={props.apiBase}
+                            shareCount={props.resourceStats[row.id]?.shareCount ?? 0}
+                            readerHref={props.readerHref}
+                            onShareTracked={props.onShareTracked}
+                          />
                         </td>
                         <td><a className="lib-view" href={props.readerHref(row)}>Read →</a></td>
                       </tr>

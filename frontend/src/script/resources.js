@@ -32,6 +32,20 @@
     return `${String(projectUrl).replace(/\/+$/, '')}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
   }
 
+  function studyHubResourceId(item) {
+    const storagePath = item.storagePath || item.storage_path;
+    if (typeof storagePath === 'string' && storagePath) return `sh:${storagePath}`;
+    try {
+      const url = new URL(item.publicUrl || item.url);
+      const marker = '/study-hub-resources/';
+      const pathStart = url.pathname.indexOf(marker);
+      if (pathStart < 0) return '';
+      return `sh:${decodeURIComponent(url.pathname.slice(pathStart + marker.length))}`;
+    } catch {
+      return '';
+    }
+  }
+
   function loadManifestFallback() {
     if (MANIFEST) return Promise.resolve(MANIFEST);
     if (manifestLoadPromise) return manifestLoadPromise;
@@ -164,6 +178,8 @@
     link.className = 'resource-link';
     const readerUrl = new URL(READER_PAGE, window.location.href);
     readerUrl.searchParams.set('file', item.publicUrl);
+    const resourceId = studyHubResourceId(item);
+    if (resourceId) readerUrl.searchParams.set('resource_id', resourceId);
     readerUrl.searchParams.set('title', item.title || item.originalFilename || 'Study Hub resource');
     if (item.subject) readerUrl.searchParams.set('subject', item.subject);
     readerUrl.searchParams.set('return', window.location.href);
@@ -360,6 +376,8 @@
           title: item.title || item.originalFilename || 'Study Hub resource',
           return: returnUrl
         });
+        const resourceId = studyHubResourceId(item);
+        if (resourceId) query.set('resource_id', resourceId);
         if (item.subject) query.set('subject', item.subject);
         if (anonKey) query.set('anon_key', anonKey);
         return `${readerPage}?${query}`;

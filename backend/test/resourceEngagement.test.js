@@ -30,11 +30,14 @@ afterEach(() => {
 test('publishes aggregate ratings without exposing individual accounts', async () => {
   const summary = [{
     resourceId: 'sh:documents/bio/paper.pdf',
-    upVotes: 24,
+    upVotes: 18,
+    downVotes: 6,
     totalVotes: 24,
+    shareCount: 9,
   }];
   sequelize.query = async (_sql, options) => {
     assert.equal(options.type, 'SELECT');
+    assert.match(_sql, /study_hub_resource_shares/);
     return summary;
   };
   const res = responseMock();
@@ -46,25 +49,25 @@ test('publishes aggregate ratings without exposing individual accounts', async (
   assert.equal(JSON.stringify(res.body).includes('userId'), false);
 });
 
-test('saves one thumbs-up rating for the authenticated account', async () => {
+test('saves thumbs-up and thumbs-down ratings for the authenticated account', async () => {
   sequelize.query = async (sql, options) => {
     assert.match(sql, /ON CONFLICT/);
     assert.deepEqual(options.replacements, {
       resourceId: 'ft:https://example.test/resource.pdf',
       userId: 42,
-      vote: 1,
+      vote: -1,
     });
     return [];
   };
   const res = responseMock();
 
   await controller.saveVote({
-    body: { resourceId: 'ft:https://example.test/resource.pdf', vote: 1 },
+    body: { resourceId: 'ft:https://example.test/resource.pdf', vote: -1 },
     user: { id: 42 },
   }, res);
 
   assert.equal(res.statusCode, 200);
-  assert.equal(res.body.vote, 1);
+  assert.equal(res.body.vote, -1);
 });
 
 test('rejects malformed resource IDs and invalid vote values', async () => {
@@ -78,9 +81,22 @@ test('rejects malformed resource IDs and invalid vote values', async () => {
   assert.equal(badIdResponse.statusCode, 400);
 
   const badVoteResponse = responseMock();
-  await controller.saveVote({ body: { resourceId: 'sh:notes/file.pdf', vote: -1 }, user: { id: 42 } }, badVoteResponse);
+  await controller.saveVote({ body: { resourceId: 'sh:notes/file.pdf', vote: 0 }, user: { id: 42 } }, badVoteResponse);
   assert.equal(badVoteResponse.statusCode, 400);
   assert.equal(queried, false);
+});
+
+test('records a resource share without requiring an account', async () => {
+  sequelize.query = async (sql, options) => {
+    assert.match(sql, /INSERT INTO public\.study_hub_resource_shares/);
+    assert.deepEqual(options.replacements, { resourceId: 'sh:documents/bio/paper.pdf' });
+    return [];
+  };
+  const res = responseMock();
+
+  await controller.saveShare({ body: { resourceId: 'sh:documents/bio/paper.pdf' } }, res);
+
+  assert.equal(res.statusCode, 204);
 });
 
 test('stores bookmarks independently by resource and account', async () => {

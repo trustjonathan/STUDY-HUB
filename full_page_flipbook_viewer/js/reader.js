@@ -8,6 +8,7 @@ import * as tus from 'tus-js-client';
   const requestedFile = params.get('file');
   const title = params.get('title') || 'Study Hub resource';
   const reviewMode = params.get('mode') === 'review';
+  const apiBase = document.querySelector('meta[name="study-hub-api-base"]')?.content.trim().replace(/\/+$/, '') || '';
   const storagePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
   const freshTeacherOrigins = new Set([
     'https://fresh-teacher.github.io',
@@ -43,6 +44,14 @@ import * as tus from 'tus-js-client';
   const bookmarksContainer = document.querySelector('#document-bookmarks');
   const bookmarkButton = document.querySelector('#bookmark-current');
   const contributionForm = document.querySelector('#contribution-form');
+  const resourceEngagement = document.querySelector('#resource-engagement');
+  const resourceLikes = document.querySelector('#resource-likes');
+  const resourceLikeButton = document.querySelector('#resource-like');
+  const resourceDislikeButton = document.querySelector('#resource-dislike');
+  const resourceSaveButton = document.querySelector('#resource-save');
+  const resourceShareButton = document.querySelector('#resource-share');
+  const resourceShares = document.querySelector('#resource-shares');
+  const resourceEngagementStatus = document.querySelector('#resource-engagement-status');
   const drawerBackdrop = document.querySelector('.reader-drawer-backdrop');
   const fileInput = contributionForm.querySelector('input[type="file"]');
   const contributionToggle = document.querySelector('[data-a="contribute"]');
@@ -68,6 +77,7 @@ import * as tus from 'tus-js-client';
   let readerProgressPending = false;
   let readerProgressTimer = 0;
   const resourceKey = requestedFile || window.location.pathname;
+  const resourceId = resolveResourceId();
   const readerStateKey = `study-hub-reader:${encodeURIComponent(resourceKey)}`;
   const uploadBatchKey = 'study-hub-contribution-upload-batch-v1';
   const renderedPages = new Set();
@@ -114,6 +124,212 @@ import * as tus from 'tus-js-client';
     }
   }
 
+  function resolveResourceId() {
+    if (!requestedFile) return '';
+
+    try {
+      const fileUrl = new URL(requestedFile);
+      if (params.get('source') === 'fresh-teacher' || freshTeacherOrigins.has(fileUrl.origin)) {
+        return `ft:${requestedFile}`;
+      }
+      const match = fileUrl.pathname.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+      if (!match) return '';
+      return `sh:${decodeURIComponent(match[1])}`;
+    } catch {
+      return '';
+    }
+  }
+
+  function readReaderToken() {
+    try {
+      const stored = sessionStorage.getItem('study-hub-auth');
+      if (!stored) return '';
+      const session = JSON.parse(stored);
+      return typeof session?.token === 'string' ? session.token : '';
+    } catch (error) {
+      console.error('The saved Study Hub sign-in session could not be read.', error);
+      return '';
+    }
+  }
+
+  function showEngagementStatus(message, showSignIn = false) {
+    resourceEngagementStatus.replaceChildren(document.createTextNode(message));
+    if (showSignIn) {
+      const signInLink = document.createElement('a');
+      const signInUrl = new URL('../sign-in.html', window.location.href);
+      signInUrl.searchParams.set('return', window.location.href);
+      signInLink.href = signInUrl.href;
+      signInLink.textContent = ' Sign in';
+      resourceEngagementStatus.append(signInLink);
+    }
+    resourceEngagementStatus.hidden = !message;
+  }
+
+  function renderResourceEngagement() {
+    const upPercent = resourceEngagementState.totalVotes
+      ? Math.round((resourceEngagementState.upVotes / resourceEngagementState.totalVotes) * 100)
+      : 0;
+    const downPercent = resourceEngagementState.totalVotes ? 100 - upPercent : 0;
+    resourceLikes.textContent = resourceEngagementState.totalVotes
+      ? `${upPercent}% up · ${downPercent}% down`
+      : 'No ratings';
+    resourceShares.textContent = `${resourceEngagementState.shareCount} ${resourceEngagementState.shareCount === 1 ? 'share' : 'shares'}`;
+    resourceLikeButton.setAttribute('aria-pressed', String(resourceEngagementState.vote === 1));
+    resourceLikeButton.setAttribute('aria-label', resourceEngagementState.vote === 1 ? 'Remove thumbs-up rating' : 'Thumbs up');
+    resourceLikeButton.title = resourceEngagementState.vote === 1 ? 'Remove thumbs-up rating' : 'Thumbs up';
+    resourceDislikeButton.setAttribute('aria-pressed', String(resourceEngagementState.vote === -1));
+    resourceDislikeButton.setAttribute('aria-label', resourceEngagementState.vote === -1 ? 'Remove thumbs-down rating' : 'Thumbs down');
+    resourceDislikeButton.title = resourceEngagementState.vote === -1 ? 'Remove thumbs-down rating' : 'Thumbs down';
+    resourceSaveButton.setAttribute('aria-pressed', String(resourceEngagementState.saved));
+    resourceSaveButton.setAttribute('aria-label', resourceEngagementState.saved ? 'Remove saved resource' : 'Save this resource');
+    resourceSaveButton.title = resourceEngagementState.saved ? 'Remove saved resource' : 'Save this resource';
+  }
+
+  const resourceEngagementState = { upVotes: 0, downVotes: 0, totalVotes: 0, shareCount: 0, vote: 0, saved: false };
+
+  async function loadResourceEngagement() {
+    if (!apiBase || !resourceId || reviewMode) return;
+    resourceEngagement.hidden = false;
+    try {
+      const statsResponse = await fetch(`${apiBase}/api/resources/stats`);
+      if (!statsResponse.ok) throw new Error(`Resource ratings request failed (HTTP ${statsResponse.status}).`);
+      const stats = await statsResponse.json();
+      if (!Array.isArray(stats.resources)) throw new Error('Resource ratings response is invalid.');
+      const resourceStats = stats.resources.find((item) => item.resourceId === resourceId);
+      resourceEngagementState.upVotes = Number.isSafeInteger(resourceStats?.upVotes) ? resourceStats.upVotes : 0;
+      resourceEngagementState.downVotes = Number.isSafeInteger(resourceStats?.downVotes) ? resourceStats.downVotes : 0;
+      resourceEngagementState.totalVotes = Number.isSafeInteger(resourceStats?.totalVotes) ? resourceStats.totalVotes : 0;
+      resourceEngagementState.shareCount = Number.isSafeInteger(resourceStats?.shareCount) ? resourceStats.shareCount : 0;
+      renderResourceEngagement();
+
+      const token = readReaderToken();
+      if (!token) return;
+      const mineResponse = await fetch(`${apiBase}/api/resources/mine`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (mineResponse.status === 401 || mineResponse.status === 403) {
+        sessionStorage.removeItem('study-hub-auth');
+        return;
+      }
+      if (!mineResponse.ok) throw new Error(`Saved resources request failed (HTTP ${mineResponse.status}).`);
+      const mine = await mineResponse.json();
+      if (!Array.isArray(mine.ratings) || !Array.isArray(mine.bookmarks)) {
+        throw new Error('Saved resource preferences response is invalid.');
+      }
+      const rating = mine.ratings.find((item) => item.resourceId === resourceId);
+      resourceEngagementState.vote = rating?.vote === 1 || rating?.vote === -1 ? rating.vote : 0;
+      resourceEngagementState.saved = mine.bookmarks.includes(resourceId);
+      renderResourceEngagement();
+    } catch (error) {
+      console.error('Resource ratings and bookmarks could not be loaded.', error);
+      showEngagementStatus('Ratings or saved status could not be loaded.');
+    }
+  }
+
+  async function updateResourceEngagement(action, nextVote = 0) {
+    const token = readReaderToken();
+    if (!token) {
+      showEngagementStatus('Sign in to rate or save this resource.', true);
+      return;
+    }
+
+    const isVote = action === 'vote';
+    const previousVote = resourceEngagementState.vote;
+    const isRemoving = isVote ? previousVote === nextVote : resourceEngagementState.saved;
+    const endpoint = isVote ? 'vote' : 'bookmark';
+    const method = isRemoving ? 'DELETE' : 'PUT';
+    const buttons = [resourceLikeButton, resourceDislikeButton, resourceSaveButton];
+    buttons.forEach((button) => { button.disabled = true; });
+    showEngagementStatus('');
+    try {
+      const response = await fetch(`${apiBase}/api/resources/${endpoint}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ resourceId, ...(isVote && !isRemoving ? { vote: nextVote } : {}) }),
+      });
+      if (response.status === 401 || response.status === 403) {
+        sessionStorage.removeItem('study-hub-auth');
+        resourceEngagementState.vote = 0;
+        resourceEngagementState.saved = false;
+        renderResourceEngagement();
+        showEngagementStatus('Your sign-in session expired. Sign in again to rate or save this resource.', true);
+        return;
+      }
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || `The resource ${isVote ? 'rating' : 'bookmark'} could not be updated.`);
+      }
+
+      if (isVote) {
+        if (isRemoving) {
+          resourceEngagementState[nextVote === 1 ? 'upVotes' : 'downVotes'] -= 1;
+          resourceEngagementState.totalVotes -= 1;
+          resourceEngagementState.vote = 0;
+        } else {
+          if (previousVote !== 0) resourceEngagementState[previousVote === 1 ? 'upVotes' : 'downVotes'] -= 1;
+          else resourceEngagementState.totalVotes += 1;
+          resourceEngagementState[nextVote === 1 ? 'upVotes' : 'downVotes'] += 1;
+          resourceEngagementState.vote = nextVote;
+        }
+      } else {
+        resourceEngagementState.saved = !isRemoving;
+      }
+      renderResourceEngagement();
+    } catch (error) {
+      console.error('Resource rating or bookmark could not be updated.', error);
+      showEngagementStatus(error instanceof Error ? error.message : 'The resource could not be updated.');
+    } finally {
+      buttons.forEach((button) => { button.disabled = false; });
+    }
+  }
+
+  async function recordResourceShare() {
+    try {
+      if (!apiBase) throw new Error('The share count service is not configured.');
+      const response = await fetch(`${apiBase}/api/resources/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceId }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || `Share count request failed (HTTP ${response.status}).`);
+      }
+      resourceEngagementState.shareCount += 1;
+      renderResourceEngagement();
+    } catch (error) {
+      console.error('Resource share count could not be recorded.', error);
+      showEngagementStatus(error instanceof Error
+        ? `Shared successfully, but the share count could not be recorded: ${error.message}`
+        : 'Shared successfully, but the share count could not be recorded.');
+    }
+  }
+
+  async function shareCurrentResource() {
+    showEngagementStatus('');
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title,
+          text: `Study Hub resource: ${title}`,
+          url: window.location.href,
+        });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(window.location.href);
+        notice.textContent = 'Resource link copied.';
+      } else {
+        throw new Error('Sharing is not available in this browser.');
+      }
+      await recordResourceShare();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      showEngagementStatus(error instanceof Error ? error.message : 'This resource could not be shared.');
+    }
+  }
+
   function resourceTitle(item) {
     return item.title || item.original_filename || item.storage_path?.split('/').pop() || 'Study resource';
   }
@@ -146,7 +362,10 @@ import * as tus from 'tus-js-client';
     link.searchParams.set('subject', subject);
     if (item.source === 'fresh-teacher') {
       link.searchParams.set('source', 'fresh-teacher');
+      link.searchParams.set('resource_id', `ft:${resourcePublicUrl(item)}`);
       if (item.classKey) link.searchParams.set('class_key', item.classKey);
+    } else if (item.storage_path) {
+      link.searchParams.set('resource_id', `sh:${item.storage_path}`);
     }
     const returnUrl = params.get('return');
     if (returnUrl) link.searchParams.set('return', returnUrl);
@@ -162,7 +381,10 @@ import * as tus from 'tus-js-client';
     const pdf = await window.pdfjsLib.getDocument(preview.dataset.previewUrl).promise;
     const page = await pdf.getPage(1);
     const baseViewport = page.getViewport({ scale: 1 });
-    const scale = Math.min(58 / baseViewport.width, 74 / baseViewport.height);
+    const previewWidth = Math.max(1, preview.clientWidth);
+    const previewHeight = Math.max(1, preview.clientHeight);
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const scale = Math.min(previewWidth / baseViewport.width, previewHeight / baseViewport.height) * pixelRatio;
     const viewport = page.getViewport({ scale });
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil(viewport.width);
@@ -1420,6 +1642,10 @@ import * as tus from 'tus-js-client';
     toggleContributionPanel(false);
     toggleAdPanel(false);
   });
+  resourceLikeButton.addEventListener('click', () => { void updateResourceEngagement('vote', 1); });
+  resourceDislikeButton.addEventListener('click', () => { void updateResourceEngagement('vote', -1); });
+  resourceSaveButton.addEventListener('click', () => { void updateResourceEngagement('bookmark'); });
+  resourceShareButton.addEventListener('click', () => { void shareCurrentResource(); });
   bookmarkButton.addEventListener('click', toggleBookmark);
   colorSelect.addEventListener('change', () => applyReadingColor(colorSelect.value));
 
@@ -1481,6 +1707,7 @@ import * as tus from 'tus-js-client';
     }
 
     toolbar.hidden = false;
+    void loadResourceEngagement();
     toggleContributionPanel(false);
     toggleRelatedPanel(false);
     toggleAdPanel(false);
@@ -1493,6 +1720,7 @@ import * as tus from 'tus-js-client';
       document.querySelector('#contribution-rail').hidden = true;
       document.querySelector('#ad-rail').hidden = true;
       document.querySelector('#ai-study-toggle').hidden = true;
+      resourceEngagement.hidden = true;
     } else {
       void loadRelatedDocuments();
       void initializeUploads();

@@ -71,6 +71,19 @@
 
 .ela-t-author { color: var(--reader-muted); font-size: 12px; }
 .ela-tools, .ela-pager { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; }
+.reader-resource-engagement { position: relative; display: inline-flex; flex: 0 0 auto; align-items: center; gap: 1px; }
+.reader-resource-engagement[hidden] { display: none; }
+.reader-resource-likes { min-width: 20px; color: var(--reader-muted); font: 700 11px/1 Arial, sans-serif; text-align: center; }
+.reader-resource-shares { color: var(--reader-muted); font: 10px/1 Arial, sans-serif; white-space: nowrap; }
+.reader-engagement-btn { width: 36px; height: 38px; }
+.reader-engagement-btn svg { width: 20px; height: 20px; }
+.reader-engagement-btn[aria-pressed="true"] { color: #86efac; background: #153226; }
+.reader-engagement-btn[aria-pressed="true"] svg { fill: currentColor; }
+.reader-dislike-btn[aria-pressed="true"] { color: #fca5a5; background: #3b2024; }
+.reader-dislike-btn svg { transform: rotate(180deg); }
+.reader-engagement-status { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; width: max-content; max-width: min(280px, calc(100vw - 80px)); padding: 9px 11px; border: 1px solid #3b4b5c; border-radius: 7px; background: #111827; color: var(--reader-text); box-shadow: 0 8px 22px rgba(0, 0, 0, .35); font: 12px/1.45 Arial, sans-serif; }
+.reader-engagement-status a { color: #93d9ff; font-weight: 700; }
+.reader-engagement-btn:disabled { cursor: wait; opacity: .55; }
 .ela-pageinput { display: flex; align-items: center; gap: 5px; color: var(--reader-muted); white-space: nowrap; }
 .ela-pageinput input { width: 48px; height: 34px; padding: 0 4px; border: 1px solid var(--reader-border); border-radius: 5px; background: #17232e; color: var(--reader-text); text-align: center; font: inherit; }
 .ela-pageinput input::-webkit-inner-spin-button,
@@ -288,6 +301,11 @@ body.ad-panel-open .ad-rail { transform: translateX(0); visibility: visible; }
   .ela-title { display: none; }
   .ela-t-author, .ela-hide-sm { display: none; }
   .ela-tools { flex-direction: column; gap: 3px; }
+  .reader-resource-engagement { flex-direction: column; gap: 0; padding: 2px 0; border-top: 1px solid var(--reader-border); border-bottom: 1px solid var(--reader-border); }
+  .reader-resource-likes { min-height: 16px; }
+  .reader-resource-shares { max-width: 48px; overflow-wrap: anywhere; text-align: center; }
+  .reader-engagement-btn { width: 44px; height: 38px; }
+  .reader-engagement-status { position: fixed; top: 8px; right: 8px; max-width: calc(100vw - 80px); }
   .related-toggle { display: inline-grid; }
   .ela-contribute-toggle { width: 44px; min-width: 44px; padding: 0; }
   .ela-contribute-label { display: none; }

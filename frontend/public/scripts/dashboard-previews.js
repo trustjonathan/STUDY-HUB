@@ -4,6 +4,7 @@
   const documents = new Map();
   const scripts = new Map();
   const observedPreviews = new WeakSet();
+  const previewResizeObservers = new WeakMap();
 
   function loadScript(url) {
     if (!scripts.has(url)) {
@@ -54,16 +55,47 @@
     const pdf = await loadDocument(preview.dataset.previewUrl, pdfjs);
     const page = await pdf.getPage(1);
     const baseViewport = page.getViewport({ scale: 1 });
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-    const scale = Math.min(280 / baseViewport.width, 360 / baseViewport.height) * pixelRatio;
-    const viewport = page.getViewport({ scale });
+    let currentRenderTask = null;
+    let renderGeneration = 0;
+    let renderedSize = '';
+    const renderToFit = async () => {
+      const width = Math.max(1, preview.clientWidth || 220);
+      const height = Math.max(1, preview.clientHeight || 96);
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      const scale = Math.min(width / baseViewport.width, height / baseViewport.height) * pixelRatio;
+      const viewport = page.getViewport({ scale });
+      const sizeKey = `${Math.ceil(viewport.width)}x${Math.ceil(viewport.height)}`;
+      if (sizeKey === renderedSize) return;
+      renderedSize = sizeKey;
+      const generation = ++renderGeneration;
+      if (currentRenderTask) currentRenderTask.cancel();
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      currentRenderTask = page.render({ canvasContext: context, viewport });
+      try {
+        await currentRenderTask.promise;
+      } catch (error) {
+        if (generation !== renderGeneration || error?.name === 'RenderingCancelledException') return;
+        throw error;
+      }
+      if (generation !== renderGeneration) return;
+      if (!canvas.isConnected) preview.insertBefore(canvas, preview.firstChild);
+      preview.classList.add('has-preview');
+    };
 
-    canvas.width = Math.ceil(viewport.width);
-    canvas.height = Math.ceil(viewport.height);
-    await page.render({ canvasContext: context, viewport }).promise;
-
-    preview.insertBefore(canvas, preview.firstChild);
-    preview.classList.add('has-preview');
+    await renderToFit();
+    if ('ResizeObserver' in window && !previewResizeObservers.has(preview)) {
+      const observer = new ResizeObserver(() => {
+        if (!preview.isConnected) {
+          observer.disconnect();
+          previewResizeObservers.delete(preview);
+          return;
+        }
+        renderToFit().catch((error) => handlePreviewError(preview, error));
+      });
+      previewResizeObservers.set(preview, observer);
+      observer.observe(preview);
+    }
 
     const caption = preview.querySelector('.dashboard-preview-caption');
     if (caption) caption.textContent = 'Page 1 preview';

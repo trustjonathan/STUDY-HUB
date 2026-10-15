@@ -18,11 +18,25 @@ function resourceIdFrom(req, res) {
 async function getStats(req, res) {
   try {
     const rows = await sequelize.query(
-      `SELECT resource_id AS "resourceId",
-              COUNT(*)::INTEGER AS "upVotes",
-              COUNT(*)::INTEGER AS "totalVotes"
-       FROM public.study_hub_resource_ratings
-       GROUP BY resource_id`,
+      `WITH rating_stats AS (
+         SELECT resource_id,
+                COUNT(*) FILTER (WHERE vote = 1)::INTEGER AS "upVotes",
+                COUNT(*) FILTER (WHERE vote = -1)::INTEGER AS "downVotes",
+                COUNT(*)::INTEGER AS "totalVotes"
+         FROM public.study_hub_resource_ratings
+         GROUP BY resource_id
+       ),
+       share_stats AS (
+         SELECT resource_id, share_count::INTEGER AS "shareCount"
+         FROM public.study_hub_resource_shares
+       )
+       SELECT COALESCE(rating_stats.resource_id, share_stats.resource_id) AS "resourceId",
+              COALESCE(rating_stats."upVotes", 0)::INTEGER AS "upVotes",
+              COALESCE(rating_stats."downVotes", 0)::INTEGER AS "downVotes",
+              COALESCE(rating_stats."totalVotes", 0)::INTEGER AS "totalVotes",
+              COALESCE(share_stats."shareCount", 0)::INTEGER AS "shareCount"
+       FROM rating_stats
+       FULL OUTER JOIN share_stats USING (resource_id)`,
       { type: QueryTypes.SELECT },
     );
     return res.json({ resources: rows });
@@ -59,8 +73,8 @@ async function saveVote(req, res) {
   const resourceId = resourceIdFrom(req, res);
   if (resourceId === null) return;
   const vote = req.body.vote;
-  if (vote !== 1) {
-    return res.status(400).json({ error: 'Choose a thumbs-up rating.' });
+  if (vote !== 1 && vote !== -1) {
+    return res.status(400).json({ error: 'Choose a thumbs-up or thumbs-down rating.' });
   }
 
   try {
@@ -127,4 +141,23 @@ async function removeBookmark(req, res) {
   }
 }
 
-module.exports = { getStats, getMyEngagement, saveVote, removeVote, saveBookmark, removeBookmark };
+async function saveShare(req, res) {
+  const resourceId = resourceIdFrom(req, res);
+  if (resourceId === null) return;
+  try {
+    await sequelize.query(
+      `INSERT INTO public.study_hub_resource_shares (resource_id)
+       VALUES (:resourceId)
+       ON CONFLICT (resource_id)
+       DO UPDATE SET share_count = public.study_hub_resource_shares.share_count + 1,
+                     updated_at = CURRENT_TIMESTAMP`,
+      { replacements: { resourceId }, type: QueryTypes.INSERT },
+    );
+    return res.status(204).end();
+  } catch (error) {
+    console.error('Resource share could not be recorded:', error);
+    return res.status(500).json({ error: 'This resource share could not be recorded.' });
+  }
+}
+
+module.exports = { getStats, getMyEngagement, saveVote, removeVote, saveBookmark, removeBookmark, saveShare };
