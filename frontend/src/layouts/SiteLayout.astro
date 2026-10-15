@@ -80,8 +80,14 @@ const popularSubjects = availableSubjects;
             <span>Study Hub</span>
           </a>
           <span class="service-anniversary" aria-label="Two years serving Uganda">
-            <span class="uganda-flag" role="img" aria-label="Ugandan flag">🇺🇬</span>
-            <span class="service-anniversary-copy"><strong>2 years</strong><span>serving Uganda</span></span>
+            <svg class="uganda-flag" role="img" aria-label="Ugandan flag" viewBox="0 0 30 20">
+              <rect width="30" height="20" fill="#000" />
+              <path fill="#fcdc04" d="M0 3.33h30v3.34H0zM0 10h30v3.33H0z" />
+              <path fill="#d90000" d="M0 6.67h30V10H0zM0 13.33h30V20H0z" />
+              <circle cx="15" cy="10" r="4.15" fill="#fff" />
+              <path d="M14.7 6.9h.65l.45 1.3 1.15-.42.3.45-.82.85.7.76-.4.35-.83-.4-.2 2.05-.45 1.1-.45-1.1.05-2.25-.88.57-.35-.38.78-.86-.78-.58.28-.48 1.05.36.55-1.32Zm-.6 5.72-.85.95h.75l.6-.55.6.55h.8l-.9-.95Z" fill="#777" />
+            </svg>
+            <span class="service-anniversary-copy"><strong>2 years</strong><span>of serving Ugandans</span></span>
           </span>
         </div>
         <nav class="site-nav" aria-label="Main navigation">
@@ -92,12 +98,84 @@ const popularSubjects = availableSubjects;
           <a href={`${home}/assistant.html`}>AI Study</a>
           <a href={`${home}/frontend/src/html/about.html`}>About</a>
         </nav>
-        <a class="header-sign-in" href={`${home}/sign-in.html`}>
+        <a class="header-sign-in" data-header-sign-in href={`${home}/sign-in.html`}>
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4M10 17l5-5-5-5m5 5H3" /></svg>
           <span>Sign in</span>
         </a>
+        <div class="header-account" data-header-account hidden>
+          <details class="header-account-menu">
+            <summary aria-label="Open account menu">
+              <span class="header-account-avatar" data-account-avatar aria-hidden="true">A</span>
+            </summary>
+            <div class="header-account-dropdown">
+              <strong data-account-name>Account</strong>
+              <span data-account-email></span>
+              <a href={`${home}/sign-in.html`}>Profile &amp; settings</a>
+              <button type="button" data-account-sign-out>Sign out</button>
+            </div>
+          </details>
+        </div>
       </div>
     </header>
+    <script>
+      import { clearAuthSession, readAuthSession } from '../utils/authSession';
+
+      interface HeaderAccount {
+        username?: string;
+        email?: string;
+      }
+
+      const signInLink = document.querySelector<HTMLElement>('[data-header-sign-in]');
+      const accountMenu = document.querySelector<HTMLElement>('[data-header-account]');
+      const accountAvatar = document.querySelector<HTMLElement>('[data-account-avatar]');
+      const accountName = document.querySelector<HTMLElement>('[data-account-name]');
+      const accountEmail = document.querySelector<HTMLElement>('[data-account-email]');
+      const signOutButton = document.querySelector<HTMLButtonElement>('[data-account-sign-out]');
+
+      function updateHeaderAccount() {
+        try {
+          const session = readAuthSession<HeaderAccount>();
+          const user = session?.user;
+          if (!user || typeof user.email !== 'string') {
+            if (signInLink) signInLink.hidden = false;
+            if (accountMenu) accountMenu.hidden = true;
+            return;
+          }
+
+          const displayName = user.username?.trim() || user.email;
+          const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('');
+          if (accountAvatar) accountAvatar.textContent = initials.toUpperCase();
+          if (accountName) accountName.textContent = displayName;
+          if (accountEmail) accountEmail.textContent = user.email;
+          if (signInLink) signInLink.hidden = true;
+          if (accountMenu) accountMenu.hidden = false;
+        } catch {
+          if (signInLink) signInLink.hidden = false;
+          if (accountMenu) accountMenu.hidden = true;
+        }
+      }
+
+      updateHeaderAccount();
+      window.addEventListener('study-hub-auth-change', updateHeaderAccount);
+      signOutButton?.addEventListener('click', () => {
+        clearAuthSession();
+        const details = signOutButton.closest('details');
+        if (details) details.open = false;
+      });
+      document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target instanceof Node && !accountMenu?.contains(target)) {
+          const details = accountMenu?.querySelector('details');
+          if (details) details.open = false;
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          const details = accountMenu?.querySelector('details');
+          if (details) details.open = false;
+        }
+      });
+    </script>
     {isPolicyPage ? (
       <div class="legal-document-layout">
         <aside class="legal-document-sidebar" aria-label="Legal documents">

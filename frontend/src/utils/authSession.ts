@@ -1,4 +1,11 @@
 const AUTH_SESSION_KEY = 'study-hub-auth';
+const AUTH_SESSION_CHANGE_EVENT = 'study-hub-auth-change';
+
+function notifyAuthSessionChange(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(AUTH_SESSION_CHANGE_EVENT));
+  }
+}
 
 export interface AuthSession<TUser> {
   token: string;
@@ -28,12 +35,12 @@ export function readAuthSession<TUser>(): AuthSession<TUser> | null {
   try {
     parsed = JSON.parse(stored);
   } catch {
-    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    clearAuthSession();
     return null;
   }
 
   if (typeof parsed !== 'object' || parsed === null || !('token' in parsed) || !('user' in parsed)) {
-    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    clearAuthSession();
     return null;
   }
 
@@ -47,7 +54,7 @@ export function readAuthSession<TUser>(): AuthSession<TUser> | null {
     || typeof user !== 'object'
     || user === null
   ) {
-    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    clearAuthSession();
     return null;
   }
 
@@ -60,6 +67,7 @@ export function saveAuthSession<TUser>(token: string, user: TUser): void {
     throw new Error('The sign-in session is invalid or has expired. Please sign in again.');
   }
   sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ token, user }));
+  notifyAuthSessionChange();
 }
 
 export function updateAuthSessionUser<TUser>(user: TUser): void {
@@ -70,4 +78,5 @@ export function updateAuthSessionUser<TUser>(user: TUser): void {
 
 export function clearAuthSession(): void {
   sessionStorage.removeItem(AUTH_SESSION_KEY);
+  notifyAuthSessionChange();
 }

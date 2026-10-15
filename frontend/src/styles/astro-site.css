@@ -623,7 +623,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   background: #f4f7ef;
   color: #285c3e;
 }
-.uganda-flag { font-size: 1.1rem; line-height: 1; }
+.uganda-flag { display: block; width: 30px; height: 20px; flex: 0 0 auto; border-radius: 2px; box-shadow: 0 1px 3px rgba(24, 38, 29, .2); }
 .service-anniversary-copy { display: grid; gap: 1px; line-height: 1.1; white-space: nowrap; }
 .service-anniversary-copy strong { font: 800 .68rem/1.1 Manrope, sans-serif; }
 .service-anniversary-copy > span { color: #647568; font-size: .58rem; font-weight: 650; }
@@ -658,6 +658,18 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 }
 .site-header.clean-site-header .header-sign-in:hover { border-color: #8eaf96; background: #eef4ed; }
 .site-header.clean-site-header .header-sign-in svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.site-header.clean-site-header [hidden] { display: none !important; }
+.header-account { position: relative; flex: 0 0 auto; }
+.header-account-menu { position: relative; }
+.header-account-menu > summary { display: grid; min-width: 40px; min-height: 40px; place-items: center; border: 0; border-radius: 50%; cursor: pointer; list-style: none; }
+.header-account-menu > summary::-webkit-details-marker { display: none; }
+.header-account-menu > summary:hover, .header-account-menu[open] > summary { background: #eef4ed; }
+.header-account-avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: #246b49; color: #fffefa; font: 800 .78rem/1 Manrope, sans-serif; text-transform: uppercase; }
+.header-account-dropdown { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; display: grid; width: min(280px, calc(100vw - 28px)); gap: 8px; padding: 16px; border: 1px solid #d8e4d7; border-radius: 12px; background: #fffefa; box-shadow: 0 12px 36px rgba(25, 44, 32, .16); }
+.header-account-dropdown > strong { overflow: hidden; color: #263d30; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+.header-account-dropdown > span { overflow: hidden; color: #647568; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.header-account-dropdown > a, .header-account-dropdown > button { display: flex; min-height: 38px; align-items: center; padding: 0 10px; border: 1px solid #d8e4d7; border-radius: 7px; background: #f7f9f5; color: #285c3e; font: 700 .8rem/1.2 "DM Sans", sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
+.header-account-dropdown > a:hover, .header-account-dropdown > button:hover { border-color: #8eaf96; background: #eef4ed; }
 
 @media (min-width: 1200px) {
   .service-anniversary { display: inline-flex; }
@@ -722,6 +734,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   .site-header.clean-site-header .brand-group { grid-area: identity; gap: 10px; }
   .site-header.clean-site-header .site-nav { grid-area: navigation; width: 100%; justify-content: space-between; gap: 0 14px; }
   .site-header.clean-site-header .header-sign-in { grid-area: signin; }
+  .site-header.clean-site-header .header-account { grid-area: signin; justify-self: end; }
   .site-header.clean-site-header .site-nav a { font-size: .78rem; }
   .site-header.clean-site-header .header-sign-in { min-height: 34px; gap: 5px; padding: 0 9px; font-size: .74rem; }
   .site-header.clean-site-header .header-sign-in svg { width: 14px; height: 14px; }
@@ -739,7 +752,7 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
   .site-header.clean-site-header .brand img { width: 32px; height: 32px; }
   .site-header.clean-site-header .brand-group { gap: 7px; }
   .site-header.clean-site-header .service-anniversary { gap: 4px; padding: 4px 6px; }
-  .site-header.clean-site-header .uganda-flag { font-size: .95rem; }
+  .site-header.clean-site-header .uganda-flag { width: 30px; height: 20px; }
   .site-header.clean-site-header .service-anniversary-copy strong { font-size: .58rem; }
   .site-header.clean-site-header .service-anniversary-copy > span { font-size: .5rem; }
   .site-header.clean-site-header .site-nav { gap: 0 8px; }
