@@ -22,10 +22,23 @@ CREATE TABLE IF NOT EXISTS public.study_hub_document_payments (
 );
 
 ALTER TABLE public.study_hub_document_payments
-  ADD COLUMN IF NOT EXISTS delivery_url TEXT;
+  ADD COLUMN IF NOT EXISTS delivery_url TEXT,
+  ADD COLUMN IF NOT EXISTS downloaded_at TIMESTAMPTZ,
+  ALTER COLUMN transaction_id DROP NOT NULL,
+  ALTER COLUMN payer_sms DROP NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS study_hub_document_payments_transaction_id_unique
-  ON public.study_hub_document_payments (upper(btrim(transaction_id)));
+DROP INDEX IF EXISTS public.study_hub_document_payments_transaction_id_unique;
+
+ALTER TABLE public.study_hub_document_payments
+  DROP CONSTRAINT IF EXISTS study_hub_document_payments_status_check;
+
+UPDATE public.study_hub_document_payments
+SET status = 'pending', updated_at = CURRENT_TIMESTAMP
+WHERE status = 'sending';
+
+ALTER TABLE public.study_hub_document_payments
+  ADD CONSTRAINT study_hub_document_payments_status_check
+  CHECK (status IN ('pending', 'verified', 'approved', 'downloading', 'downloaded', 'rejected'));
 
 CREATE INDEX IF NOT EXISTS study_hub_document_payments_user_created_idx
   ON public.study_hub_document_payments (user_id, created_at DESC);

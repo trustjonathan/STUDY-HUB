@@ -80,6 +80,43 @@ button.resource-more {
   margin: 12px 0;
 }
 
+.resource-preview {
+  flex: 1 0 100%;
+  min-width: 0;
+  margin-top: 4px;
+}
+
+.resource-preview summary {
+  width: fit-content;
+  color: #1b5e20;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.resource-preview-content {
+  width: min(100%, 760px);
+  margin-top: 10px;
+}
+
+.resource-preview-content iframe {
+  display: block;
+  width: 100%;
+  height: clamp(280px, 58vw, 600px);
+  border: 1px solid #d7dbe0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.resource-preview-content img {
+  display: block;
+  width: auto;
+  max-width: min(100%, 760px);
+  max-height: 600px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
 @media screen and (max-width: 600px) {
   li.resource-item {
     flex-direction: column;

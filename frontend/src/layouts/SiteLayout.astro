@@ -22,7 +22,7 @@ const routePath = requestedPath === basePath
     ? requestedPath.slice(basePath.length + 1)
     : requestedPath;
 const routeKey = routePath.replace(/\.html(?:\.html)?$/, '').replace(/\/+$/, '');
-const showFooter = !['assistant', 'library', 'sign-in'].includes(routeKey);
+const showFooter = !['assistant', 'library', 'sign-in', 'document-payment'].includes(routeKey);
 const isPolicyPage = ['legal', 'privacy', 'terms', 'copyright'].includes(routeKey);
 const canonicalPath = routePath === 'index.html' ? '' : routePath.replace(/\.html\.html$/, '.html');
 const siteUrl = Astro.site ?? Astro.url.origin;
@@ -111,7 +111,7 @@ const popularSubjects = availableSubjects;
             <div class="header-account-dropdown">
               <strong data-account-name>Account</strong>
               <span data-account-email></span>
-              <a href={`${home}/sign-in.html`}>Profile &amp; settings</a>
+              <a href={`${home}/account.html`}>Profile &amp; settings</a>
               <button type="button" data-account-sign-out>Sign out</button>
             </div>
           </details>

@@ -22,6 +22,8 @@
 .payment-submission-form label { display: grid; gap: 7px; color: #c5d1dc; font-size: .78rem; font-weight: 700; }
 .payment-submission-form input, .payment-submission-form textarea { width: 100%; padding: 11px 12px; border: 1px solid #3a4a5e; border-radius: 8px; background: #0a1220; color: #f8fafc; font: 500 .86rem 'DM Sans', Arial, sans-serif; }
 .payment-submission-form input:focus, .payment-submission-form textarea:focus { outline: 2px solid #58dba8; outline-offset: 1px; }
+.payment-legal-consent { margin: 0; color: #bdcbd6; font-size: .78rem; line-height: 1.6; }
+.payment-legal-consent a { color: #80f0c1; font-weight: 700; }
 .payment-message, .payment-pending-note { padding: 11px 13px; border: 1px solid #28634d; border-radius: 9px; background: #103426; color: #bbf7d0; font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
 .payment-error { padding: 11px 13px; border: 1px solid #82423c; border-radius: 9px; background: #3b2024; color: #ffc7bc; font-size: .82rem; line-height: 1.5; }
 
@@ -63,8 +65,32 @@
 .admin-payments-message { background: #e1f5eb; color: #176344; }
 .admin-payments-error { background: #ffe7e4; color: #992f28; }
 .admin-payments-notice { background: white; color: #526477; }
+.admin-payment-table-wrap { max-width: 1180px; margin: 0 auto; overflow-x: auto; border: 1px solid #d8e0e6; border-radius: 12px; background: white; box-shadow: 0 8px 26px #172a3b0b; }
+.admin-payment-table { width: 100%; border-collapse: collapse; text-align: left; }
+.admin-payment-table th, .admin-payment-table td { padding: 13px 14px; border-bottom: 1px solid #e6ebef; vertical-align: top; }
+.admin-payment-table th { background: #f7f9fa; color: #506173; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.admin-payment-table td { color: #26384a; font-size: .83rem; }
+.admin-payment-table td:first-child { min-width: 180px; }
+.admin-payment-table td:first-child a { display: block; margin-top: 4px; color: #526477; overflow-wrap: anywhere; }
+.admin-payment-table tr:last-child td { border-bottom: 0; }
+.admin-payment-actions { display: grid; justify-items: start; gap: 8px; min-width: 140px; }
+.admin-payment-actions button { min-height: 38px; padding: 8px 11px; border: 0; border-radius: 7px; background: #126c50; color: white; cursor: pointer; font-weight: 800; }
+.admin-payment-actions button:disabled { opacity: .65; cursor: wait; }
+.admin-payment-reject-email { color: #a33e35; font-size: .76rem; font-weight: 800; }
+.admin-payment-status.is-downloaded { background: #e5e7eb; color: #4b5563; }
+.admin-payment-status.is-downloading, .admin-payment-status.is-sending { background: #e2e8ff; color: #3c4d9b; }
+.account-payments { min-height: calc(100vh - 76px); padding: clamp(20px, 5vw, 56px) 16px; background: #f4f7f8; color: #1b2938; font-family: 'DM Sans', Arial, sans-serif; }
+.account-payments-header, .account-payment-list { width: min(100%, 900px); margin: 0 auto 22px; }
+.account-payments h1 { margin: 0 0 10px; color: #142337; font: 800 clamp(1.8rem, 4vw, 2.5rem) Manrope, sans-serif; }
+.account-payments-header > p:last-child { color: #58697a; line-height: 1.6; }
+.account-payment-list { display: grid; gap: 12px; }
+.account-payment-card { display: flex; align-items: start; justify-content: space-between; gap: 18px; padding: 18px; border: 1px solid #d8e0e6; border-radius: 12px; background: white; box-shadow: 0 8px 26px #172a3b0b; }
+.account-payment-card h2 { margin: 10px 0 8px; color: #1a2b3c; font: 800 1.05rem Manrope, sans-serif; overflow-wrap: anywhere; }
+.account-payment-card p { margin: 5px 0; color: #667789; font-size: .82rem; line-height: 1.5; }
+.account-payment-actions { width: min(100%, 220px); }
+.account-payment-actions .payment-primary-button { min-height: 42px; font-size: .82rem; }
 @media (max-width: 620px) {
   .admin-payments-header { display: grid; }
-  .admin-payment-tally { grid-template-columns: minmax(0, 1fr); }
-  .admin-payment-tally h3, .admin-payment-sms, .admin-payment-tally > button { grid-column: auto; }
+  .account-payment-card { display: grid; }
+  .account-payment-actions { width: 100%; }
 }

@@ -1,0 +1,12 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import AccountPaymentHistory from '../components/AccountPaymentHistory';
+import '../styles/document-payments.css';
+
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const apiUrl = (import.meta.env.PUBLIC_STUDY_HUB_API_URL || '').trim();
+---
+
+<SiteLayout title="Your account | Study Hub" description="View your Study Hub document payment requests and resume approved downloads.">
+  <AccountPaymentHistory client:load apiUrl={apiUrl} base={base} />
+</SiteLayout>

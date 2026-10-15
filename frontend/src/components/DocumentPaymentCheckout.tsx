@@ -20,10 +20,9 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
   const [resourceId, setResourceId] = useState('');
   const [resourceTitle, setResourceTitle] = useState('Study Hub document');
   const [session, setSession] = useState<AuthSession<{ email?: string }> | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [senderPhone, setSenderPhone] = useState('');
-  const [transactionId, setTransactionId] = useState('');
-  const [payerSms, setPayerSms] = useState('');
   const [working, setWorking] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [downloadComplete, setDownloadComplete] = useState(false);
@@ -37,7 +36,14 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
     const currentResourceId = search.get('resource_id') || '';
     setResourceId(currentResourceId);
     setResourceTitle(search.get('title') || 'Study Hub document');
-    setSession(readAuthSession<{ email?: string }>());
+    const activeSession = readAuthSession<{ email?: string }>();
+    setSession(activeSession);
+    setAuthReady(true);
+    if (!activeSession) {
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      window.location.replace(`${base}sign-in.html?return=${encodeURIComponent(returnTo)}`);
+      return;
+    }
     const savedPayment = sessionStorage.getItem('study-hub-pending-document-payment');
     if (savedPayment) {
       try {
@@ -57,7 +63,7 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
         sessionStorage.removeItem('study-hub-pending-document-payment');
       }
     }
-  }, []);
+  }, [base]);
 
   useEffect(() => {
     if (!session || !apiBase || !paymentId || downloadComplete) return;
@@ -76,7 +82,7 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
         if (response.status === 202) {
           await response.json();
           if (!cancelled) {
-            setMessage('Your request is being verified. Keep this page open; your document will download automatically after approval.');
+            setMessage('Your request is being verified. Its approved download will be available in your profile if you leave this page.');
             retryTimer = setTimeout(() => void checkForApprovedDownload(), 5000);
           }
           return;
@@ -85,9 +91,10 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
           const payload: unknown = await response.json();
           if (!cancelled) {
             setError(apiErrorMessage(payload, 'The approved document could not be downloaded.'));
-            if (response.status !== 401 && response.status !== 403 && response.status !== 404) {
+            if (response.status !== 401 && response.status !== 403 && response.status !== 404 && response.status !== 410) {
               retryTimer = setTimeout(() => void checkForApprovedDownload(), 10000);
             }
+            if (response.status === 410) setDownloadComplete(true);
           }
           return;
         }
@@ -142,9 +149,6 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
     };
   }, [apiBase, downloadComplete, paymentId, resourceTitle, session]);
 
-  const checkoutReturn = `${base}document-payment.html?${new URLSearchParams({ resource_id: resourceId, title: resourceTitle })}`;
-  const signInHref = `${base}sign-in.html?return=${encodeURIComponent(checkoutReturn)}`;
-
   function initiatePayment() {
     setError('');
     setMessage('');
@@ -190,7 +194,7 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.token}`,
         },
-        body: JSON.stringify({ resourceId, resourceTitle, senderPhone, transactionId, payerSms }),
+        body: JSON.stringify({ resourceId, resourceTitle, senderPhone }),
       });
       const payload: unknown = await response.json();
       if (response.status === 401 || response.status === 403) {
@@ -218,13 +222,15 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
       }
       setPaymentId(submittedId);
       setSubmitted(true);
-      setMessage(`Request received. Keep this page open; after admin verification your document will download here and be emailed to your account.${persistenceMessage}`);
+      setMessage(`Request received. We will notify your account when your payment is checked. You can resume an approved download from your profile.${persistenceMessage}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Your payment request could not be submitted.');
     } finally {
       setWorking(false);
     }
   }
+
+  if (!authReady || !session) return <main className="payment-checkout-page" aria-live="polite"><p>Redirecting you to sign in…</p></main>;
 
   return (
     <main className="payment-checkout-page">
@@ -241,27 +247,18 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
         <div className="payment-checkout-instructions">
           <p><strong>1.</strong> Send UGX {PRICE_UGX.toLocaleString()} to Airtel/MTN number <strong>{receiverPhone}</strong>.</p>
           <p><strong>2.</strong> Tap the button below. We’ll copy the number and, on a phone, open the *185# dialer for you to confirm.</p>
-          <p><strong>3.</strong> Complete the payment on your phone, then paste the confirmation SMS and transaction details below.</p>
-          <p><strong>4.</strong> After admin tally and approval, your document downloads on this device and is emailed to your signed-in address.</p>
+          <p><strong>3.</strong> After paying, submit only the mobile number you used to send the money.</p>
+          <p><strong>4.</strong> Once verified, your download is available here and in your profile.</p>
         </div>
 
-        {!session ? (
-          <div className="payment-checkout-signin">
-            <p>Sign in to submit this payment request and receive the document by email.</p>
-            <a className="payment-primary-button" href={signInHref}>Sign in to continue</a>
-          </div>
-        ) : (
-          <>
-            <p className="payment-account-email">Signed in as <strong>{session.user.email || 'your Study Hub account'}</strong></p>
-            <button className="payment-primary-button" type="button" onClick={initiatePayment}>
-              {started ? 'Open payment instructions again' : 'Initiate transaction'}
-            </button>
-          </>
-        )}
+        <p className="payment-account-email">Signed in as <strong>{session.user.email || 'your Study Hub account'}</strong></p>
+        <button className="payment-primary-button" type="button" onClick={initiatePayment}>
+          {started ? 'Open payment instructions again' : 'Initiate transaction'}
+        </button>
         {message && <p className="payment-message" role="status">{message}</p>}
         {error && <p className="payment-error" role="alert">{error}</p>}
 
-        {session && started && !submitted && (
+        {started && !submitted && (
           <form className="payment-submission-form" onSubmit={(event) => void submitPayment(event)}>
             <h2>Submit payment for verification</h2>
             <label>
@@ -276,36 +273,17 @@ export default function DocumentPaymentCheckout({ apiUrl, base, receiverPhone }:
                 onChange={(event) => setSenderPhone(event.target.value)}
               />
             </label>
-            <label>
-              Mobile Money transaction ID
-              <input
-                type="text"
-                required
-                maxLength={100}
-                autoCapitalize="characters"
-                placeholder="Transaction ID from the SMS"
-                value={transactionId}
-                onChange={(event) => setTransactionId(event.target.value)}
-              />
-            </label>
-            <label>
-              Paste the payment confirmation SMS
-              <textarea
-                required
-                minLength={10}
-                maxLength={5000}
-                rows={4}
-                placeholder="Paste the SMS you received after payment"
-                value={payerSms}
-                onChange={(event) => setPayerSms(event.target.value)}
-              />
-            </label>
             <button className="payment-primary-button" type="submit" disabled={working}>
               {working ? 'Submitting…' : 'Send payment for verification'}
             </button>
+            <p className="payment-legal-consent">
+              By continuing with this transaction, you agree to the Study Hub{' '}
+              <a href={`${base}terms.html`}>Terms and Conditions</a> and{' '}
+              <a href={`${base}privacy.html`}>Privacy Policy</a>.
+            </p>
           </form>
         )}
-        {submitted && !downloadComplete && <p className="payment-pending-note">Your request is awaiting tally and final admin verification. Keep this page open so the approved document can download automatically.</p>}
+        {submitted && !downloadComplete && <p className="payment-pending-note">Your request is awaiting manual verification. Your approved document will remain available in your profile if you leave this page.</p>}
         {!apiBase && <p className="payment-error" role="alert">Payment service is not configured. Please contact Study Hub support.</p>}
       </section>
     </main>

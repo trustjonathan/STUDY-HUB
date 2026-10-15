@@ -4,9 +4,8 @@ import AdminPaymentDashboard from '../../components/AdminPaymentDashboard';
 import '../../styles/document-payments.css';
 
 const apiUrl = (import.meta.env.PUBLIC_STUDY_HUB_API_URL || '').trim();
-const receiverPhone = (import.meta.env.PUBLIC_STUDY_HUB_PAYMENT_PHONE || '0701810497').trim();
 ---
 
 <SiteLayout title="Payment verification | Study Hub" description="Private Study Hub document payment verification dashboard.">
-  <AdminPaymentDashboard client:load apiUrl={apiUrl} receiverPhone={receiverPhone} />
+  <AdminPaymentDashboard client:load apiUrl={apiUrl} />
 </SiteLayout>

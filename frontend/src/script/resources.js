@@ -193,6 +193,39 @@
 
     row.appendChild(link);
     row.appendChild(meta);
+
+    const publicUrl = item.publicUrl || item.url;
+    const sourceName = String(item.extension || item.originalFilename || item.original_filename || publicUrl || '');
+    const extension = sourceName.split(/[?#]/, 1)[0].split('.').pop().toLowerCase().replace(/^\./, '');
+    const isPdf = extension === 'pdf';
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'].includes(extension);
+    if (publicUrl && (isPdf || isImage)) {
+      const preview = document.createElement('details');
+      preview.className = 'resource-preview';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Preview';
+      const frame = document.createElement('div');
+      frame.className = 'resource-preview-content';
+      preview.append(summary, frame);
+      preview.addEventListener('toggle', () => {
+        frame.replaceChildren();
+        if (!preview.open) return;
+        if (isPdf) {
+          const documentFrame = document.createElement('iframe');
+          documentFrame.src = publicUrl;
+          documentFrame.title = `Preview: ${item.title || item.originalFilename || 'PDF resource'}`;
+          documentFrame.loading = 'lazy';
+          frame.appendChild(documentFrame);
+        } else {
+          const image = document.createElement('img');
+          image.src = publicUrl;
+          image.alt = `Preview: ${item.title || item.originalFilename || 'image resource'}`;
+          image.loading = 'lazy';
+          frame.appendChild(image);
+        }
+      });
+      row.appendChild(preview);
+    }
     return row;
   }
 
