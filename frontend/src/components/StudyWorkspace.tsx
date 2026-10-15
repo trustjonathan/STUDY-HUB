@@ -137,7 +137,7 @@ export default function StudyWorkspace({
       if (!response.ok) return;
       const data = await response.json().catch(() => ({}));
       if (!Array.isArray(data.notes)) return;
-      const serverNotes = data.notes.filter(isNote);
+      const serverNotes: Note[] = data.notes.filter((note: unknown): note is Note => isNote(note));
       setRecents((current) => {
         const localNotes = current.filter((note) => note.markdown);
         const merged = [...localNotes, ...serverNotes.filter((note) => !localNotes.some((local) => local.slug === note.slug))];
