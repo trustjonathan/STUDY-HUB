@@ -33,8 +33,13 @@ export default function AccountPaymentHistory({ apiUrl, base }: { apiUrl: string
   const apiBase = apiUrl.replace(/\/+$/, '');
 
   useEffect(() => {
-    setSession(readAuthSession<AccountUser>());
-  }, []);
+    const activeSession = readAuthSession<AccountUser>();
+    setSession(activeSession);
+    if (!activeSession) {
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      window.location.replace(`${base}sign-in.html?return=${encodeURIComponent(returnTo)}`);
+    }
+  }, [base]);
 
   const loadPayments = useCallback(async () => {
     if (!session || !apiBase) {

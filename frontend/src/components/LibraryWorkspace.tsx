@@ -93,6 +93,17 @@ function supaType(category: string, resourceType: string): string {
   return 'Lesson Notes';
 }
 
+function previewFormat(url: string): string {
+  try {
+    const extension = new URL(url).pathname.split('.').pop()?.toLowerCase();
+    if (extension === 'pdf' || extension === 'docx') return extension;
+    if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(extension || '')) return 'image';
+  } catch {
+    return '';
+  }
+  return '';
+}
+
 interface CatalogLoad {
   resources: Resource[];
   totalCount: number;
@@ -1264,7 +1275,23 @@ function ClassDashboard(props: DashboardProps) {
                     {shown.map((row) => (
                       <tr key={row.id}>
                         <td className="lib-subject">{row.subject}</td>
-                        <td className="lib-title">{row.title}</td>
+                        <td className="lib-title">
+                          <a className="lib-resource-preview-link" href={props.readerHref(row)} aria-label={`Open preview of ${row.title}`}>
+                            <div
+                              className={`dashboard-preview lib-resource-preview ${previewFormat(row.url) ? '' : 'preview-unavailable'}`}
+                              data-preview-url={previewFormat(row.url) ? row.url : undefined}
+                              data-preview-format={previewFormat(row.url) || undefined}
+                              data-preview-worker={previewFormat(row.url) ? `${props.base}full_page_flipbook_viewer/js/pdf.worker.min.js` : undefined}
+                              aria-hidden="true"
+                            >
+                              <span className="dashboard-preview-placeholder" aria-hidden="true">{previewFormat(row.url).toUpperCase() || 'FILE'}</span>
+                              <span className="dashboard-preview-caption">
+                                {previewFormat(row.url) ? 'Loading first-page preview…' : 'Preview unavailable · Open to view'}
+                              </span>
+                            </div>
+                          </a>
+                          <span className="lib-resource-preview-title">{row.title}</span>
+                        </td>
                         <td><span className={`lib-tag ${row.type === 'Past Papers' ? 'lib-tag-exam' : 'lib-tag-notes'}`}>{row.type}</span></td>
                         <td>
                           <ResourceEngagement

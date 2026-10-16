@@ -165,7 +165,23 @@
 /* Resource banner + load-more */
 .lib-banner { margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 12px; }
 .lib-more { margin-top: 16px; text-align: center; }
-.lib-title { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-title { width: 190px; min-width: 160px; }
+.lib-resource-preview-link { display: block; width: 150px; max-width: 100%; border-radius: 8px; color: inherit; text-decoration: none; }
+.lib-resource-preview-link:focus-visible { outline: 2px solid #75e2bd; outline-offset: 3px; }
+.lib-resource-preview { position: relative; display: grid; width: 100%; height: 112px; place-items: center; overflow: hidden; border: 1px solid #dbe4eb; border-radius: 8px; background: linear-gradient(145deg, #e7f2ef, #f8fafc); }
+.lib-resource-preview canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0; transition: opacity .2s ease; }
+.lib-resource-preview .dashboard-preview-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+.lib-resource-preview .dashboard-preview-document { position: absolute; top: 0; left: 50%; width: 816px; height: 1056px; overflow: hidden; transform-origin: top center; pointer-events: none; }
+.lib-resource-preview .dashboard-preview-document .docx-wrapper { width: 816px !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+.lib-resource-preview .dashboard-preview-document .docx-wrapper > section.docx { width: 816px !important; min-height: 1056px !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box; }
+.lib-resource-preview.has-preview canvas { opacity: 1; }
+.lib-resource-preview.has-preview .dashboard-preview-placeholder,
+.lib-resource-preview.has-preview .dashboard-preview-caption { display: none; }
+.lib-resource-preview .dashboard-preview-placeholder { color: #0f766e; font-size: 1.6rem; }
+.lib-resource-preview .dashboard-preview-caption { position: absolute; right: 5px; bottom: 4px; left: 5px; overflow: hidden; color: #526273; font-size: .62rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.lib-resource-preview.preview-error,
+.lib-resource-preview.preview-unavailable { background: linear-gradient(145deg, #e8edf2, #f8fafc); }
+.lib-resource-preview-title { display: block; max-width: 100%; margin-top: 6px; overflow: hidden; color: #0f172a; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 
 
 /* ---- Dashboard (class selected) ---- */

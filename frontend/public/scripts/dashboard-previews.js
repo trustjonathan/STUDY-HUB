@@ -155,15 +155,27 @@
     if (caption) caption.textContent = 'Preview unavailable · Open to view';
   }
 
-  const observer = 'IntersectionObserver' in window
-    ? new IntersectionObserver((entries, currentObserver) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        currentObserver.unobserve(entry.target);
-        renderPreview(entry.target).catch((error) => handlePreviewError(entry.target, error));
-      });
-    }, { rootMargin: '180px 0px' })
-    : null;
+  function createObserver(root) {
+    return 'IntersectionObserver' in window
+      ? new IntersectionObserver((entries, currentObserver) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            currentObserver.unobserve(entry.target);
+            renderPreview(entry.target).catch((error) => handlePreviewError(entry.target, error));
+          });
+      }, { root, rootMargin: '180px 0px' })
+      : null;
+  }
+
+  const viewportObserver = createObserver(null);
+  const containerObservers = new WeakMap();
+
+  function observerFor(preview) {
+    const root = preview.closest('.lib-main-body');
+    if (!root) return viewportObserver;
+    if (!containerObservers.has(root)) containerObservers.set(root, createObserver(root));
+    return containerObservers.get(root);
+  }
 
   function observePreviews(root) {
     const previews = [];
@@ -177,7 +189,8 @@
     previews.forEach((preview) => {
       if (observedPreviews.has(preview)) return;
       observedPreviews.add(preview);
-      if (observer) observer.observe(preview);
+      const previewObserver = observerFor(preview);
+      if (previewObserver) previewObserver.observe(preview);
       else renderPreview(preview).catch((error) => handlePreviewError(preview, error));
     });
   }
