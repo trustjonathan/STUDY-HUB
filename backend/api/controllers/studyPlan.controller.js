@@ -132,7 +132,7 @@ async function createPlan(apiKey, profile, previousPlan = null, request = '') {
     systemInstruction: { parts: [{ text: 'You are Study Hub’s adaptive study-planning tutor. Design encouraging, realistic learning plans for the supplied learner profile. Never infer mastery from profile details alone.' }] },
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 2_000, temperature: 0.35 },
-  });
+  }, 45_000);
   if (!response.ok) {
     const error = new Error('Study Hub could not generate your plan right now. Please try again.');
     error.status = response.status === 429 || response.status === 503 ? 503 : 502;
@@ -144,6 +144,9 @@ async function createPlan(apiKey, profile, previousPlan = null, request = '') {
 }
 
 function failure(res, error, fallback) {
+  if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+    return res.status(503).json({ error: 'The AI planner is taking longer than expected. Please try again.' });
+  }
   if (error.status === 400 || error.status === 401 || error.status === 404 || error.status === 503) {
     return res.status(error.status).json({ error: error.message });
   }

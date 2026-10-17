@@ -125,15 +125,23 @@ export default function StudyPlanWorkspace({
     const token = studyKey();
     if (!token) throw new Error('Sign in again to access your saved study plan.');
     if (!apiBase) throw new Error('Your study plan is unavailable because the account service is not configured.');
-    const response = await fetch(`${apiBase}/api/study-plan${path}`, {
-      method,
-      signal: AbortSignal.timeout(20_000),
-      headers: {
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
-        Authorization: `Bearer ${token}`,
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${apiBase}/api/study-plan${path}`, {
+        method,
+        signal: AbortSignal.timeout(120_000),
+        headers: {
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
+          Authorization: `Bearer ${token}`,
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'TimeoutError') {
+        throw new Error('Your study plan is taking longer than expected. Please try again.');
+      }
+      throw error;
+    }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || 'Your study plan request could not be completed.');
     return result as PlanResponse;

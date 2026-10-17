@@ -116,14 +116,18 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
     try {
       const response = await fetch(`${base}/api/study-plan`, {
         method: 'POST',
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(120_000),
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
         body: JSON.stringify({}),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Your study plan could not be prepared.');
     } catch (planError) {
-      setNotice(planError instanceof Error ? planError.message : 'Your study plan could not be prepared.');
+      setNotice(
+        planError instanceof DOMException && planError.name === 'TimeoutError'
+          ? 'Your study plan is taking longer than expected. Please open My study plan to try again.'
+          : planError instanceof Error ? planError.message : 'Your study plan could not be prepared.',
+      );
     } finally {
       planPreparationInFlight.current = false;
       setStudyPlanPreparing(false);

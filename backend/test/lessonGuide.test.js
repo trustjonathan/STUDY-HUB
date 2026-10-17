@@ -209,8 +209,8 @@ test("uses the fallback Gemini model when the primary model stays unavailable", 
   global.fetch = async (url) => {
     const model = new URL(url).pathname.match(/\/models\/([^:]+)/)?.[1];
     requestedModels.push(model);
-    if (model === "gemini-3.8-flash") return { ok: false, status: 503 };
-    const text = requestedModels.filter((name) => name === "gemini-3.5-flash").length === 1
+    if (model === "gemini-3.5-flash") return { ok: false, status: 503 };
+    const text = requestedModels.filter((name) => name === "gemini-3.5-flash-lite").length === 1
       ? "YES"
       : "Photosynthesis converts light energy into chemical energy.";
     return {
@@ -224,8 +224,8 @@ test("uses the fallback Gemini model when the primary model stays unavailable", 
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.markdown, "Photosynthesis converts light energy into chemical energy.");
-  assert.equal(requestedModels.filter((name) => name === "gemini-3.8-flash").length, 6);
-  assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash").length, 2);
+  assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash").length, 6);
+  assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash-lite").length, 2);
 });
 
 test("uses and stores only the signed-in learner's relevant study topics", async () => {
