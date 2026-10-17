@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import openAiKeyPool from "../../services/openAiKeyPool.js";
 
 export async function handler(req, res) {
   if (req.method !== "POST") {
@@ -11,11 +11,7 @@ export async function handler(req, res) {
       return res.status(400).json({ error: "No user message provided." });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
-
-    const completion = await openai.chat.completions.create({
+    const completion = await openAiKeyPool.withOpenAiClient((openai) => openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -25,12 +21,12 @@ export async function handler(req, res) {
         },
         { role: "user", content: userMessage }
       ]
-    });
+    }));
 
     return res.status(200).json({ reply: completion.choices[0].message.content });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Failed to fetch GPT response." });
+    console.error("AI tutor request failed.", err instanceof Error ? err.message : "Unknown error");
+    return res.status(err.status === 503 ? 503 : 500).json({ error: "Failed to fetch GPT response." });
   }
 }

@@ -1,0 +1,486 @@
+STUDY HUB — STANDALONE SAAS DASHBOARD
+Bolt AI build brief and application architecture
+================================================
+
+GOAL
+----
+Build a standalone, polished SaaS-style operations dashboard for STUDY HUB, a Ugandan online learning and academic resources platform.
+
+I will download this dashboard project and connect it to the existing Study Hub website/backend later. Build the dashboard as a separate app. Do not edit, replace, or depend on files in the existing Study Hub repository. Do not require live credentials or a backend to run the first version.
+
+The first deliverable is a complete, navigable frontend prototype with realistic, clearly labelled demo data. Organize the code so I can connect real APIs and authentication later without rebuilding the UI. Do not pretend demo actions changed production data.
+
+PRODUCT BOUNDARIES
+------------------
+- This is an internal Study Hub operations dashboard for the platform owner and staff, not a student-facing learning app and not a multi-school SaaS.
+- Do not build subscriptions, billing plans, a school tenant system, or a new student learning portal.
+- Keep the existing learner account/profile and public site separate; the dashboard can link to them.
+- Document payments remain UGX 1,000 per document with manual Mobile Money verification against the sender phone number. Do not invent automatic payment gateway processing.
+- Build the frontend now. Keep data/API/auth integration points clean and documented for later connection.
+- Use an obvious "DEMO DATA" indicator throughout the prototype. Seed realistic Uganda-focused examples, but never imply example payments, users, downloads, or analytics are real.
+
+APPLICATION STACK
+-----------------
+Build a standalone app using:
+- Vite
+- React
+- TypeScript
+- Tailwind CSS
+- React Router for page navigation
+- Lucide React for icons
+- Recharts for charts
+
+Use the simplest maintainable structure. Avoid unnecessary state libraries, a database, Supabase, or server implementation in this first downloadable prototype. Keep demo data local and isolated behind typed data services.
+
+APP ARCHITECTURE
+----------------
+
+Browser
+  └── React application
+      ├── App shell: sidebar, topbar, breadcrumbs, notifications, staff menu
+      ├── Route pages: overview, payments, resources, contributions,
+      │               learners, moderation, analytics, staff, settings, audit
+      ├── Reusable UI: metric cards, charts, filters, tables, status chips,
+      │                detail drawers, dialogs, toasts, empty/error states
+      ├── Domain models: Learner, PaymentRequest, Resource, Contribution,
+      │                   Suggestion, StaffUser, AuditEvent, DashboardMetrics
+      └── Data service interfaces
+          ├── DemoDataService (implemented now; clearly labelled demo data)
+          └── StudyHubApiService (interface/placeholder for later connection)
+
+Future connection boundary
+  React pages/components
+      → typed service interfaces/hooks
+      → Study Hub API adapter
+      → existing Study Hub backend and data stores
+
+Pages and UI components must call service functions/hooks, not import demo arrays directly. Later, the API adapter should replace the demo adapter without changing page layouts. Include an `src/services/README.md` explaining where to connect the current Study Hub API and authentication.
+
+SUGGESTED FOLDER STRUCTURE
+--------------------------
+src/
+  app/
+    App.tsx
+    router.tsx
+    navigation.ts
+  components/
+    layout/
+      AppShell.tsx
+      Sidebar.tsx
+      Topbar.tsx
+      Breadcrumbs.tsx
+    dashboard/
+      MetricCard.tsx
+      ChartCard.tsx
+      ActivityFeed.tsx
+      QueuePreview.tsx
+    data-display/
+      DataTable.tsx
+      StatusBadge.tsx
+      FilterBar.tsx
+      SearchInput.tsx
+      EmptyState.tsx
+      ErrorState.tsx
+    feedback/
+      ConfirmDialog.tsx
+      DetailDrawer.tsx
+      ToastProvider.tsx
+  features/
+    overview/
+    payments/
+    resources/
+    contributions/
+    learners/
+    moderation/
+    analytics/
+    staff/
+    settings/
+    audit/
+  models/
+    learner.ts
+    payment.ts
+    resource.ts
+    contribution.ts
+    suggestion.ts
+    staff.ts
+    audit.ts
+  services/
+    interfaces.ts
+    demo/
+      demoData.ts
+      demoDataService.ts
+    api/
+      studyHubApiService.ts
+    README.md
+  hooks/
+  lib/
+    formatDate.ts
+    formatCurrency.ts
+    permissions.ts
+  styles/
+  main.tsx
+
+Use feature folders where helpful, but do not create empty scaffolding just to match every listed directory. A concise, working implementation is more important than folder count.
+
+VISUAL DESIGN AND APP SHELL
+---------------------------
+- Study Hub identity: deep navy/slate sidebar, emerald/green primary actions, warm neutral canvas, clean typography, restrained shadows, polished data visualizations.
+- Desktop: collapsible persistent sidebar, topbar, scrollable content area.
+- Mobile/tablet: drawer navigation, stacked cards, responsive tables or list cards, touch-friendly actions.
+- Sidebar: Overview, Payments, Resources, Contributions, Learners, Moderation, Analytics, Staff & Roles, Audit Log, Settings.
+- Show the Study Hub wordmark/text; do not invent a logo asset if none is supplied.
+- Persistent "DEMO DATA" banner/chip in the topbar.
+- Topbar includes page breadcrumb/title, search, notification indicator, help link, and staff profile menu.
+- Use accessible headings, field labels, keyboard navigation, focus states, contrast, tooltips, table captions, chart summaries, and reduced-motion support.
+- Use Africa/Kampala time and Ugandan Shillings (UGX) formatting.
+- Provide polished loading, empty, error, success, and confirmation states.
+
+PAGES AND MVP FEATURES
+----------------------
+
+1. OVERVIEW
+- KPI cards: learners, new registrations, library resources, pending contributions, pending payments, completed downloads.
+- Clearly label every metric "Demo" and include an illustrative date range.
+- Line/bar charts for signups, payment-request status, resource engagement, and downloads.
+- Recent activity feed and compact queues for pending payment requests and contributions.
+- Quick links to common operations.
+- Do not call a pending UGX 1,000 request revenue. Label it "requested amount" unless it is truly verified.
+
+2. PAYMENTS
+- Searchable/filterable table: request ID, learner, resource, sender phone, UGX amount, requested date, status, verifier.
+- Filters for status/date; sort and paginate the demo collection.
+- Clicking a row opens a detail drawer with learner/contact summary, resource summary, request details, and state history.
+- Provide demo-only Verify and Reject actions. Require confirmation; Reject requires a reason.
+- Show a clear "Demo action — no real payment was verified or rejected" message. Do not send email or affect real downloads.
+- Represent pending, verified, downloading, downloaded, and rejected states.
+
+3. RESOURCES
+- Search/filter demo resources by title, subject, class, type, format, and source.
+- Table/cards show first-page thumbnail-style preview, title, subject, class/level, type, file format, size, source, and status.
+- Use local illustrative thumbnail components/placeholders in the prototype; do not fetch protected files or imply a real resource has loaded.
+- Resource detail drawer with metadata, demo engagement totals, and "Open resource" link placeholder.
+- Previewing is not downloading and never initiates payment.
+
+4. CONTRIBUTIONS
+- Demo queue showing submitted files/batches, contributor, date, filename, subject, level, size, and review status.
+- Detail/review panel with a local preview placeholder and review checklist.
+- Demo-only Approve/Reject actions; rejection requires reason and displays an explicit demo notice.
+- Do not claim to move or publish files.
+
+5. LEARNERS
+- Searchable/filterable demo learner table: display name, email, class, join date, status, and aggregate activity.
+- Profile drawer shows learning preferences, document request summaries, saved-resource count, and account status.
+- Use synthetic contact data only; do not expose real users or sensitive credentials.
+- Support actions (suspend/restore) are demo-only, confirmed, and visibly labelled as such.
+
+6. MODERATION
+- Demo queue for anonymous community suggestions: suggestion text, submitted time, status.
+- Approve/Reject controls require confirmation and show a demo-only notice.
+- Do not infer or invent identity for anonymous submissions.
+
+7. ANALYTICS
+- Date range selector and summary charts for learner registrations, document request statuses, resource engagement, and completed downloads.
+- Include brief metric definitions, timestamp/timezone, and demo badge.
+- CSV export may export only the clearly labelled demo dataset.
+- Do not show MRR, ARR, subscription churn, or automatic payment-gateway revenue.
+
+8. STAFF & ROLES
+- Demo staff list and role matrix: Super Admin, Payment Verifier, Content Moderator, Support Staff.
+- Show permission differences in a readable table.
+- Any role edit is a local demo interaction only; do not imply real access changed.
+- Super Admin has all demo screens. Verifier focuses on payments. Moderator focuses on contributions/suggestions. Support is read-only.
+- Add a small reusable permission helper so navigation and buttons can be tested against the selected demo role. This is UI simulation only, not real security.
+
+9. SETTINGS
+- Read-only prototype settings for fixed price (UGX 1,000), payment receiver number, timezone (Africa/Kampala), contact links, and integration connection state.
+- Mark settings as sample values/not connected. Do not save settings to production.
+- Include a section titled "Connect Study Hub later" showing API/auth integration as "Not connected".
+
+10. AUDIT LOG
+- Searchable demo activity log with actor, action, target, timestamp, and result.
+- Include sample payment and moderation events, clearly labelled demo.
+
+GLOBAL SEARCH AND NOTIFICATIONS
+- Search within the current demo datasets, filtered by the selected UI role. It must not claim to search the real Study Hub site.
+- Notification popover for sample queue reminders. Read/dismiss actions affect local demo state only.
+
+AI STUDY PRODUCT EXPERIENCE (ADVANCED STUDENT-FACING ONBOARDING)
+----------------------------------------------------------------
+Build a second major product surface inside the ecosystem: the personalized AI Study experience for students. This is not a small widget; it is a guided, onboarding-driven learning workspace.
+
+A. STUDENT ONBOARDING FLOW
+- When a signed-in user opens AI Study, the app first asks: "Are you a student or non-student?"
+- If the user is not a student, they land in a general guided dashboard tour and explanatory overview, without academic customisation.
+- If the user is a student, ask them to choose their learning level:
+  - University
+  - Secondary
+  - Primary
+  - Nursery
+- If University:
+  - ask year of study
+  - ask course/field of study
+  - ask preferred learning style or academic focus
+  - store these values in the user's profile for AI delivery instructions and contextual prompts
+- If Secondary:
+  - ask O-Level or A-Level
+  - ask class (e.g. S.1, S.2, S.3, S.4, S.5, S.6)
+  - ask subjects of focus
+  - if they have national exams, include examination board and target exam context when available
+- If Primary or Nursery:
+  - ask class level and a few dominant learning paths or subjects
+- Store the onboarding answers in a persistent learner profile and use them to personalise AI responses, suggestions, and study tasks.
+
+B. GUIDED TOUR / FIRST-LAUNCH EXPERIENCE
+- On first login, the student is taken through a compulsory guided onboarding tour that introduces each AI Study section.
+- The tour script should explain:
+  - the chat tutor
+  - saved and liked resources
+  - library integrations
+  - mastery checklist
+  - daily quiz/streaks
+  - flashcards and spaced repetition
+  - smart study planner
+  - documents and search memory pipeline
+  - how the AI uses learner context to personalise responses
+- The tour should be skippable only after a clear confirmation; a full guided run should be default for new students.
+- The onboarding should not feel like a generic chat app. It should feel like a study coach setup wizard.
+
+C. AI MEMORY, SEARCH CONTEXT, AND LIBRARY INTEGRATION
+- The AI should remember the user's study profile and prior searches in a personal context layer.
+- Maintain a short-term and long-term memory model for:
+  - selected level/class/subjects
+  - recent searches
+  - saved documents
+  - liked resources
+  - reviewed topics and mastery progress
+  - repeated misconceptions or weak topics
+- The AI should be able to query the Study Hub library or a student's saved/liked content when it needs evidence.
+- Include a document pipeline where the AI can use a retrieval/skill workflow to read resource contents when needed, rather than answering from generic knowledge alone.
+- Support a "Use my saved resources" toggle and "Use library context" toggle.
+- The AI study screen should include quick access to:
+  - saved documents
+  - liked resources
+  - recent searches
+  - relevant library documents by subject
+  - study notes and syllabus links
+
+D. PERSONALIZED STUDY DASHBOARD
+- After onboarding, the student lands on a dashboard with these major panels:
+  - AI Tutor chat panel
+  - My learning profile and study context
+  - Saved resources and liked documents
+  - Daily study streak + question of the day
+  - Syllabus mastery progress
+  - Recommended next actions
+  - Smart study planner and quick tasks
+  - Flashcards and revision deck
+  - Resource search and quick library access
+- The dashboard should feel like a study operating system, not a simple chatbot page.
+- The AI runs in the background to set up study topics tailored to the learner's class and selected subjects.
+
+E. MASTERY CHECKLIST / SYLLABUS TRACKER
+- Add a dedicated page or section called: "UNEB / A-Level Syllabus Mastery Checklist" or equivalent based on the learner's level.
+- Students should see their syllabus broken down topic-by-topic with checkboxes or status pills.
+- Example structure:
+  - Subject
+  - Topic unit
+  - Status: Mastered / Needs Revision / Not Started
+  - Confidence rating
+  - Linked notes or resource references
+- Each completion or update should contribute to a visible progress bar and total percentage.
+- Example output: "74% Syllabus Complete"
+- Students should be able to mark topics as mastered or revise later.
+- This feature is a powerful retention loop because learners return daily to watch the bar grow.
+
+F. AI HANDWRITTEN ANSWER & MATH PROOF GRADER
+- Include an image upload feature for handwritten work or diagrams.
+- Students can upload photos of:
+  - handwritten equations
+  - chemistry working or structures
+  - biology diagrams or labelled drawings
+  - math proof steps or algebra
+- The AI should evaluate the response with an exam-style rubric and provide:
+  - marks out of 10 or out of a configured rubric
+  - step-by-step feedback
+  - exact mistake highlighting where relevant
+  - suggestions for improvement
+- This should behave like a strict UNEB examiner rather than a generic tutor.
+- This feature should live in a dedicated "Answer Grader" or "AI Marking" workspace.
+
+G. DAILY QUESTION OF THE DAY + STREAKS
+- Daily question card shown on the homepage or main dashboard.
+- Each day includes:
+  - one multiple-choice or short-answer question
+  - a countdown to exam season or next exam milestone
+  - study streak counter
+- Correct answer extends the streak; missed days reset it.
+- Show a simple motivational UI: "🔥 3-Day Streak" and progress cues.
+- The content should be generated from subject context and learner profile.
+- Keep this feature under a clear and non-harmful daily reward loop, not excessive gamification.
+
+H. FLASHCARDS AND SPACED REPETITION
+- Build a flashcards feature with:
+  - term/definition cards
+  - formula cards
+  - biological concept cards
+  - chemistry equation cards
+  - physics law cards
+- Use spaced repetition logic to re-show weak cards more often.
+- Include quick review mode for mobile or commuter use.
+- Allow cards to be generated from uploaded or saved resources, existing library notes, or AI-generated study notes.
+
+I. SMART STUDY PLANNER
+- Add a Smart Study Planner page that asks for:
+  - exam date
+  - weakest subjects
+  - available study hours per week
+  - current study habits
+- Then generate a custom revision timetable by day and week.
+- Example task generation:
+  - "Today's Goal: Read Photosynthesis notes and complete 3 questions"
+  - "Revise Genetics and complete 5 flashcards"
+- Use the student's profile and school level to create realistic study plans.
+- Keep tasks actionable and short-term.
+
+J. AI TUTOR UX DESIGN
+- AI tutor panel should feel like a structured coach, not just a chat box.
+- Include:
+  - chat panel
+  - suggested questions
+  - exam mode toggle
+  - answer mode toggle
+  - context chips (subject, class, current topic)
+  - saved-resource references
+  - recent search history
+  - summary of outstanding topics
+- The AI should be able to answer in a way that reflects the chosen learner profile and subject list.
+
+K. ACCESS TO LIBRARY RESOURCES AND USER CONTENT
+- Students should be able to access library resources from the AI Study dashboard.
+- They should also see:
+  - the documents they saved
+  - the documents they liked
+  - recent library resource suggestions
+  - document previews connected to relevant learning topics
+- Include a "Use this resource for context" action that lets the AI read and summarise the document for study help.
+- This should be a clear, privacy-aware workflow: only the learner's own saved resources or approved public library materials should be used.
+
+L. IMPLEMENTATION NOTE FOR THE BOLT PROMPT
+- Build these features as a product design and product architecture brief for an advanced student-study experience.
+- They can be implemented as a dashboard/UX prototype in a separate frontend app first.
+- Do not require a working backend to render the design.
+- Use clearly labelled demo states for all AI-generated study plans, mastery status, and card data.
+- Keep the onboarding, library integration, and retained study data features separate from the internal staff dashboard.
+
+DATA MODEL FOR STUDY AI EXPERIENCE
+----------------------------------
+StudentProfile:
+  id, userId, isStudent, learningLevel, universityYear?, degreeProgram?,
+  secondaryTrack?, classLevel?, subjects[], studyGoals[], onboardingComplete
+
+StudySession:
+  id, learnerId, startedAt, currentTopic, sourceContextIds[], savedResources[]
+
+StudySearchHistory:
+  id, learnerId, query, createdAt, contextSource
+
+MasteryItem:
+  id, learnerId, subject, topic, status, confidence, updatedAt
+
+Flashcard:
+  id, learnerId, front, back, subject, dueAt, easeScore
+
+StudyPlan:
+  id, learnerId, examDate, generatedAt, tasks[]
+
+AssessmentAttempt:
+  id, learnerId, subject, prompt, uploadedImage?, score, feedback, createdAt
+
+Add these to the architecture plan as part of the future-connected student experience. They are not required for the initial standalone staff SaaS prototype, but they should be clearly described as the next phase of the AI Study product.
+
+DATA MODEL SHAPES
+-----------------
+Define TypeScript interfaces similar to:
+
+Learner:
+  id, displayName, email, classLevel, subjects[], joinedAt, status
+
+PaymentRequest:
+  id, learnerId, resourceId, resourceTitle, senderPhone, amountUgx,
+  status, requestedAt, verifiedBy?, verifiedAt?, rejectionReason?
+
+Resource:
+  id, title, subject, classLevel, type, format, sizeBytes, source,
+  createdAt, status, previewLabel
+
+Contribution:
+  id, batchId, contributorLabel, files[], submittedAt, status,
+  reviewer?, reviewReason?
+
+Suggestion:
+  id, content, submittedAt, status
+  (anonymous; no learner ID or identity)
+
+StaffUser:
+  id, displayName, email, role, status
+
+AuditEvent:
+  id, actorLabel, action, targetType, targetLabel, occurredAt, result
+
+Use string union types for statuses and roles. Avoid `any`. Keep dates ISO strings in data and format them for Africa/Kampala display.
+
+SERVICE/API CONTRACT FOR LATER
+------------------------------
+Define typed service interfaces for the pages to depend on:
+- getDashboardMetrics(dateRange)
+- listPaymentRequests(filters, page)
+- getPaymentRequest(id)
+- verifyPaymentRequest(id)
+- rejectPaymentRequest(id, reason)
+- listResources(filters, page)
+- getResource(id)
+- listContributions(filters, page)
+- reviewContribution(id, decision, reason?)
+- listLearners(filters, page)
+- getLearner(id)
+- listSuggestions(filters, page)
+- moderateSuggestion(id, decision)
+- getAnalytics(dateRange)
+- listStaff()
+- listAuditEvents(filters, page)
+
+The demo adapter should implement each function with deterministic, realistic synthetic data and local-only state changes. The future API adapter should contain TODOs and example request/response types, but must not make calls to guessed endpoints. Read the API base URL from an environment variable such as `VITE_STUDY_HUB_API_URL`; leave it unset by default. Never put secret keys in Vite variables.
+
+AUTHENTICATION NOTE
+-------------------
+This downloadable prototype must not pretend the mock staff role selector is secure authentication. Provide a demo profile/role switcher with "Prototype only — no real sign-in" copy. The connection guide must explain that the live Study Hub backend must later issue/validate sessions and enforce all staff roles on protected routes. Never implement access control only in the browser for a connected production dashboard.
+
+LATER CONNECTION TO EXISTING STUDY HUB
+--------------------------------------
+Keep the app independent now. In the connection notes, identify likely future data sources without hard-coding assumptions:
+- Existing Express API and PostgreSQL users/document payment records.
+- Supabase resource catalog and public storage.
+- Resource engagement/bookmarks.
+- Contribution staging/review workflow.
+- Anonymous community suggestions.
+- Existing AI/lesson-guide APIs if analytics or published guides are later needed.
+
+When connecting later, inspect actual routes, schema, and statuses first. Reuse existing APIs and authorization. Do not create duplicate tables or endpoints just because this brief lists a service interface. Backend authorization is mandatory for connected production features. Demo data must be replaceable by service adapters without page rewrites.
+
+IMPLEMENTATION PLAN
+-------------------
+1. Scaffold the standalone Vite + React + TypeScript app and install only the listed UI dependencies.
+2. Build the app shell, navigation, responsive styling, and demo role switcher.
+3. Define domain models and typed service interfaces; implement the demo adapter.
+4. Build Overview, Payments, and Resources first, then the remaining pages using shared components.
+5. Add local-only demo interactions with explicit demo confirmation messages.
+6. Add `README.md` with install/run/build instructions and `src/services/README.md` with future connection instructions.
+7. Run typecheck, lint (if configured), and production build. Fix introduced issues.
+
+DELIVERABLE
+-----------
+Return a downloadable standalone dashboard project that runs locally with:
+  npm install
+  npm run dev
+
+It should work without a database, API key, payment credentials, or live Study Hub login. Include `README.md`, `.env.example` containing only public/non-secret placeholders, and no real credentials. Keep all demo features usable and clearly marked.

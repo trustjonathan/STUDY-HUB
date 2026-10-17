@@ -36,6 +36,10 @@
 .lib-personalization-note button { padding: 0; border: 0; background: none; color: #75e2bd; cursor: pointer; font: 700 .76rem 'DM Sans', sans-serif; text-decoration: underline; text-underline-offset: 3px; }
 .lib-personalization-note button:focus-visible { outline: 2px solid #75e2bd; outline-offset: 3px; }
 
+.library.is-embedded { height: 100%; min-height: 0; overflow: auto; }
+.library.is-embedded.is-dashboard { height: 100%; min-height: 0; overflow: hidden; }
+.lib-dash.is-embedded .lib-rail-btn[href] { display: none; }
+
 /* Library workspace: breadcrumb + class shelf + Supabase-style dashboard.
    Slate/emerald theme per the design; standalone (this project has no Tailwind). */
 
@@ -164,6 +168,9 @@
 
 /* Resource banner + load-more */
 .lib-banner { margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 12px; }
+.lib-progress { display: flex; align-items: center; gap: 9px; margin: 0 0 14px; padding: 10px 12px; border: 1px solid #d7e9dc; border-radius: 8px; background: #f3f8f3; color: #42664f; font-size: 12px; }
+.lib-progress-spinner { width: 15px; height: 15px; flex: 0 0 auto; border: 2px solid rgba(36, 107, 73, .22); border-top-color: #246b49; border-radius: 50%; animation: lib-progress-spin .8s linear infinite; }
+@keyframes lib-progress-spin { to { transform: rotate(360deg); } }
 .lib-more { margin-top: 16px; text-align: center; }
 .lib-title { width: 190px; min-width: 160px; }
 .lib-resource-preview-link { display: block; width: 150px; max-width: 100%; border-radius: 8px; color: inherit; text-decoration: none; }
@@ -350,6 +357,7 @@
 .lib-resource-share .lib-resource-action { border-color: #dbe4e0; background: #fff; }
 .lib-resource-share-count { color: #64748b; font-size: 10px; white-space: nowrap; }
 .lib-resource-action-message { color: #047857; font-size: 10px; white-space: nowrap; }
+.lib-resource-action-progress { color: #42664f; font-size: 10px; }
 .lib-resource-action-error { color: #b42318; font-size: 10px; }
 .lib-empty { padding: 40px 12px; color: #94a3b8; text-align: center; font-size: 13px; }
 
@@ -413,6 +421,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lib-rail, .lib-side, .lib-class-card, .lib-shelf-cta, .lib-resource-cta, .lib-panel-toggle, .lib-class-drawer { transition: none; animation: none; }
+  .lib-rail, .lib-side, .lib-class-card, .lib-shelf-cta, .lib-resource-cta, .lib-panel-toggle, .lib-class-drawer, .lib-progress-spinner { transition: none; animation: none; }
   .lib-class-card:hover { transform: none; }
 }

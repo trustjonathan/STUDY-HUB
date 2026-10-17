@@ -1,5 +1,6 @@
 const MAX_TOPIC_LENGTH = 300;
 const { generateContent } = require('../../services/geminiService');
+const studyMemory = require('../../services/aiStudyMemory');
 const { allowedClassSet, allowedSubjectSet } = require('../constants/learningProfile');
 
 function invalidRequest(res, message) {
@@ -70,14 +71,17 @@ async function writeNoteToGithub(config, slug, markdown) {
   }
 }
 
-async function generateWithGemini(apiKey, topic, learningProfile) {
+async function generateWithGemini(apiKey, topic, learningProfile, relevantMemories = []) {
   const profileInstruction = learningProfile
-    ? ` The learner is studying ${learningProfile.classLevel || 'an unspecified class level'} and has selected these subjects: ${learningProfile.subjects.join(', ') || 'no preferred subjects yet'}. Tailor explanations, examples, and suggested next steps to this level and these subjects when relevant. Do not claim the learner studies a subject that is not listed.`
+    ? ` The learner profile is: learner type ${learningProfile.learnerType || 'unspecified'}; education level ${learningProfile.educationLevel || 'unspecified'}; class ${learningProfile.classLevel || 'not provided'}; university course ${learningProfile.universityCourse || 'not provided'}; university year ${learningProfile.universityYear || 'not provided'}; secondary programme ${learningProfile.secondaryTrack || 'not applicable'}; selected subjects ${learningProfile.subjects.join(', ') || 'no preferred subjects yet'}. Tailor explanations, examples, terminology, and depth to the learner's profile when relevant. For university learners, use their course and year to guide assumed background knowledge. Do not claim the learner studies a subject that is not listed.`
+    : '';
+  const memoryInstruction = relevantMemories.length
+    ? ` The learner's related recent study topics are: ${relevantMemories.map((memory) => memory.topic).join('; ')}. Use these only as hints for continuity and likely areas of interest; they do not prove mastery or difficulty. Do not reveal unrelated past topics.`
     : '';
   const geminiResponse = await generateContent(apiKey, {
       systemInstruction: {
         parts: [{
-          text: `You are Study Hub's academic tutor for Ugandan learners. Answer the learner's academic question directly and accurately. Explain difficult ideas in clear language, show working for calculations, and use a short example when it helps. If the learner gives only a topic, provide a concise, exam-focused mini study guide with useful Markdown headings and bullet points. If a request is clearly unrelated to learning or education, politely decline and invite the learner to ask an academic question. Do not invent facts; say when you are unsure. Frame curriculum points as general study help, not official NCDC or UNEB rulings.${profileInstruction}`
+          text: `You are Study Hub's academic tutor for Ugandan learners. Answer the learner's academic question directly and accurately. Explain difficult ideas in clear language, show working for calculations, and use a short example when it helps. If the learner gives only a topic, provide a concise, exam-focused mini study guide with useful Markdown headings and bullet points. If a request is clearly unrelated to learning or education, politely decline and invite the learner to ask an academic question. Do not invent facts; say when you are unsure. Frame curriculum points as general study help, not official NCDC or UNEB rulings.${profileInstruction}${memoryInstruction}`
         }]
       },
       contents: [{
@@ -189,18 +193,59 @@ exports.handler = async (req, res) => {
     if (!requestedProfile || typeof requestedProfile !== 'object' || Array.isArray(requestedProfile)) {
       return invalidRequest(res, 'Learning preferences must be an object.');
     }
-    const { classLevel, subjects } = requestedProfile;
+    const {
+      learnerType,
+      educationLevel,
+      universityCourse,
+      universityYear,
+      secondaryTrack,
+      classLevel,
+      subjects,
+    } = requestedProfile;
     if ((classLevel !== null && classLevel !== '' && !allowedClassSet.has(classLevel))
       || !Array.isArray(subjects)
       || subjects.length > allowedSubjectSet.size
       || new Set(subjects).size !== subjects.length
-      || subjects.some((subject) => !allowedSubjectSet.has(subject))) {
+      || subjects.some((subject) => !allowedSubjectSet.has(subject))
+      || (learnerType !== undefined && !['student', 'non-student'].includes(learnerType))
+      || (educationLevel !== undefined && educationLevel !== null && !['university', 'secondary', 'primary', 'nursery'].includes(educationLevel))
+      || (universityCourse !== undefined && universityCourse !== null && (typeof universityCourse !== 'string' || universityCourse.length > 160))
+      || (universityYear !== undefined && universityYear !== null && (!Number.isInteger(universityYear) || universityYear < 1 || universityYear > 8))
+      || (secondaryTrack !== undefined && secondaryTrack !== null && !['O-Level', 'A-Level'].includes(secondaryTrack))) {
       return invalidRequest(res, 'Learning preferences must use an available class and subject.');
     }
-    learningProfile = { classLevel: classLevel || '', subjects };
+    if (learnerType === 'student') {
+      if (!educationLevel
+        || (educationLevel === 'university' && (!universityCourse?.trim() || !universityYear || classLevel))
+        || (educationLevel === 'secondary' && !(
+          (secondaryTrack === 'O-Level' && /^S\.[1-4]$/.test(classLevel || ''))
+          || (secondaryTrack === 'A-Level' && /^S\.[5-6]$/.test(classLevel || ''))
+        ))
+        || (educationLevel === 'primary' && !/^P\.[1-7]$/.test(classLevel || ''))
+        || (educationLevel === 'nursery' && !['Baby Class', 'Top Class', 'Middle Class'].includes(classLevel))) {
+        return invalidRequest(res, 'Learning preferences must include the class, course, or year required for the selected education level.');
+      }
+    } else if (learnerType === 'non-student' && (educationLevel || classLevel || universityCourse || universityYear || secondaryTrack || subjects.length)) {
+      return invalidRequest(res, 'Non-student learning preferences cannot include student class details.');
+    }
+    learningProfile = {
+      learnerType: learnerType || null,
+      educationLevel: educationLevel || null,
+      universityCourse: universityCourse || '',
+      universityYear: universityYear || null,
+      secondaryTrack: secondaryTrack || null,
+      classLevel: classLevel || '',
+      subjects,
+    };
   }
-  const hasPersonalPreferences = Boolean(learningProfile && (learningProfile.classLevel || learningProfile.subjects.length));
+  const hasPersonalPreferences = Boolean(learningProfile && (
+    learningProfile.learnerType
+    || learningProfile.classLevel
+    || learningProfile.subjects.length
+    || learningProfile.universityCourse
+  ));
   const cleanTopic = topic.trim();
+  const userId = Number.isSafeInteger(req.user?.id) && req.user.id > 0 ? req.user.id : null;
   if (cleanTopic.length > MAX_TOPIC_LENGTH) {
     return invalidRequest(res, `Keep your question under ${MAX_TOPIC_LENGTH} characters.`);
   }
@@ -218,7 +263,7 @@ exports.handler = async (req, res) => {
   const github = githubConfig();
 
   // 1. Serve instantly from the repo if this guide was generated before.
-  if (github && !hasPersonalPreferences) {
+  if (github && !hasPersonalPreferences && !userId) {
     try {
       const existing = await readNoteFromGithub(github, slug);
       if (existing && existing.trim()) {
@@ -244,17 +289,39 @@ exports.handler = async (req, res) => {
 
   // 3. Generate a fresh guide with Gemini.
   let markdown;
+  let relevantMemories = [];
+  let preparedMemory = null;
+  let memoryWarning = '';
+  if (userId) {
+    try {
+      preparedMemory = await studyMemory.prepareStudyMemory(userId, cleanTopic);
+      relevantMemories = preparedMemory.memories;
+    } catch (error) {
+      memoryWarning = 'Your guide can still be generated, but AI Study could not retrieve or save account memory for this question.';
+      console.error('Learner AI memory retrieval failed:', error instanceof Error ? error.name : 'Unknown error');
+    }
+  }
+
   try {
-    markdown = await generateWithGemini(apiKey, cleanTopic, learningProfile);
+    markdown = await generateWithGemini(apiKey, cleanTopic, learningProfile, relevantMemories);
   } catch (error) {
     const status = error.status || 502;
     if (status !== 429 && status !== 502) console.error('Gemini generation error:', error);
     return res.status(status).json({ error: error.message });
   }
 
+  if (userId && !memoryWarning) {
+    try {
+      await studyMemory.saveStudyTopic(userId, cleanTopic, preparedMemory.embedding);
+    } catch (error) {
+      memoryWarning = 'Your guide is ready, but this study topic was not saved to account memory.';
+      console.error('Learner AI memory save failed:', error instanceof Error ? error.name : 'Unknown error');
+    }
+  }
+
   // 3. Persist it to GitHub so future visits are instant and it survives forever.
   let committed = false;
-  if (github && !hasPersonalPreferences) {
+  if (github && !hasPersonalPreferences && !userId) {
     try {
       await writeNoteToGithub(github, slug, markdown);
       committed = true;
@@ -267,6 +334,10 @@ exports.handler = async (req, res) => {
     topic: cleanTopic,
     slug,
     markdown,
-    source: hasPersonalPreferences ? 'personalized-unsaved' : committed ? 'generated' : 'generated-unsaved'
+    source: hasPersonalPreferences ? 'personalized-unsaved' : committed ? 'generated' : 'generated-unsaved',
+    ...(userId ? {
+      memorySaved: !memoryWarning,
+      ...(memoryWarning ? { memoryWarning } : {}),
+    } : {})
   });
 };

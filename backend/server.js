@@ -35,6 +35,7 @@ const documentPaymentRoutes = require("./api/routes/documentPaymentRoutes")
 const aiTutorRoutes = require("./api/routes/aiRoutes.js")
 const aiStudyCompanionRoutes = require("./api/routes/aiStudyCompanion.routes.js")
 const lessonGuideRoutes = require("./api/routes/lessonGuide.routes.js")
+const studyPlanRoutes = require("./api/routes/studyPlan.routes.js")
 
 let notesRoutes
 let quizRoutes
@@ -55,6 +56,7 @@ app.use("/api/document-payments", documentPaymentRoutes)
 app.use("/api/bio-gpt", aiTutorRoutes)
 app.use("/api/ai-study-companion", aiStudyCompanionRoutes)
 app.use("/api/lesson-guide", lessonGuideRoutes)
+app.use("/api/study-plan", studyPlanRoutes)
 
 if (notesRoutes) app.use("/api/notes", notesRoutes)
 if (quizRoutes) app.use("/api/quizzes", quizRoutes)

@@ -30,6 +30,31 @@ const User = sequelize.define('User', {
     allowNull: true,
     field: 'class_level',
   },
+  learnerType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'learner_type',
+  },
+  educationLevel: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'education_level',
+  },
+  universityCourse: {
+    type: DataTypes.STRING(160),
+    allowNull: true,
+    field: 'university_course',
+  },
+  universityYear: {
+    type: DataTypes.SMALLINT,
+    allowNull: true,
+    field: 'university_year',
+  },
+  secondaryTrack: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'secondary_track',
+  },
   subjects: {
     type: DataTypes.ARRAY(DataTypes.STRING),
     allowNull: false,

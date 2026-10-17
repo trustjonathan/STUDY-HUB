@@ -1,6 +1,7 @@
 const { afterEach, test } = require('node:test');
 const assert = require('node:assert/strict');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const { OAuth2Client } = require('google-auth-library');
 
 process.env.JWT_SECRET = 'test-only-jwt-secret-that-is-long-enough';
@@ -11,6 +12,7 @@ const controller = require('../api/controllers/identityController');
 const originalVerifyIdToken = OAuth2Client.prototype.verifyIdToken;
 const originalFindOne = User.findOne;
 const originalCreate = User.create;
+const originalFindByPk = User.findByPk;
 
 function responseMock() {
   return {
@@ -31,6 +33,7 @@ afterEach(() => {
   OAuth2Client.prototype.verifyIdToken = originalVerifyIdToken;
   User.findOne = originalFindOne;
   User.create = originalCreate;
+  User.findByPk = originalFindByPk;
 });
 
 test('creates a verified Google account and returns a Study Hub session', async () => {
@@ -129,4 +132,39 @@ test('does not compare a password for Google-only accounts', async () => {
 
   assert.equal(res.statusCode, 401);
   assert.deepEqual(res.body, { message: 'Invalid credentials' });
+});
+
+test('changes a password only after verifying the current password', async () => {
+  const user = {
+    password: await bcrypt.hash('old-password', 4),
+    save: async function save() {},
+  };
+  User.findByPk = async () => user;
+  const res = responseMock();
+
+  await controller.updatePassword({
+    user: { id: 42 },
+    body: { currentPassword: 'old-password', newPassword: 'new-password' },
+  }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(await bcrypt.compare('new-password', user.password), true);
+  assert.equal(res.body.message, 'Your password has been updated.');
+});
+
+test('rejects password updates when the current password is incorrect', async () => {
+  const user = {
+    password: await bcrypt.hash('old-password', 4),
+    save: async () => assert.fail('Password must not be saved.'),
+  };
+  User.findByPk = async () => user;
+  const res = responseMock();
+
+  await controller.updatePassword({
+    user: { id: 42 },
+    body: { currentPassword: 'wrong-password', newPassword: 'new-password' },
+  }, res);
+
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body.error, 'Your current password is incorrect.');
 });

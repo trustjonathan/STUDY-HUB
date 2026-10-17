@@ -29,6 +29,7 @@
 .auth-remembered-copy { display: grid; min-width: 0; flex: 1; gap: 3px; }
 .auth-remembered-copy strong { color: #30463a; font-size: .76rem; }
 .auth-remembered-copy > span { overflow: hidden; color: #647568; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.auth-remembered-copy small { color: #829087; font-size: .67rem; }
 .auth-remembered-continue { min-height: 34px; padding: 0 11px; border: 1px solid #246b49; border-radius: 7px; background: #246b49; color: #fffefa; cursor: pointer; font: 700 .74rem 'DM Sans', sans-serif; }
 .auth-remembered-continue:hover { background: #18583a; }
 .auth-remembered-forget { display: grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #647568; cursor: pointer; font-size: 1.2rem; }
@@ -50,6 +51,7 @@
 .auth-primary-button:disabled { cursor: not-allowed; opacity: .6; }
 .auth-secondary-button { border: 1px solid #cbd8cd; background: #fffefa; color: #24563b; }
 .auth-secondary-button:hover { background: #eef4ed; }
+.auth-account-panel > a { text-decoration: none; }
 .auth-message, .auth-api-warning { margin: 0; padding: 11px 12px; border-radius: 7px; font-size: .82rem; line-height: 1.55; }
 .auth-error { border: 1px solid #ecc9c3; background: #fff5f2; color: #8d3328; }
 .auth-notice { border: 1px solid #bbd7c1; background: #f0f7ef; color: #24563b; }
@@ -64,6 +66,7 @@
 .auth-profile-editor .auth-eyebrow { margin-bottom: 4px; }
 .auth-profile-editor h2 { margin: 0; color: #30463a; font: 800 1.15rem/1.3 Manrope, sans-serif; }
 .auth-card-aside { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: clamp(25px, 4vw, 44px); background: #edf3eb; }
+.auth-dashboard-art { display: block; width: min(100%, 390px); max-height: 245px; align-self: center; object-fit: contain; margin: 0 auto 25px; }
 .auth-aside-mark { display: grid; width: 54px; height: 54px; place-items: center; margin-bottom: 28px; border-radius: 15px; background: #1e4937; color: white; }
 .auth-aside-mark svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .auth-card-aside h2 { max-width: 13ch; margin: 0; color: #284234; font: 800 clamp(1.55rem, 3vw, 2.2rem)/1.16 Manrope, sans-serif; letter-spacing: -.035em; }
@@ -71,13 +74,11 @@
 .auth-card-aside > a { display: inline-flex; gap: 8px; margin-top: 22px; color: #246b49; font-size: .82rem; font-weight: 750; text-decoration: none; }
 .auth-page-note { margin: 14px 0 0; color: #738076; font-size: .75rem; text-align: center; }
 .auth-page a:focus-visible, .auth-page button:focus-visible { outline: 3px solid #d38b43; outline-offset: 3px; }
-@media (min-width: 960px) {
-  .auth-remembered-account { position: fixed; z-index: 40; top: 16px; right: 18px; width: min(360px, calc(100vw - 36px)); margin: 0; }
-}
 @media (max-width: 720px) {
   .auth-card { grid-template-columns: minmax(0, 1fr); }
   .auth-card-aside { padding: 25px; }
   .auth-aside-mark { width: 46px; height: 46px; margin-bottom: 18px; }
+  .auth-dashboard-art { max-height: 205px; margin-bottom: 18px; }
 }
 @media (max-width: 480px) {
   .auth-page { width: min(calc(100% - 1.25rem), 70rem); padding-top: 1.25rem; }

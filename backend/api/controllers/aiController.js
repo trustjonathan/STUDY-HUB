@@ -1,4 +1,4 @@
-const OpenAI = require("openai");
+const { getOpenAiKeys, withOpenAiClient } = require("../../services/openAiKeyPool");
 
 exports.askAI = async (req, res) => {
   try {
@@ -11,21 +11,20 @@ exports.askAI = async (req, res) => {
       });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_KEY;
-    if (!apiKey) {
+    if (!getOpenAiKeys().length) {
       return res.status(503).json({
         success: false,
         message: "The OpenAI service is not configured."
       });
     }
 
-    const client = new OpenAI({ apiKey });
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: prompt
+    const reply = await withOpenAiClient(async (client) => {
+      const response = await client.responses.create({
+        model: "gpt-4.1-mini",
+        input: prompt
+      });
+      return response.output_text;
     });
-
-    const reply = response.output_text;
 
     res.json({
       success: true,
@@ -33,9 +32,9 @@ exports.askAI = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("AI Error:", error);
+    console.error("AI request failed.", error instanceof Error ? error.message : "Unknown error");
 
-    res.status(500).json({
+    res.status(error.status === 503 ? 503 : 500).json({
       success: false,
       message: "AI request failed"
     });

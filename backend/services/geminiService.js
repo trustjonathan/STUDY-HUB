@@ -59,4 +59,11 @@ async function generateContent(apiKey, payload) {
   return requestModel(apiKey, fallbackModel, payload);
 }
 
-module.exports = { generateContent };
+async function generateContentWithModel(apiKey, payload, model) {
+  if (typeof model !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(model)) {
+    throw new TypeError('A valid Gemini model name is required.');
+  }
+  return requestModel(apiKey, model, payload);
+}
+
+module.exports = { generateContent, generateContentWithModel };

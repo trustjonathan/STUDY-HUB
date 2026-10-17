@@ -7,6 +7,8 @@ interface Props {
   libraryHref: string;
   documentationHref: string;
   legalHref: string;
+  embedded?: boolean;
+  onOpenLibrary?: () => void;
 }
 
 interface Note {
@@ -18,6 +20,11 @@ interface Note {
 interface StudyProfile {
   username: string;
   email: string;
+  learnerType: 'student' | 'non-student' | null;
+  educationLevel: 'university' | 'secondary' | 'primary' | 'nursery' | null;
+  universityCourse: string;
+  universityYear: number | null;
+  secondaryTrack: 'O-Level' | 'A-Level' | null;
   classLevel: string;
   subjects: string[];
   onboardingComplete: boolean;
@@ -87,9 +94,12 @@ export default function StudyWorkspace({
   libraryHref,
   documentationHref,
   legalHref,
+  embedded = false,
+  onOpenLibrary,
 }: Props) {
   const base = apiBase();
   const [recents, setRecents] = useState<Note[]>([]);
+  const [recentsLoading, setRecentsLoading] = useState(false);
   const [recentSearch, setRecentSearch] = useState('');
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
@@ -102,7 +112,12 @@ export default function StudyWorkspace({
   const [source, setSource] = useState('');
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
+  const [copying, setCopying] = useState(false);
   const [profile, setProfile] = useState<StudyProfile | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
+  const [memoryBusy, setMemoryBusy] = useState(false);
+  const [memoryAction, setMemoryAction] = useState<'export' | 'delete' | null>(null);
+  const [memoryStatus, setMemoryStatus] = useState('');
   const [tourOpen, setTourOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -111,24 +126,35 @@ export default function StudyWorkspace({
       const session = readAuthSession<{
         username?: unknown;
         email?: unknown;
+        learnerType?: unknown;
+        educationLevel?: unknown;
+        universityCourse?: unknown;
+        universityYear?: unknown;
+        secondaryTrack?: unknown;
         classLevel?: unknown;
         subjects?: unknown;
         onboardingComplete?: unknown;
       }>();
       if (!session) return;
+      setSignedIn(true);
       const user = session.user;
       const subjects = Array.isArray(user.subjects)
         ? user.subjects.filter((subject): subject is string => typeof subject === 'string')
         : [];
-      const studyProfile = {
+      const studyProfile: StudyProfile = {
         username: typeof user.username === 'string' ? user.username : '',
         email: typeof user.email === 'string' ? user.email : '',
+        learnerType: user.learnerType === 'student' || user.learnerType === 'non-student' ? user.learnerType : null,
+        educationLevel: user.educationLevel === 'university' || user.educationLevel === 'secondary' || user.educationLevel === 'primary' || user.educationLevel === 'nursery' ? user.educationLevel : null,
+        universityCourse: typeof user.universityCourse === 'string' ? user.universityCourse : '',
+        universityYear: typeof user.universityYear === 'number' ? user.universityYear : null,
+        secondaryTrack: user.secondaryTrack === 'O-Level' || user.secondaryTrack === 'A-Level' ? user.secondaryTrack : null,
         classLevel: typeof user.classLevel === 'string' ? user.classLevel : '',
         subjects,
         onboardingComplete: user.onboardingComplete === true,
       };
       setProfile(studyProfile);
-      setTourOpen(new URLSearchParams(window.location.search).get('welcome') === '1' && !studyProfile.onboardingComplete);
+      setTourOpen(!embedded && new URLSearchParams(window.location.search).get('welcome') === '1' && !studyProfile.onboardingComplete);
     } catch {
       setNotice('Your saved learning profile could not be read. AI Study will continue without personal preferences.');
     }
@@ -136,18 +162,23 @@ export default function StudyWorkspace({
 
   async function refreshRecents() {
     if (!base) return;
+    setRecentsLoading(true);
     try {
       const response = await fetch(`${base}/api/lesson-guide`);
-      if (!response.ok) return;
+      if (!response.ok) throw new Error(`Recent study guides could not be refreshed (HTTP ${response.status}).`);
       const data = await response.json().catch(() => ({}));
-      if (!Array.isArray(data.notes)) return;
+      if (!Array.isArray(data.notes)) throw new Error('Recent study guides returned an invalid response.');
       const serverNotes: Note[] = data.notes.filter((note: unknown): note is Note => isNote(note));
       setRecents((current) => {
         const localNotes = current.filter((note) => note.markdown);
         const merged = [...localNotes, ...serverNotes.filter((note) => !localNotes.some((local) => local.slug === note.slug))];
         return merged.slice(0, MAX_RECENT_GUIDES);
       });
-    } catch { /* recents are optional */ }
+    } catch {
+      setNotice('Recent study guides could not be refreshed. Your current study session is still available.');
+    } finally {
+      setRecentsLoading(false);
+    }
   }
 
   // Load this browser's saved answers as well as shared backend guides.
@@ -211,13 +242,25 @@ export default function StudyWorkspace({
     setActiveSlug(null);
     setSidebarOpen(false);
     try {
+      const session = readAuthSession<StudyProfile>();
       const response = await fetch(`${base}/api/lesson-guide`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+        },
         body: JSON.stringify({
           topic: clean,
           ...(profile && (profile.classLevel || profile.subjects.length)
-            ? { learningProfile: { classLevel: profile.classLevel, subjects: profile.subjects } }
+            ? { learningProfile: {
+              learnerType: profile.learnerType,
+              educationLevel: profile.educationLevel,
+              universityCourse: profile.universityCourse,
+              universityYear: profile.universityYear,
+              secondaryTrack: profile.secondaryTrack,
+              classLevel: profile.classLevel,
+              subjects: profile.subjects,
+            } }
             : {})
         })
       });
@@ -241,7 +284,12 @@ export default function StudyWorkspace({
         markdown: result.markdown,
         source: typeof result.source === 'string' ? result.source : '',
       });
-      await refreshRecents();
+      if (typeof result.memoryWarning === 'string') {
+        setNotice(result.memoryWarning);
+      } else if (result.memorySaved === true) {
+        setNotice('This study topic was saved to your private account memory.');
+      }
+      void refreshRecents();
     } catch (err) {
       setMarkdown('');
       const message = err instanceof Error ? err.message : '';
@@ -274,6 +322,9 @@ export default function StudyWorkspace({
   }
 
   async function copyResponse() {
+    setCopying(true);
+    setCopied(false);
+    setCopyError('');
     try {
       await navigator.clipboard.writeText(markdown);
       setCopied(true);
@@ -281,6 +332,77 @@ export default function StudyWorkspace({
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopyError('Copy was unavailable. Select the answer and copy it manually.');
+    } finally {
+      setCopying(false);
+    }
+  }
+
+  async function exportAccountMemory() {
+    const session = readAuthSession<StudyProfile>();
+    if (!session?.token) {
+      setMemoryStatus('Sign in again to access your account memory.');
+      return;
+    }
+    if (!base) {
+      setMemoryStatus('Account memory is unavailable because the backend API is not configured.');
+      return;
+    }
+
+    setMemoryBusy(true);
+    setMemoryAction('export');
+    setMemoryStatus('Exporting your account memory…');
+    try {
+      const response = await fetch(`${base}/api/lesson-guide/memory/export`, {
+        headers: { Authorization: `Bearer ${session.token}` },
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || 'Your account memory could not be exported.');
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'study-hub-ai-memory.json';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+      setMemoryStatus('Your account memory export has been downloaded.');
+    } catch (error) {
+      setMemoryStatus(error instanceof Error ? error.message : 'Your account memory could not be exported.');
+    } finally {
+      setMemoryBusy(false);
+      setMemoryAction(null);
+    }
+  }
+
+  async function deleteAccountMemory() {
+    const session = readAuthSession<StudyProfile>();
+    if (!session?.token) {
+      setMemoryStatus('Sign in again to access your account memory.');
+      return;
+    }
+    if (!base) {
+      setMemoryStatus('Account memory is unavailable because the backend API is not configured.');
+      return;
+    }
+    if (!window.confirm('Delete all study topics and embeddings saved to your account? This cannot be undone. Future signed-in questions will start building memory again. Recent study guides saved only in this browser will remain.')) return;
+
+    setMemoryBusy(true);
+    setMemoryAction('delete');
+    setMemoryStatus('Deleting your saved study memory…');
+    try {
+      const response = await fetch(`${base}/api/lesson-guide/memory`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.token}` },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Your account memory could not be deleted.');
+      setMemoryStatus(`Deleted ${Number.isInteger(result.deleted) ? result.deleted : 0} saved study topics from your account.`);
+    } catch (error) {
+      setMemoryStatus(error instanceof Error ? error.message : 'Your account memory could not be deleted.');
+    } finally {
+      setMemoryBusy(false);
+      setMemoryAction(null);
     }
   }
 
@@ -288,7 +410,7 @@ export default function StudyWorkspace({
   const visibleRecents = recents.filter((note) => note.title.toLowerCase().includes(recentSearch.trim().toLowerCase()));
 
   return (
-    <div className={`ws ${sidebarOpen ? 'ws-sidebar-open' : ''}`}>
+    <div className={`ws ${sidebarOpen ? 'ws-sidebar-open' : ''}${embedded ? ' ws-embedded' : ''}`} aria-busy={loading}>
       <aside className="ws-sidebar" aria-label="Study Hub navigation">
         <div className="ws-brand">
           <span className="ws-brand-mark" aria-hidden="true">▰</span>
@@ -304,6 +426,7 @@ export default function StudyWorkspace({
 
         <div className="ws-recents">
           <p className="ws-recents-label">Recents</p>
+          {recentsLoading && <p className="ws-recents-loading" role="status">Syncing recent study guides…</p>}
           {recents.length > 0 && (
             <input
               className="ws-recents-search"
@@ -335,6 +458,22 @@ export default function StudyWorkspace({
             </ul>
           )}
         </div>
+
+        <section className="ws-memory" aria-labelledby="ws-memory-heading">
+          <p className="ws-recents-label" id="ws-memory-heading">AI memory</p>
+          {signedIn ? (
+            <>
+              <p className="ws-memory-note">Study questions are embedded by OpenAI; related topics may guide Gemini. Account memory stores topics, not full answers. Recent guides stay on this device.</p>
+              <div className="ws-memory-actions">
+                <button type="button" onClick={() => void exportAccountMemory()} disabled={memoryBusy}>{memoryAction === 'export' ? 'Exporting…' : 'Export'}</button>
+                <button type="button" onClick={() => void deleteAccountMemory()} disabled={memoryBusy}>{memoryAction === 'delete' ? 'Deleting…' : 'Delete'}</button>
+              </div>
+              {memoryStatus && <p className="ws-memory-status" role="status">{memoryStatus}</p>}
+            </>
+          ) : (
+            <p className="ws-memory-note">Sign in to save study topics to your account. Guest questions are not saved to account memory; recent guides stay on this device.</p>
+          )}
+        </section>
 
         <nav className="ws-sidebar-resources" aria-label="Help and policies">
           <p className="ws-recents-label">Help &amp; policies</p>
@@ -371,7 +510,9 @@ export default function StudyWorkspace({
               <p className="ws-onboarding-step">YOUR STUDY HUB TOUR · 1 OF 2</p>
               <h2 id="ws-onboarding-heading">Welcome{profile.username ? `, ${profile.username.split(/\s+/)[0]}` : ''}.</h2>
               <p>Start here with AI Study. Ask a question or enter a topic for a clear, step-by-step explanation. Once you set your class and subjects in the Library, AI Study can tailor its examples and guidance to what you are learning.</p>
-              <a className="ws-onboarding-next" href={`${libraryHref}?welcome=1`}>Next: personalise your Library <span aria-hidden="true">→</span></a>
+              {embedded && onOpenLibrary
+                ? <button className="ws-onboarding-next" type="button" onClick={onOpenLibrary}>Next: personalise your Library <span aria-hidden="true">→</span></button>
+                : <a className="ws-onboarding-next" href={`${libraryHref}?welcome=1`}>Next: personalise your Library <span aria-hidden="true">→</span></a>}
               <button className="ws-onboarding-dismiss" type="button" onClick={() => setTourOpen(false)}>Explore AI Study first</button>
             </section>
           </div>
@@ -440,17 +581,56 @@ export default function StudyWorkspace({
                   <p className="ws-note-kicker">STUDY GUIDE · AI REFERENCE</p>
                   <h1 className="ws-note-title">{activeTitle || 'AI tutor response'}</h1>
                 </div>
-                <button type="button" className="ws-copy-button" onClick={() => void copyResponse()}>
-                  {copied ? 'Copied' : 'Copy answer'}
+                <button type="button" className="ws-copy-button" onClick={() => void copyResponse()} disabled={copying}>
+                  {copying ? 'Copying…' : copied ? 'Copied' : 'Copy answer'}
                 </button>
               </div>
               {copyError && <p className="ws-copy-error" role="status">{copyError}</p>}
+              {copying && <p className="ws-memory-status" role="status">Copying your answer…</p>}
               {source === 'generated-unsaved' && (
                 <p className="ws-save-note">This answer is available now, but is not saved to the shared library.</p>
               )}
-              <div className="ws-prose">{renderMarkdown(markdown)}</div>
-            </article>
-          )}
+
+                  <div className="ws-prose">{renderMarkdown(markdown)}</div>
+                </article>
+              )}
+
+              {embedded && (
+                <details className="ws-embedded-context">
+                  <summary>Your study history and AI memory</summary>
+                  {recents.length > 0 ? (
+                    <>
+                      <input
+                        className="ws-recents-search"
+                        type="search"
+                        value={recentSearch}
+                        onChange={(event) => setRecentSearch(event.target.value)}
+                        placeholder="Search recent guides"
+                        aria-label="Search recent study guides"
+                      />
+                      <ul className="ws-embedded-recents">
+                        {visibleRecents.map((note) => (
+                          <li key={note.slug}>
+                            <button type="button" disabled={loading} onClick={() => openRecent(note)}>{note.title}</button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : <p className="ws-recents-empty">Your recent guides will appear here after you ask the tutor a question.</p>}
+                  <section className="ws-memory" aria-label="AI memory">
+                    {signedIn ? (
+                      <>
+                        <p className="ws-memory-note">Account memory stores study topics, not full answers. Recent guides stay on this device.</p>
+                        <div className="ws-memory-actions">
+                          <button type="button" onClick={() => void exportAccountMemory()} disabled={memoryBusy}>{memoryAction === 'export' ? 'Exporting memory…' : 'Export memory'}</button>
+                          <button type="button" onClick={() => void deleteAccountMemory()} disabled={memoryBusy}>{memoryAction === 'delete' ? 'Deleting memory…' : 'Delete memory'}</button>
+                        </div>
+                        {memoryStatus && <p className="ws-memory-status" role="status">{memoryStatus}</p>}
+                      </>
+                    ) : <p className="ws-memory-note">Sign in to save study topics to your account. Guest questions are not saved to account memory.</p>}
+                  </section>
+                </details>
+              )}
         </div>
 
         <form className="ws-prompt" onSubmit={handleSubmit}>

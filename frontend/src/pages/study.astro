@@ -1,0 +1,38 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import StudyDashboard from '../components/StudyDashboard';
+import '../styles/study-dashboard.css';
+import '../styles/workspace.css';
+import '../styles/library.css';
+
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<SiteLayout
+  title="AI Study | Study Hub"
+  description="Your personalized Study Hub workspace for learning, revision, and academic resources."
+  manifestHref={`${base}study.webmanifest`}
+>
+  <StudyDashboard
+    client:load
+    baseHref={base}
+    libraryHref={`${base}library.html`}
+    signInHref={`${base}sign-in.html`}
+  />
+</SiteLayout>
+
+<script define:vars={{ base }}>
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register(`${base}study-sw.js`, { scope: base })
+        .catch((error) => console.error('AI Study offline support could not be enabled:', error));
+    }, { once: true });
+  }
+</script>
+
+<style>
+  :global(body[data-page='study']) { background: #f5f7f4; }
+  :global(body[data-page='study'] .site-header) { display: none; }
+  :global(body[data-page='study'] main) { max-width: none; padding: 0; }
+  :global(body[data-page='study'] .site-footer) { display: none; }
+</style>

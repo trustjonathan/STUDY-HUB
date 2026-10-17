@@ -1,5 +1,7 @@
 const express = require("express");
 const { handler, listHandler } = require("../controllers/lessonGuide.controller");
+const memoryController = require("../controllers/aiStudyMemory.controller");
+const authMiddleware = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 const WINDOW_MS = 60_000;
@@ -31,7 +33,20 @@ function limitRequests(req, res, next) {
   return next();
 }
 
+function optionalAuth(req, res, next) {
+  const authorization = req.headers.authorization || req.headers.Authorization;
+  if (!authorization) return next();
+  return authMiddleware.verifyToken(req, res, () => {
+    if (!Number.isSafeInteger(req.user?.id) || req.user.id < 1) {
+      return res.status(401).json({ error: 'Your account session is invalid. Please sign in again.' });
+    }
+    return next();
+  });
+}
+
+router.get("/memory/export", authMiddleware.verifyToken, memoryController.exportMemory);
+router.delete("/memory", authMiddleware.verifyToken, memoryController.deleteMemory);
 router.get("/", listHandler);
-router.post("/", limitRequests, handler);
+router.post("/", optionalAuth, limitRequests, handler);
 
 module.exports = router;

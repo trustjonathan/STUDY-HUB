@@ -1,11 +1,17 @@
-const { afterEach, test } = require("node:test");
+const { afterEach, beforeEach, test } = require("node:test");
 const assert = require("node:assert/strict");
 const { handler } = require("../api/controllers/lessonGuide.controller");
+const sequelize = require("../database/config/database");
 
 const envKeys = [
   "GEMINI_API_KEY",
   "GEMINI_MODEL",
   "GEMINI_FALLBACK_MODEL",
+  "OPENAI_API_KEY",
+  "OPENAI_KEY",
+  "OPEN_AI_API_KEY",
+  "OPEN_AI_API_KEY_1",
+  "OPEN_AI_API_KEY_2",
   "GITHUB_TOKEN",
   "GITHUB_OWNER",
   "GITHUB_REPO",
@@ -14,6 +20,13 @@ const envKeys = [
 ];
 const originalEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
 const originalFetch = global.fetch;
+const originalQuery = sequelize.query;
+
+beforeEach(() => {
+  for (const key of ["OPENAI_API_KEY", "OPENAI_KEY", "OPEN_AI_API_KEY", "OPEN_AI_API_KEY_1", "OPEN_AI_API_KEY_2"]) {
+    delete process.env[key];
+  }
+});
 
 function responseMock() {
   return {
@@ -36,6 +49,7 @@ afterEach(() => {
     else process.env[key] = originalEnv[key];
   }
   global.fetch = originalFetch;
+  sequelize.query = originalQuery;
 });
 
 test("answers a study question through the server-side Gemini model", async () => {
@@ -212,4 +226,85 @@ test("uses the fallback Gemini model when the primary model stays unavailable", 
   assert.equal(res.body.markdown, "Photosynthesis converts light energy into chemical energy.");
   assert.equal(requestedModels.filter((name) => name === "gemini-3.8-flash").length, 6);
   assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash").length, 2);
+});
+
+test("uses and stores only the signed-in learner's relevant study topics", async () => {
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  process.env.OPENAI_API_KEY = "test-openai-key";
+  process.env.GITHUB_TOKEN = "test-github-token";
+  process.env.GITHUB_OWNER = "study-hub";
+  process.env.GITHUB_REPO = "notes";
+  delete process.env.GITHUB_BRANCH;
+  delete process.env.GITHUB_NOTES_PATH;
+
+  const requests = [];
+  global.fetch = async (url, options) => {
+    const parsedUrl = new URL(url);
+    const body = JSON.parse(options.body);
+    if (parsedUrl.hostname === "api.openai.com") {
+      requests.push({ provider: "openai", body, url: parsedUrl });
+      return {
+        ok: true,
+        json: async () => ({ data: [{ embedding: Array(1_536).fill(0.2) }] })
+      };
+    }
+    requests.push({ provider: "gemini", body, url: parsedUrl });
+    const isTopicCheck = body.systemInstruction.parts[0].text.includes("strict subject classifier");
+    return {
+      ok: true,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: isTopicCheck ? "YES" : "A personalized study guide." }] } }]
+      })
+    };
+  };
+  const queries = [];
+  sequelize.query = async (sql, options) => {
+    queries.push({ sql, options });
+    if (sql.includes("SELECT topic")) {
+      return [[{ topic: "Earlier algebra questions", created_at: "2026-01-01T00:00:00.000Z" }], {}];
+    }
+    return [[], {}];
+  };
+  const res = responseMock();
+
+  await handler({ body: { topic: "Explain quadratic equations" }, user: { id: 42 } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.memorySaved, true);
+  assert.equal(requests.filter((request) => request.provider === "openai").length, 1);
+  assert.equal(requests.some((request) => request.url?.hostname === "api.github.com"), false);
+  const tutorRequest = requests.find((request) =>
+    request.provider === "gemini"
+    && request.body.systemInstruction.parts[0].text.includes("Study Hub's academic tutor")
+  );
+  assert.match(tutorRequest.body.systemInstruction.parts[0].text, /Earlier algebra questions/);
+  assert.equal(queries.length, 2);
+  assert.ok(queries.every(({ options }) => options.replacements.userId === 42));
+});
+
+test("keeps tutor answers available and reports when learner memory cannot be saved", async () => {
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  delete process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_KEY;
+  delete process.env.OPEN_AI_API_KEY;
+  for (const key of envKeys.slice(5)) delete process.env[key];
+
+  global.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    const isTopicCheck = body.systemInstruction.parts[0].text.includes("strict subject classifier");
+    return {
+      ok: true,
+      json: async () => ({
+        candidates: [{ content: { parts: [{ text: isTopicCheck ? "YES" : "A study guide without memory." }] } }]
+      })
+    };
+  };
+  const res = responseMock();
+
+  await handler({ body: { topic: "Explain quadratic equations" }, user: { id: 42 } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.markdown, "A study guide without memory.");
+  assert.equal(res.body.memorySaved, false);
+  assert.match(res.body.memoryWarning, /could not retrieve or save account memory/);
 });

@@ -24,10 +24,16 @@ const publicUser = (user) => ({
   id: user.id,
   username: user.username,
   email: user.email,
+  hasPassword: typeof user.password === 'string' && user.password.length > 0,
   role: user.role,
   reputation: user.reputation,
   classLevel: user.classLevel || null,
   subjects: Array.isArray(user.subjects) ? user.subjects : [],
+  learnerType: user.learnerType || null,
+  educationLevel: user.educationLevel || null,
+  universityCourse: user.universityCourse || null,
+  universityYear: user.universityYear || null,
+  secondaryTrack: user.secondaryTrack || null,
   onboardingComplete: user.onboardingComplete === true
 });
 
@@ -192,7 +198,18 @@ const getProfile = async (req, res) => {
 // ----------------------
 const updateProfile = async (req, res) => {
   try {
-    const { username, email, classLevel, subjects, onboardingComplete } = req.body;
+    const {
+      username,
+      email,
+      classLevel,
+      subjects,
+      learnerType,
+      educationLevel,
+      universityCourse,
+      universityYear,
+      secondaryTrack,
+      onboardingComplete
+    } = req.body;
 
     const user = await User.findByPk(req.user.id);
     if (!user) {
@@ -203,6 +220,11 @@ const updateProfile = async (req, res) => {
     user.email = email || user.email;
     if (Object.hasOwn(req.body, 'classLevel')) user.classLevel = classLevel || null;
     if (Object.hasOwn(req.body, 'subjects')) user.subjects = subjects;
+    if (Object.hasOwn(req.body, 'learnerType')) user.learnerType = learnerType;
+    if (Object.hasOwn(req.body, 'educationLevel')) user.educationLevel = educationLevel || null;
+    if (Object.hasOwn(req.body, 'universityCourse')) user.universityCourse = universityCourse || null;
+    if (Object.hasOwn(req.body, 'universityYear')) user.universityYear = universityYear || null;
+    if (Object.hasOwn(req.body, 'secondaryTrack')) user.secondaryTrack = secondaryTrack || null;
     if (Object.hasOwn(req.body, 'onboardingComplete')) user.onboardingComplete = onboardingComplete;
 
     await user.save();
@@ -215,6 +237,34 @@ const updateProfile = async (req, res) => {
   } catch (err) {
     console.error('UpdateProfile Error:', err);
     res.status(500).json({ error: 'Server error updating profile' });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    if (!hasSecureAuthSecret) {
+      console.error('Password update unavailable: JWT_SECRET must contain at least 32 bytes.');
+      return accountServiceUnavailable(res);
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (typeof user.password !== 'string' || !user.password) {
+      return res.status(409).json({ error: 'This account signs in with Google and does not have a password to change.' });
+    }
+    if (!(await bcrypt.compare(req.body.currentPassword, user.password))) {
+      return res.status(401).json({ error: 'Your current password is incorrect.' });
+    }
+    if (req.body.currentPassword === req.body.newPassword) {
+      return res.status(400).json({ error: 'Choose a new password different from your current password.' });
+    }
+
+    user.password = await bcrypt.hash(req.body.newPassword, 10);
+    await user.save();
+    return res.status(200).json({ message: 'Your password has been updated.' });
+  } catch (error) {
+    console.error('Password update error:', error);
+    return res.status(500).json({ error: 'Your password could not be updated right now.' });
   }
 };
 
@@ -251,5 +301,6 @@ module.exports = {
   googleLogin,
   getProfile,
   updateProfile,
+  updatePassword,
   updateReputation
 };

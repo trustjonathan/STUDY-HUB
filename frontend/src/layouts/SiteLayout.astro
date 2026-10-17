@@ -6,11 +6,13 @@ import ResumeProgress from '../components/ResumeProgress.astro';
 interface Props {
   title?: string;
   description?: string;
+  manifestHref?: string;
 }
 
 const {
   title = 'Study Hub | Learn with clarity',
-  description = 'Study notes, exam resources, and learning tools for Biology, Chemistry, Mathematics, and Physics.'
+  description = 'Study notes, exam resources, and learning tools for Biology, Chemistry, Mathematics, and Physics.',
+  manifestHref
 } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const home = base.replace(/\/$/, '');
@@ -22,7 +24,7 @@ const routePath = requestedPath === basePath
     ? requestedPath.slice(basePath.length + 1)
     : requestedPath;
 const routeKey = routePath.replace(/\.html(?:\.html)?$/, '').replace(/\/+$/, '');
-const showFooter = !['assistant', 'library', 'sign-in', 'document-payment'].includes(routeKey);
+const showFooter = !['assistant', 'library', 'sign-in', 'document-payment', 'study'].includes(routeKey);
 const isPolicyPage = ['legal', 'privacy', 'terms', 'copyright'].includes(routeKey);
 const canonicalPath = routePath === 'index.html' ? '' : routePath.replace(/\.html\.html$/, '.html');
 const siteUrl = Astro.site ?? Astro.url.origin;
@@ -64,7 +66,7 @@ const popularSubjects = availableSubjects;
     <link rel="icon" type="image/svg+xml" sizes="any" href={`${base}favicon.svg`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
     <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-touch-icon.png`} />
-    <link rel="manifest" href={`${base}site.webmanifest`} />
+    <link rel="manifest" href={manifestHref ?? `${base}site.webmanifest`} />
     {routeKey === 'sign-in' && (
       <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
     )}
@@ -95,7 +97,7 @@ const popularSubjects = availableSubjects;
           <a href={`${home}/subjects.html`}>Subjects</a>
           <a href={`${home}/blog.html`} aria-current={routeKey === 'blog' ? 'page' : undefined}>Blog</a>
           <a href={`${home}/library.html`}>Library</a>
-          <a href={`${home}/assistant.html`}>AI Study</a>
+          <a href={`${home}/study.html`} aria-current={routeKey === 'study' ? 'page' : undefined}>AI Study</a>
           <a href={`${home}/frontend/src/html/about.html`}>About</a>
           <a href={`${home}/admin/payments.html`} data-admin-payments-link hidden>Payment verification</a>
         </nav>
@@ -216,7 +218,7 @@ const popularSubjects = availableSubjects;
             <h2>Product</h2>
             <a href={`${home}/subjects.html`}>Browse subjects</a>
             <a href={`${home}/library.html`}>Study library</a>
-            <a href={`${home}/assistant.html`}>AI Study</a>
+            <a href={`${home}/study.html`}>AI Study</a>
             <a href={`${home}/learn.html`}>AI Study Guides</a>
             <a href={`${home}/sign-in.html`}>Sign in</a>
             <a href={`${home}/under-development.html`}>Pages in development</a>

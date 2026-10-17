@@ -41,6 +41,12 @@ interface Account {
   username: string;
   email: string;
   role?: string;
+  hasPassword?: boolean;
+  learnerType?: 'student' | 'non-student' | null;
+  educationLevel?: 'university' | 'secondary' | 'primary' | 'nursery' | null;
+  universityCourse?: string | null;
+  universityYear?: number | null;
+  secondaryTrack?: 'O-Level' | 'A-Level' | null;
   classLevel?: string | null;
   subjects?: string[];
   onboardingComplete?: boolean;
@@ -100,11 +106,14 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [rememberedEmail, setRememberedEmail] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [credentialNotice, setCredentialNotice] = useState('');
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
@@ -169,17 +178,13 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
 
       saveAuthSession(result.token, result.user);
       rememberAccountEmail(result.user.email);
-      if (result.user.onboardingComplete !== true) {
-        window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
+      if (result.user.onboardingComplete !== true || !result.user.learnerType) {
+        window.location.assign(`${homeHref.replace(/\/$/, '')}/study.html?welcome=1&view=preferences`);
         return;
       }
       const returnHref = getReturnHref(homeHref);
-      if (returnHref) {
-        window.location.assign(returnHref);
-        return;
-      }
-      setAccount(result.user);
-      setNotice('You are signed in with Google. Your learning profile is ready.');
+      window.location.assign(returnHref || `${homeHref.replace(/\/$/, '')}/study.html`);
+      return;
     } catch (googleError) {
       const message = googleError instanceof Error ? googleError.message : '';
       setError(message === 'Failed to fetch'
@@ -263,18 +268,13 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
 
       saveAuthSession(result.token, result.user);
       rememberAccountEmail(result.user.email);
-      if (result.user.onboardingComplete !== true) {
-        window.location.assign(`${homeHref.replace(/\/$/, '')}/assistant.html?welcome=1`);
+      if (result.user.onboardingComplete !== true || !result.user.learnerType) {
+        window.location.assign(`${homeHref.replace(/\/$/, '')}/study.html?welcome=1&view=preferences`);
         return;
       }
       const returnHref = getReturnHref(homeHref);
-      if (returnHref) {
-        window.location.assign(returnHref);
-        return;
-      }
-      setAccount(result.user);
-      setPassword('');
-      setNotice('Your Study Hub learning profile is ready.');
+      window.location.assign(returnHref || `${homeHref.replace(/\/$/, '')}/study.html`);
+      return;
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : '';
       setError(message === 'Failed to fetch'
@@ -296,11 +296,54 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
     }
   }
 
-  async function updatePreferences(preferences: LearningPreferences) {
+  async function updatePreferences(preferences: LearningPreferences | SubmitEvent<HTMLFormElement>) {
+    if ('preventDefault' in preferences) {
+      await updatePassword(preferences);
+      return;
+    }
+
     const session = readAuthSession<Account>();
     if (!session || !apiBase) {
       setAccount(null);
       throw new Error('Your sign-in session has expired. Please sign in again.');
+    }
+
+    async function updatePassword(event: SubmitEvent<HTMLFormElement>) {
+      event.preventDefault();
+      const session = readAuthSession<Account>();
+      if (!session || !apiBase) {
+        setAccount(null);
+        setError('Your sign-in session has expired. Please sign in again.');
+        return;
+      }
+      setCredentialNotice('');
+      setError('');
+      setBusy(true);
+      try {
+        const response = await fetch(`${apiBase}/api/auth/password`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.token}`,
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const result: AuthResponse = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            clearAuthSession();
+            setAccount(null);
+          }
+          throw new Error(getErrorMessage(result, 'Your password could not be updated.'));
+        }
+        setCurrentPassword('');
+        setNewPassword('');
+        setCredentialNotice(result.message || 'Your password has been updated.');
+      } catch (passwordError) {
+        setError(passwordError instanceof Error ? passwordError.message : 'Your password could not be updated.');
+      } finally {
+        setBusy(false);
+      }
     }
 
     const response = await fetch(`${apiBase}/api/auth/profile`, {
@@ -310,6 +353,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
         Authorization: `Bearer ${session.token}`,
       },
       body: JSON.stringify({
+        learnerType: preferences.learnerType,
+        educationLevel: preferences.educationLevel,
+        universityCourse: preferences.universityCourse || null,
+        universityYear: preferences.universityYear,
+        secondaryTrack: preferences.secondaryTrack,
         classLevel: preferences.classLevel,
         subjects: preferences.subjects,
         onboardingComplete: true,
@@ -352,23 +400,52 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
                   <strong>{account.username || account.email}</strong>
                   <span>{account.email}</span>
                 </div>
+                <a className="auth-secondary-button" href={`${homeHref.replace(/\/$/, '')}/study.html`}>Continue to AI Study</a>
                 <button type="button" className="auth-secondary-button" onClick={signOut}>Sign out</button>
               </div>
               <section className="auth-profile-editor" aria-labelledby="auth-profile-heading">
                 <div>
                   <p className="auth-eyebrow">Learning profile</p>
-                  <h2 id="auth-profile-heading">Update your class and subjects</h2>
+                  <h2 id="auth-profile-heading">Update your learning profile</h2>
                 </div>
                 {!apiBase && <p className="auth-api-warning" role="status">The account service is not connected, so profile changes cannot be saved right now.</p>}
                 {error && <p className="auth-message auth-error" role="alert">{error}</p>}
                 {notice && <p className="auth-message auth-notice" role="status">{notice}</p>}
                 <LearningPreferencesForm
-                  key={`${account.classLevel || ''}-${(account.subjects || []).join(',')}`}
+                  key={`${account.learnerType || ''}-${account.educationLevel || ''}-${account.universityCourse || ''}-${account.universityYear || ''}-${account.secondaryTrack || ''}-${account.classLevel || ''}-${(account.subjects || []).join(',')}`}
+                  initialLearnerType={account.learnerType}
+                  initialEducationLevel={account.educationLevel}
+                  initialUniversityCourse={account.universityCourse}
+                  initialUniversityYear={account.universityYear}
+                  initialSecondaryTrack={account.secondaryTrack}
                   initialClassLevel={account.classLevel || ''}
                   initialSubjects={account.subjects || []}
                   submitLabel="Save learning profile"
                   onSave={updatePreferences}
                 />
+              </section>
+              <section className="auth-profile-editor auth-credentials-editor" aria-labelledby="auth-credentials-heading">
+                <div>
+                  <p className="auth-eyebrow">Account security</p>
+                  <h2 id="auth-credentials-heading">Sign-in credentials</h2>
+                </div>
+                {account.hasPassword ? (
+                  <form className="auth-form" onSubmit={(event) => updatePreferences(event)}>
+                    <label>
+                      Current password
+                      <input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" required minLength={6} maxLength={72} disabled={busy || !apiBase} />
+                    </label>
+                    <label>
+                      New password
+                      <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" required minLength={6} maxLength={72} disabled={busy || !apiBase} />
+                      <span className="auth-field-hint">Use at least 6 characters.</span>
+                    </label>
+                    {credentialNotice && <p className="auth-message auth-notice" role="status">{credentialNotice}</p>}
+                    <button className="auth-primary-button" type="submit" disabled={busy || !apiBase}>{busy ? 'Updating…' : 'Change password'}</button>
+                  </form>
+                ) : (
+                  <p className="auth-intro">This account uses Google sign-in. Manage its password through your Google account.</p>
+                )}
               </section>
             </>
           ) : (
@@ -379,8 +456,9 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
                   <span className="auth-remembered-copy">
                     <strong>Continue as</strong>
                     <span>{rememberedEmail}</span>
+                    <small>Sign in with your password to continue.</small>
                   </span>
-                  <button type="button" className="auth-remembered-continue" onClick={continueAsRememberedAccount}>Continue</button>
+                  <button type="button" className="auth-remembered-continue" onClick={continueAsRememberedAccount}>Use this email</button>
                   <button type="button" className="auth-remembered-forget" onClick={forgetRememberedAccount} aria-label="Forget remembered email">×</button>
                 </aside>
               )}
@@ -454,13 +532,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
           )}
         </div>
         <aside className="auth-card-aside">
-          <span className="auth-aside-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /><path d="M8 7h8M8 11h6" /></svg>
-          </span>
-          <p className="auth-eyebrow">A better fit for you</p>
-          <h2>Study around what matters to you.</h2>
-          <p>Choose your current level and subjects. Your Library opens with more relevant resources, while AI Study can shape its guidance around what you’re learning.</p>
-          <a href={`${homeHref.replace(/\/$/, '')}/library.html`}>Browse the library <span aria-hidden="true">↗</span></a>
+          <img className="auth-dashboard-art" src={`${homeHref.replace(/\/$/, '')}/assets/study-dashboard-devices.png`} alt="Study Hub AI Study dashboard on laptop, tablet, and phone" />
+          <p className="auth-eyebrow">Your study space, reimagined</p>
+          <h2>Our study dashboard has gotten even better.</h2>
+          <p>Your AI tutor, learning profile, and Study Hub Library now work together in one focused space, ready for every device.</p>
+          <a href={`${homeHref.replace(/\/$/, '')}/study.html`}>Explore AI Study <span aria-hidden="true">→</span></a>
         </aside>
       </section>
       <p className="auth-page-note">Your class and subject preferences can be changed from your learning profile at any time.</p>

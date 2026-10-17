@@ -42,6 +42,62 @@ test('rejects subjects that do not apply to the selected class level', async () 
   assert.match(res.payload.errors[0].msg, /available Study Hub subjects/);
 });
 
+test('accepts a university learner profile with course and year', async () => {
+  const res = await validateProfile({
+    learnerType: 'student',
+    educationLevel: 'university',
+    universityCourse: 'Bachelor of Science in Biology',
+    universityYear: 2,
+    secondaryTrack: null,
+    classLevel: null,
+    subjects: [],
+    onboardingComplete: true,
+  });
+
+  assert.equal(res.statusCode, 200);
+});
+
+test('accepts secondary class only when its O-Level or A-Level track matches', async () => {
+  const res = await validateProfile({
+    learnerType: 'student',
+    educationLevel: 'secondary',
+    secondaryTrack: 'A-Level',
+    classLevel: 'S.5',
+    subjects: ['Mathematics', 'Biology'],
+    onboardingComplete: true,
+  });
+
+  assert.equal(res.statusCode, 200);
+});
+
+test('rejects secondary class mismatched with the selected programme', async () => {
+  const res = await validateProfile({
+    learnerType: 'student',
+    educationLevel: 'secondary',
+    secondaryTrack: 'O-Level',
+    classLevel: 'S.5',
+    subjects: ['Mathematics'],
+    onboardingComplete: true,
+  });
+
+  assert.equal(res.statusCode, 400);
+});
+
+test('accepts non-student profile without student-only education fields', async () => {
+  const res = await validateProfile({
+    learnerType: 'non-student',
+    educationLevel: null,
+    universityCourse: null,
+    universityYear: null,
+    secondaryTrack: null,
+    classLevel: null,
+    subjects: [],
+    onboardingComplete: true,
+  });
+
+  assert.equal(res.statusCode, 200);
+});
+
 test('accepts A-Level and subsidiary subjects for upper secondary classes', async () => {
   const res = await validateProfile({
     classLevel: 'S.5',

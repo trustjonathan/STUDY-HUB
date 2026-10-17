@@ -1,4 +1,5 @@
 require('dotenv').config(); // loads variables from .env
+const { getOpenAiKeys } = require('../services/openAiKeyPool');
 
 const config = {
   env: process.env.NODE_ENV || 'development',
@@ -38,7 +39,8 @@ const config = {
       bucketName: process.env.CLOUD_BUCKET || 'studyhub-files',
     },
     openAI: {
-      apiKey: process.env.OPENAI_KEY || '',
+      apiKey: getOpenAiKeys()[0] || '',
+      apiKeys: getOpenAiKeys(),
     },
   },
 

@@ -1,28 +1,39 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import StudyWorkspace from '../components/StudyWorkspace';
+import StudyDashboard from '../components/StudyDashboard';
+import '../styles/study-dashboard.css';
 import '../styles/workspace.css';
+import '../styles/library.css';
 
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 ---
 
-<SiteLayout title="Study Assistant | Study Hub" description="Ask Study Hub's AI tutor a question or explore a topic with a clear, exam-focused explanation.">
-  <div class="assistant-shell">
-    <StudyWorkspace
-      client:load
-      homeHref={`${base}`}
-      libraryHref={`${base}library.html`}
-      documentationHref={`${base}documentation.html`}
-      legalHref={`${base}legal.html`}
-    />
-  </div>
+<SiteLayout
+  title="AI Tutor | Study Hub"
+  description="Ask Study Hub's AI tutor a question or explore a topic with a clear, exam-focused explanation."
+  manifestHref={`${base}study.webmanifest`}
+>
+  <StudyDashboard
+    client:load
+    baseHref={base}
+    libraryHref={`${base}library.html`}
+    signInHref={`${base}sign-in.html`}
+    initialView="tutor"
+  />
 </SiteLayout>
 
-<style>
-  /* Full-height workspace shell so the sidebar + prompt bar behave like an app. */
-  :global(main) { display: block; }
-  .assistant-shell {
-    width: 100%;
-    min-height: calc(100vh - 76px);
+<script define:vars={{ base }}>
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register(`${base}study-sw.js`, { scope: base })
+        .catch((error) => console.error('AI Study offline support could not be enabled:', error));
+    }, { once: true });
   }
+</script>
+
+<style>
+  :global(body[data-page='assistant']) { background: #f5f7f4; }
+  :global(body[data-page='assistant'] .site-header),
+  :global(body[data-page='assistant'] .site-footer) { display: none; }
+  :global(body[data-page='assistant'] main) { max-width: none; padding: 0; }
 </style>

@@ -9,6 +9,7 @@ interface Props {
   supabaseUrl: string;
   anonKey: string;
   apiUrl: string;
+  embedded?: boolean;
 }
 
 type Source = 'study-hub' | 'fresh-teacher';
@@ -224,7 +225,7 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
   return { resources, totalCount: count };
 }
 
-export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUrl }: Props) {
+export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUrl, embedded = false }: Props) {
   const [selected, setSelected] = useState<{ label: string; keys: string[] } | null>(null);
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -245,6 +246,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   const [myVotes, setMyVotes] = useState<Record<string, 1 | -1>>({});
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [engagementError, setEngagementError] = useState('');
+  const [engagementLoading, setEngagementLoading] = useState(false);
+  const [engagementRefreshing, setEngagementRefreshing] = useState(false);
 
   const base = homeHref.endsWith('/') ? homeHref : `${homeHref}/`;
   const catalogUrl = `${base}fresh-teacher-catalog.json`;
@@ -270,6 +273,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     let active = true;
     async function loadEngagement() {
       if (!apiBase) return;
+      setEngagementLoading(true);
       try {
         const response = await fetch(`${apiBase}/api/resources/stats`);
         if (!response.ok) throw new Error(`Resource ratings request failed (HTTP ${response.status}).`);
@@ -307,6 +311,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       } catch (loadError) {
         console.error('Resource engagement could not be loaded.', loadError);
         if (active) setEngagementError('Ratings or saved documents could not be loaded.');
+      } finally {
+        if (active) setEngagementLoading(false);
       }
     }
     void loadEngagement();
@@ -438,6 +444,11 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
         Authorization: `Bearer ${profileToken}`,
     },
       body: JSON.stringify({
+        learnerType: preferences.learnerType,
+        educationLevel: preferences.educationLevel,
+        universityCourse: preferences.universityCourse || null,
+        universityYear: preferences.universityYear,
+        secondaryTrack: preferences.secondaryTrack,
         classLevel: preferences.classLevel,
         subjects: preferences.subjects,
         onboardingComplete: true,
@@ -453,7 +464,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     }
 
     updateAuthSessionUser(result.user);
-    setProfileClass(preferences.classLevel);
+    setProfileClass(preferences.classLevel || '');
     setPreferredSubjects(preferences.subjects);
     setShowAllSubjects(false);
     setPreferencesError('');
@@ -465,12 +476,9 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     setPreferencesOpen(false);
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.delete('welcome');
-    currentUrl.searchParams.set('class', preferences.classLevel);
+    if (preferences.classLevel) currentUrl.searchParams.set('class', preferences.classLevel);
+    else currentUrl.searchParams.delete('class');
     window.history.replaceState({}, '', currentUrl);
-  }
-
-  async function skipLearningSetup() {
-    await saveLearningPreferences({ classLevel: '', subjects: [] });
   }
 
   // The library URL that encodes the current view, handed to the reader as ?return=.
@@ -516,7 +524,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   }
 
   return (
-    <div className={`library ${selected ? 'is-dashboard' : ''}`}>
+    <div className={`library ${selected ? 'is-dashboard' : ''}${embedded ? ' is-embedded' : ''}`}>
       {preferencesOpen && profileToken && (
         <div className="lib-preferences-backdrop" role="presentation">
           <section className="lib-preferences-dialog" role="dialog" aria-modal="true" aria-labelledby="lib-preferences-heading">
@@ -529,12 +537,11 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
               initialSubjects={preferredSubjects}
               submitLabel="Save and open my library"
               onSave={saveLearningPreferences}
-              onSkip={skipLearningSetup}
             />
           </section>
         </div>
       )}
-      <nav className="lib-crumbs" aria-label="Library breadcrumb">
+      {!embedded && <nav className="lib-crumbs" aria-label="Library breadcrumb">
         {path.map((item, idx) => {
           const isLast = idx === path.length - 1;
           return (
@@ -551,11 +558,12 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
             </span>
           );
         })}
-      </nav>
+      </nav>}
 
       {selected ? (
         <ClassDashboard
           selected={selected}
+          embedded={embedded}
           resources={resources}
           loading={loading}
           error={error}
@@ -571,6 +579,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           myVotes={myVotes}
           bookmarks={bookmarks}
           engagementError={engagementError}
+          engagementLoading={engagementLoading}
+          engagementRefreshing={engagementRefreshing}
           signInHref={signInHref}
           onVoteSaved={(resourceId, vote) => {
             setMyVotes((current) => {
@@ -579,10 +589,11 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
               else next[resourceId] = vote;
               return next;
             });
+            setEngagementRefreshing(true);
             void refreshResourceStats().catch((refreshError: unknown) => {
               console.error('Resource ratings could not be refreshed.', refreshError);
               setEngagementError('Your rating was saved, but the public rating could not be refreshed.');
-            });
+            }).finally(() => setEngagementRefreshing(false));
           }}
           onShareTracked={(resourceId) => {
             setResourceStats((current) => ({
@@ -675,6 +686,7 @@ function ClassShelf({ resources, totalResourceCount, loading, onSelect, base }: 
 
 interface DashboardProps {
   selected: { label: string; keys: string[] };
+  embedded: boolean;
   resources: Resource[];
   loading: boolean;
   error: string;
@@ -690,6 +702,8 @@ interface DashboardProps {
   myVotes: Record<string, 1 | -1>;
   bookmarks: string[];
   engagementError: string;
+  engagementLoading: boolean;
+  engagementRefreshing: boolean;
   signInHref: () => string;
   onVoteSaved: (resourceId: string, vote: 1 | -1 | null) => void;
   onShareTracked: (resourceId: string) => void;
@@ -719,26 +733,28 @@ function ResourceShare({ row, apiBase, shareCount, readerHref, onShareTracked }:
 }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [working, setWorking] = useState(false);
 
   async function shareResource() {
     const url = readerHref(row);
+    setWorking(true);
     setMessage('');
     setError('');
     try {
-      if (navigator.share) {
-        await navigator.share({ title: row.title, text: `Study Hub resource: ${row.title}`, url });
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        setMessage('Link copied');
-      } else {
-        throw new Error('Sharing is not available in this browser.');
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: row.title, text: `Study Hub resource: ${row.title}`, url });
+        } else if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+          setMessage('Link copied');
+        } else {
+          throw new Error('Sharing is not available in this browser.');
+        }
+      } catch (shareError) {
+        if (shareError instanceof Error && shareError.name === 'AbortError') return;
+        setError(shareError instanceof Error ? shareError.message : 'This resource could not be shared.');
+        return;
       }
-    } catch (shareError) {
-      if (shareError instanceof Error && shareError.name === 'AbortError') return;
-      setError(shareError instanceof Error ? shareError.message : 'This resource could not be shared.');
-      return;
-    }
-    try {
       if (!apiBase) throw new Error('The share count service is not configured.');
       const response = await fetch(`${apiBase}/api/resources/share`, {
         method: 'POST',
@@ -754,19 +770,22 @@ function ResourceShare({ row, apiBase, shareCount, readerHref, onShareTracked }:
       setError(trackingError instanceof Error
         ? `Shared successfully, but the share count could not be recorded: ${trackingError.message}`
         : 'Shared successfully, but the share count could not be recorded.');
+    } finally {
+      setWorking(false);
     }
   }
 
   return (
     <span className="lib-resource-share">
-      <button type="button" className="lib-resource-action" onClick={() => void shareResource()} aria-label={`Share ${row.title}`}>
+      <button type="button" className="lib-resource-action" onClick={() => void shareResource()} aria-label={`Share ${row.title}`} disabled={working}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.7 10.6 6.6-4.2m-6.6 7 6.6 4.2" /></svg>
-        <span>Share</span>
+        <span>{working ? 'Sharing…' : 'Share'}</span>
       </button>
       <span className="lib-resource-share-count" aria-label={`${shareCount} ${shareCount === 1 ? 'recorded share' : 'recorded shares'}`}>
         {shareCount} {shareCount === 1 ? 'share' : 'shares'}
       </span>
       {message && <span className="lib-resource-action-message" role="status">{message}</span>}
+      {working && <span className="lib-resource-action-progress" role="status">Sharing resource…</span>}
       {error && <span className="lib-resource-action-error" role="alert">{error}</span>}
     </span>
   );
@@ -794,6 +813,7 @@ function ResourceEngagement({
   onBookmarkChanged,
 }: ResourceEngagementProps) {
   const [working, setWorking] = useState(false);
+  const [workingAction, setWorkingAction] = useState<'rating' | 'bookmark' | null>(null);
   const [signInPrompt, setSignInPrompt] = useState(false);
   const [error, setError] = useState('');
 
@@ -810,6 +830,7 @@ function ResourceEngagement({
 
     const removeVote = vote === nextVote;
     setWorking(true);
+    setWorkingAction('rating');
     setError('');
     try {
       const response = await fetch(`${apiBase}/api/resources/vote`, {
@@ -834,6 +855,7 @@ function ResourceEngagement({
       setError(saveError instanceof Error ? saveError.message : 'Your rating could not be saved.');
     } finally {
       setWorking(false);
+      setWorkingAction(null);
     }
   }
 
@@ -849,6 +871,7 @@ function ResourceEngagement({
     }
 
     setWorking(true);
+    setWorkingAction('bookmark');
     setError('');
     try {
       const response = await fetch(`${apiBase}/api/resources/bookmark`, {
@@ -873,6 +896,7 @@ function ResourceEngagement({
       setError(saveError instanceof Error ? saveError.message : 'This document could not be saved.');
     } finally {
       setWorking(false);
+      setWorkingAction(null);
     }
   }
 
@@ -898,6 +922,7 @@ function ResourceEngagement({
           <a href={signInHref()}>Sign in to rate or bookmark</a>
         </span>
       )}
+      {working && <span className="lib-resource-action-progress" role="status">{workingAction === 'rating' ? 'Saving your rating…' : bookmarked ? 'Removing bookmark…' : 'Saving bookmark…'}</span>}
       {error && <span className="lib-resource-action-error" role="alert">{error}</span>}
     </div>
   );
@@ -1000,7 +1025,7 @@ function ClassDashboard(props: DashboardProps) {
   const shown = filtered.slice(0, visible);
 
   return (
-    <div className={`lib-dash ${navigationCollapsed ? 'is-navigation-collapsed' : ''} ${filtersCollapsed && !filtersHovered ? 'is-filters-collapsed' : ''}`}>
+    <div className={`lib-dash ${props.embedded ? 'is-embedded' : ''} ${navigationCollapsed ? 'is-navigation-collapsed' : ''} ${filtersCollapsed && !filtersHovered ? 'is-filters-collapsed' : ''}`}>
       <aside id="lib-quick-navigation" className="lib-rail" aria-label="Quick navigation">
         <button
           type="button"
@@ -1156,7 +1181,7 @@ function ClassDashboard(props: DashboardProps) {
         <div className="lib-main">
         <div className="lib-main-crumbs">
           <div className="lib-main-crumb-path">
-            Home / Library / <span className="is-active">{selected.label}</span>
+            {props.embedded ? <span className="is-active">{selected.label}</span> : <>Home / Library / <span className="is-active">{selected.label}</span></>}
           </div>
           <div className="lib-panel-actions" aria-label="Library panels">
             <button
@@ -1243,6 +1268,8 @@ function ClassDashboard(props: DashboardProps) {
           {savedSignInPrompt && <p className="lib-search-scope"><a href={props.signInHref()}>Sign in to access your saved documents.</a></p>}
           {savedOnly && <p className="lib-search-scope">Your bookmarks are private to your account. Click “Saved” again to return to the class list.</p>}
           {props.engagementError && <p className="lib-banner" role="status">{props.engagementError}</p>}
+          {props.engagementLoading && <p className="lib-progress" role="status"><span className="lib-progress-spinner" aria-hidden="true" />Loading ratings and your saved documents…</p>}
+          {props.engagementRefreshing && <p className="lib-progress" role="status"><span className="lib-progress-spinner" aria-hidden="true" />Updating rating totals…</p>}
           {preferredSubjects.length > 0 && (
             <p className="lib-personalization-note">
               {showAllSubjects ? `Showing all ${selected.label} subjects.` : `Showing your saved subjects: ${preferredSubjects.join(', ')}.`}
@@ -1252,9 +1279,9 @@ function ClassDashboard(props: DashboardProps) {
             </p>
           )}
 
-          <div id="library-resources" className="lib-resource-results">
-            {error && <p className="lib-banner">{error}</p>}
-            {loading && <p className="lib-banner">Loading resources…</p>}
+          <div id="library-resources" className="lib-resource-results" aria-busy={loading}>
+            {error && <p className="lib-banner" role="alert">{error}</p>}
+            {loading && <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />Loading class resources…</p>}
 
             {!loading && shown.length === 0 ? (
               <p className="lib-empty">No resources match these filters yet.</p>
