@@ -34,11 +34,13 @@ interface ResourceStats {
 }
 
 const TRENDING_2026_CLASS = { label: '2026 trending', keys: ['trending2026'] };
+const UNSORTED_CLASS = { label: 'Unsorted files', keys: ['unsorted'] };
 const PREMIUM_CATALOG_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/resource-catalog.json';
 const PREMIUM_RESOURCE_BASE_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main';
 
 function findLibraryClass(label: string | null | undefined) {
   if (label === TRENDING_2026_CLASS.label) return TRENDING_2026_CLASS;
+  if (label === UNSORTED_CLASS.label) return UNSORTED_CLASS;
   return libraryClasses.find((item) => item.label === label);
 }
 
@@ -123,11 +125,12 @@ interface PremiumCatalogResource {
   path: string;
   title: string;
   year: string;
+  classKeys: string[];
   subject?: string;
   type?: string;
 }
 
-const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v1';
+const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v2';
 const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResource {
@@ -136,7 +139,9 @@ function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResour
   return typeof item.path === 'string'
     && item.path.split('/').every((part) => part !== '' && part !== '.' && part !== '..' && !part.includes('\\'))
     && typeof item.title === 'string'
-    && item.year === '2026';
+    && typeof item.year === 'string'
+    && Array.isArray(item.classKeys)
+    && item.classKeys.every((key) => typeof key === 'string');
 }
 
 async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
@@ -205,12 +210,12 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
   return { resources, totalCount: resources.length };
 }
 
-async function loadPremiumTrending(): Promise<CatalogLoad> {
+async function loadPremiumResources(): Promise<CatalogLoad> {
   const response = await fetchCachedCatalog(PREMIUM_CATALOG_URL);
-  if (!response.ok) throw new Error(`2026 trending catalog request failed (HTTP ${response.status}).`);
+  if (!response.ok) throw new Error(`Premium resources catalog request failed (HTTP ${response.status}).`);
   const payload: unknown = await response.json();
   if (!payload || typeof payload !== 'object' || !('resources' in payload) || !Array.isArray(payload.resources)) {
-    throw new Error('2026 trending catalog has an invalid format.');
+    throw new Error('Premium resources catalog has an invalid format.');
   }
 
   const resources = payload.resources
@@ -218,6 +223,9 @@ async function loadPremiumTrending(): Promise<CatalogLoad> {
     .map((item) => {
       const resourcePath = item.path;
       const encodedPath = resourcePath.split('/').map(encodeURIComponent).join('/');
+      const keys = [...item.classKeys];
+      if (!keys.length) keys.push('unsorted');
+      if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
         id: `premium:${resourcePath}`,
         subject: typeof item.subject === 'string' ? item.subject : 'General',
@@ -225,7 +233,7 @@ async function loadPremiumTrending(): Promise<CatalogLoad> {
         source: 'premium-resources' as Source,
         title: item.title,
         url: `${PREMIUM_RESOURCE_BASE_URL}/${encodedPath}`,
-        keys: TRENDING_2026_CLASS.keys,
+        keys,
       };
     });
   return { resources, totalCount: resources.length };
@@ -381,7 +389,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     async function load() {
       setLoading(true);
       setError('');
-      const tasks: Promise<CatalogLoad>[] = [loadFreshTeacher(catalogUrl), loadPremiumTrending()];
+      const tasks: Promise<CatalogLoad>[] = [loadFreshTeacher(catalogUrl), loadPremiumResources()];
       if (supabaseUrl && anonKey) tasks.push(loadSupabase(supabaseUrl, anonKey));
       const results = await Promise.allSettled(tasks);
       if (!active) return;
@@ -555,6 +563,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     if (row.source === 'fresh-teacher') {
       url.searchParams.set('source', 'fresh-teacher');
       if (row.keys[0]) url.searchParams.set('class_key', row.keys[0]);
+    } else if (row.source === 'premium-resources') {
+      url.searchParams.set('source', 'premium-resources');
     }
     url.searchParams.set('return', libraryStateUrl());
     return url.href;
@@ -731,7 +741,7 @@ function ClassShelf({ resources, totalResourceCount, loading, error, onSelect, b
           </section>
         ))}
         <section className="lib-shelf-group">
-          <h2>Trending resources</h2>
+          <h2>Resource archives</h2>
           <div className="lib-shelf-grid">
             <button
               type="button"
@@ -741,6 +751,15 @@ function ClassShelf({ resources, totalResourceCount, loading, error, onSelect, b
             >
               <span className="lib-class-name">2026 trending</span>
               <span className="lib-class-sub">{countFor(TRENDING_2026_CLASS.keys)} resources</span>
+            </button>
+            <button
+              type="button"
+              className="lib-class-card"
+              aria-label={`Open unsorted files, ${countFor(UNSORTED_CLASS.keys)} resources`}
+              onClick={() => onSelect(UNSORTED_CLASS)}
+            >
+              <span className="lib-class-name">Unsorted files</span>
+              <span className="lib-class-sub">{countFor(UNSORTED_CLASS.keys)} resources</span>
             </button>
           </div>
         </section>
@@ -1185,8 +1204,8 @@ function ClassDashboard(props: DashboardProps) {
                   })}
                 </section>
               ))}
-              <section className="lib-class-drawer-group" key="trending-2026">
-                <h3>Trending resources</h3>
+              <section className="lib-class-drawer-group" key="resource-archives">
+                <h3>Resource archives</h3>
                 <button
                   type="button"
                   className={`lib-class-drawer-item ${selected.label === TRENDING_2026_CLASS.label ? 'is-active' : ''}`}
@@ -1200,6 +1219,21 @@ function ClassDashboard(props: DashboardProps) {
                   <span>2026 trending</span>
                   <span className="lib-class-drawer-count">
                     {resources.filter((resource) => TRENDING_2026_CLASS.keys.some((key) => resource.keys.includes(key))).length.toLocaleString()}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={`lib-class-drawer-item ${selected.label === UNSORTED_CLASS.label ? 'is-active' : ''}`}
+                  aria-current={selected.label === UNSORTED_CLASS.label ? 'page' : undefined}
+                  onClick={() => {
+                    props.onSelectClass(UNSORTED_CLASS);
+                    setClassesOpen(false);
+                    setClassesHovered(false);
+                  }}
+                >
+                  <span>Unsorted files</span>
+                  <span className="lib-class-drawer-count">
+                    {resources.filter((resource) => UNSORTED_CLASS.keys.some((key) => resource.keys.includes(key))).length.toLocaleString()}
                   </span>
                 </button>
               </section>
