@@ -12,7 +12,7 @@ interface Props {
   embedded?: boolean;
 }
 
-type Source = 'study-hub' | 'fresh-teacher';
+type Source = 'study-hub' | 'fresh-teacher' | 'premium-resources';
 type LibraryIconName = 'menu' | 'panel-left' | 'panel-left-open' | 'panel-right' | 'panel-right-open' | 'home' | 'bookshelf' | 'classes' | 'assistant' | 'close' | 'document' | 'shield' | 'scale';
 
 interface Resource {
@@ -31,6 +31,15 @@ interface ResourceStats {
   downVotes: number;
   totalVotes: number;
   shareCount: number;
+}
+
+const TRENDING_2026_CLASS = { label: '2026 trending', keys: ['trending2026'] };
+const PREMIUM_CATALOG_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/resource-catalog.json';
+const PREMIUM_RESOURCE_BASE_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main';
+
+function findLibraryClass(label: string | null | undefined) {
+  if (label === TRENDING_2026_CLASS.label) return TRENDING_2026_CLASS;
+  return libraryClasses.find((item) => item.label === label);
 }
 
 function LibraryIcon({ name }: { name: LibraryIconName }) {
@@ -110,8 +119,25 @@ interface CatalogLoad {
   totalCount: number;
 }
 
+interface PremiumCatalogResource {
+  path: string;
+  title: string;
+  year: string;
+  subject?: string;
+  type?: string;
+}
+
 const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v1';
 const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
+
+function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResource {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.path === 'string'
+    && item.path.split('/').every((part) => part !== '' && part !== '.' && part !== '..' && !part.includes('\\'))
+    && typeof item.title === 'string'
+    && item.year === '2026';
+}
 
 async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
   let cache: Cache | undefined;
@@ -174,6 +200,32 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
         title: (i.title || i.url || 'Untitled').trim(),
         url: i.url as string,
         keys: i.classKey ? [i.classKey] : [],
+      };
+    });
+  return { resources, totalCount: resources.length };
+}
+
+async function loadPremiumTrending(): Promise<CatalogLoad> {
+  const response = await fetchCachedCatalog(PREMIUM_CATALOG_URL);
+  if (!response.ok) throw new Error(`2026 trending catalog request failed (HTTP ${response.status}).`);
+  const payload: unknown = await response.json();
+  if (!payload || typeof payload !== 'object' || !('resources' in payload) || !Array.isArray(payload.resources)) {
+    throw new Error('2026 trending catalog has an invalid format.');
+  }
+
+  const resources = payload.resources
+    .filter(isPremiumCatalogResource)
+    .map((item) => {
+      const resourcePath = item.path;
+      const encodedPath = resourcePath.split('/').map(encodeURIComponent).join('/');
+      return {
+        id: `premium:${resourcePath}`,
+        subject: typeof item.subject === 'string' ? item.subject : 'General',
+        type: typeof item.type === 'string' ? item.type : 'Study Resources',
+        source: 'premium-resources' as Source,
+        title: item.title,
+        url: `${PREMIUM_RESOURCE_BASE_URL}/${encodedPath}`,
+        keys: TRENDING_2026_CLASS.keys,
       };
     });
   return { resources, totalCount: resources.length };
@@ -329,7 +381,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     async function load() {
       setLoading(true);
       setError('');
-      const tasks: Promise<CatalogLoad>[] = [loadFreshTeacher(catalogUrl)];
+      const tasks: Promise<CatalogLoad>[] = [loadFreshTeacher(catalogUrl), loadPremiumTrending()];
       if (supabaseUrl && anonKey) tasks.push(loadSupabase(supabaseUrl, anonKey));
       const results = await Promise.allSettled(tasks);
       if (!active) return;
@@ -409,7 +461,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
 
         const params = new URLSearchParams(window.location.search);
         const requestedClass = params.get('class');
-        const selectedClass = libraryClasses.find((item) => item.label === (requestedClass || classLevel));
+        const selectedClass = findLibraryClass(requestedClass || classLevel);
         if (selectedClass) setSelected(selectedClass);
         if (params.get('welcome') === '1' && session.user.onboardingComplete !== true) setPreferencesOpen(true);
       }
@@ -420,7 +472,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     const q = new URLSearchParams(window.location.search);
     const cls = q.get('class');
     if (cls) {
-      const found = libraryClasses.find((i) => i.label === cls);
+      const found = findLibraryClass(cls);
       if (found) setSelected({ label: found.label, keys: found.keys });
     }
     const subject = q.get('subject');
@@ -626,14 +678,14 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           onBackToShelf={() => setSelected(null)}
         />
       ) : (
-        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} onSelect={setSelected} base={base} />
+        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} error={error} onSelect={setSelected} base={base} />
       )}
     </div>
   );
 }
 
 
-function ClassShelf({ resources, totalResourceCount, loading, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; onSelect: (sel: { label: string; keys: string[] }) => void; base: string }) {
+function ClassShelf({ resources, totalResourceCount, loading, error, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; error: string; onSelect: (sel: { label: string; keys: string[] }) => void; base: string }) {
   const countFor = (keys: string[]) => resources.filter((r) => keys.some((k) => r.keys.includes(k))).length;
   const classCount = libraryClassGroups.reduce((total, section) => total + section.items.length, 0);
 
@@ -664,7 +716,7 @@ function ClassShelf({ resources, totalResourceCount, loading, onSelect, base }: 
           </div>
           <span className="lib-shelf-class-count">{classCount} classes</span>
         </div>
-        {loading && <p className="lib-shelf-status">Loading resources…</p>}
+        {(loading || error) && <p className="lib-shelf-status" role={error ? 'alert' : 'status'}>{loading ? 'Loading resources…' : error}</p>}
         {libraryClassGroups.map((section) => (
           <section key={section.group} className="lib-shelf-group">
             <h2>{section.group}</h2>
@@ -678,6 +730,20 @@ function ClassShelf({ resources, totalResourceCount, loading, onSelect, base }: 
             </div>
           </section>
         ))}
+        <section className="lib-shelf-group">
+          <h2>Trending resources</h2>
+          <div className="lib-shelf-grid">
+            <button
+              type="button"
+              className="lib-class-card lib-class-card-trending"
+              aria-label={`Open 2026 trending resources, ${countFor(TRENDING_2026_CLASS.keys)} resources`}
+              onClick={() => onSelect(TRENDING_2026_CLASS)}
+            >
+              <span className="lib-class-name">2026 trending</span>
+              <span className="lib-class-sub">{countFor(TRENDING_2026_CLASS.keys)} resources</span>
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -753,6 +819,10 @@ function ResourceShare({ row, apiBase, shareCount, readerHref, onShareTracked }:
       } catch (shareError) {
         if (shareError instanceof Error && shareError.name === 'AbortError') return;
         setError(shareError instanceof Error ? shareError.message : 'This resource could not be shared.');
+        return;
+      }
+      if (row.source === 'premium-resources') {
+        setMessage('Link shared');
         return;
       }
       if (!apiBase) throw new Error('The share count service is not configured.');
@@ -903,6 +973,8 @@ function ResourceEngagement({
   const totalVotes = stats?.totalVotes ?? 0;
   const upPercent = totalVotes ? Math.round(((stats?.upVotes ?? 0) / totalVotes) * 100) : 0;
   const downPercent = totalVotes ? 100 - upPercent : 0;
+  if (row.source === 'premium-resources') return <span className="lib-resource-meta">Public archive</span>;
+
   return (
     <div className="lib-engagement">
       <span className="lib-rating-summary" aria-label={totalVotes ? `${upPercent}% thumbs-up, ${downPercent}% thumbs-down, ${totalVotes} ratings` : 'No ratings yet'}>
@@ -1113,6 +1185,24 @@ function ClassDashboard(props: DashboardProps) {
                   })}
                 </section>
               ))}
+              <section className="lib-class-drawer-group" key="trending-2026">
+                <h3>Trending resources</h3>
+                <button
+                  type="button"
+                  className={`lib-class-drawer-item ${selected.label === TRENDING_2026_CLASS.label ? 'is-active' : ''}`}
+                  aria-current={selected.label === TRENDING_2026_CLASS.label ? 'page' : undefined}
+                  onClick={() => {
+                    props.onSelectClass(TRENDING_2026_CLASS);
+                    setClassesOpen(false);
+                    setClassesHovered(false);
+                  }}
+                >
+                  <span>2026 trending</span>
+                  <span className="lib-class-drawer-count">
+                    {resources.filter((resource) => TRENDING_2026_CLASS.keys.some((key) => resource.keys.includes(key))).length.toLocaleString()}
+                  </span>
+                </button>
+              </section>
             </nav>
           </aside>
         </>

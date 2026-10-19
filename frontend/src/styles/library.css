@@ -149,6 +149,9 @@
 .lib-class-card:hover .lib-class-name { color: #34d399; }
 .lib-class-card .lib-class-sub { color: #64748b; font-size: 10px; }
 .lib-class-card:hover .lib-class-sub { color: #94a3b8; }
+.lib-class-card-trending { border-color: rgba(16, 185, 129, .35); background: linear-gradient(145deg, #10231f, #0f172a 72%); }
+.lib-class-card-trending .lib-class-name { color: #6ee7b7; font-size: 1rem; text-align: center; }
+.lib-class-card-trending:hover .lib-class-name { color: #a7f3d0; }
 
 /* Loading hint on the shelf */
 .lib-shelf-status { margin: -8px 0 20px; color: #64748b; font-size: 13px; }
