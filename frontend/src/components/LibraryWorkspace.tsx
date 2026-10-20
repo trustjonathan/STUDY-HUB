@@ -130,18 +130,19 @@ interface PremiumCatalogResource {
   type?: string;
 }
 
-const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v2';
+const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v3';
 const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResource {
   if (!value || typeof value !== 'object') return false;
   const item = value as Record<string, unknown>;
+  const validClassKeys = Array.isArray(item.classKeys)
+    && item.classKeys.every((key) => typeof key === 'string' && /^(?:p[1-7]|s[1-6]|unsorted)$/.test(key));
   return typeof item.path === 'string'
     && item.path.split('/').every((part) => part !== '' && part !== '.' && part !== '..' && !part.includes('\\'))
     && typeof item.title === 'string'
     && typeof item.year === 'string'
-    && Array.isArray(item.classKeys)
-    && item.classKeys.every((key) => typeof key === 'string');
+    && validClassKeys;
 }
 
 async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
@@ -212,10 +213,10 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
 
 async function loadPremiumResources(): Promise<CatalogLoad> {
   const response = await fetchCachedCatalog(PREMIUM_CATALOG_URL);
-  if (!response.ok) throw new Error(`Premium resources catalog request failed (HTTP ${response.status}).`);
+  if (!response.ok) throw new Error(`Premium resource catalog request failed (HTTP ${response.status}).`);
   const payload: unknown = await response.json();
   if (!payload || typeof payload !== 'object' || !('resources' in payload) || !Array.isArray(payload.resources)) {
-    throw new Error('Premium resources catalog has an invalid format.');
+    throw new Error('Premium resource catalog has an invalid format.');
   }
 
   const resources = payload.resources
@@ -223,8 +224,7 @@ async function loadPremiumResources(): Promise<CatalogLoad> {
     .map((item) => {
       const resourcePath = item.path;
       const encodedPath = resourcePath.split('/').map(encodeURIComponent).join('/');
-      const keys = [...item.classKeys];
-      if (!keys.length) keys.push('unsorted');
+      const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
         id: `premium:${resourcePath}`,
@@ -1204,8 +1204,8 @@ function ClassDashboard(props: DashboardProps) {
                   })}
                 </section>
               ))}
-              <section className="lib-class-drawer-group" key="resource-archives">
-                <h3>Resource archives</h3>
+              <section className="lib-class-drawer-group" key="trending-2026">
+                <h3>Trending resources</h3>
                 <button
                   type="button"
                   className={`lib-class-drawer-item ${selected.label === TRENDING_2026_CLASS.label ? 'is-active' : ''}`}
@@ -1221,6 +1221,9 @@ function ClassDashboard(props: DashboardProps) {
                     {resources.filter((resource) => TRENDING_2026_CLASS.keys.some((key) => resource.keys.includes(key))).length.toLocaleString()}
                   </span>
                 </button>
+              </section>
+              <section className="lib-class-drawer-group" key="unsorted-resources">
+                <h3>Resource archives</h3>
                 <button
                   type="button"
                   className={`lib-class-drawer-item ${selected.label === UNSORTED_CLASS.label ? 'is-active' : ''}`}
