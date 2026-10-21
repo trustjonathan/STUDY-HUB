@@ -30,7 +30,7 @@
 .admin-resource-list-group h2 { display: flex; align-items: center; gap: 8px; margin: 0; color: #203244; font: 800 .98rem Manrope, sans-serif; }
 .admin-resource-list-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid #d8e0e6; border-radius: 10px; background: white; }
 .admin-resource-list-details { display: grid; min-width: 0; gap: 4px; }
-.admin-resource-list-details strong { color: #1b2938; font-size: .86rem; overflow-wrap: anywhere; }
+.admin-resource-list-details strong { color: #1b2938; font-size: .86rem; overflow-wrap: anywhere; text-transform: uppercase; }
 .admin-resource-list-details span, .admin-resource-list-details small { color: #637587; font-size: .72rem; overflow-wrap: anywhere; }
 .admin-resource-list-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .admin-resource-list-actions button, .admin-resource-move-form button { min-height: 34px; padding: 7px 10px; border: 0; border-radius: 7px; background: #126c50; color: white; cursor: pointer; font: 700 .72rem 'DM Sans', Arial, sans-serif; }

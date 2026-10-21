@@ -4,7 +4,7 @@
 .payment-checkout-back:hover { color: #75e2bd; }
 .payment-checkout-kicker { margin: 0 0 8px; color: #75e2bd; font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .payment-checkout-card h1 { margin: 0; color: #f8fafc; font: 800 clamp(1.7rem, 5vw, 2.25rem)/1.15 Manrope, sans-serif; }
-.payment-checkout-title { margin: 10px 0 20px; color: #b8c8d5; line-height: 1.5; overflow-wrap: anywhere; }
+.payment-checkout-title { margin: 10px 0 20px; color: #b8c8d5; line-height: 1.5; overflow-wrap: anywhere; text-transform: uppercase; }
 .payment-checkout-amount { display: flex; align-items: baseline; gap: 10px; padding: 16px; border: 1px solid #31594f; border-radius: 12px; background: #0b261f99; }
 .payment-checkout-amount span { color: #b9c9d2; font-size: .83rem; }
 .payment-checkout-amount strong { color: #80f0c1; font: 800 1.4rem Manrope, sans-serif; }
@@ -70,6 +70,7 @@
 .admin-payment-table th, .admin-payment-table td { padding: 13px 14px; border-bottom: 1px solid #e6ebef; vertical-align: top; }
 .admin-payment-table th { background: #f7f9fa; color: #506173; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
 .admin-payment-table td { color: #26384a; font-size: .83rem; }
+.admin-payment-table td:nth-child(2) { text-transform: uppercase; }
 .admin-payment-table td:first-child { min-width: 180px; }
 .admin-payment-table td:first-child a { display: block; margin-top: 4px; color: #526477; overflow-wrap: anywhere; }
 .admin-payment-table tr:last-child td { border-bottom: 0; }
@@ -85,7 +86,7 @@
 .account-payments-header > p:last-child { color: #58697a; line-height: 1.6; }
 .account-payment-list { display: grid; gap: 12px; }
 .account-payment-card { display: flex; align-items: start; justify-content: space-between; gap: 18px; padding: 18px; border: 1px solid #d8e0e6; border-radius: 12px; background: white; box-shadow: 0 8px 26px #172a3b0b; }
-.account-payment-card h2 { margin: 10px 0 8px; color: #1a2b3c; font: 800 1.05rem Manrope, sans-serif; overflow-wrap: anywhere; }
+.account-payment-card h2 { margin: 10px 0 8px; color: #1a2b3c; font: 800 1.05rem Manrope, sans-serif; overflow-wrap: anywhere; text-transform: uppercase; }
 .account-payment-card p { margin: 5px 0; color: #667789; font-size: .82rem; line-height: 1.5; }
 .account-payment-actions { width: min(100%, 220px); }
 .account-payment-actions .payment-primary-button { min-height: 42px; font-size: .82rem; }

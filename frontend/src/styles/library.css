@@ -156,7 +156,7 @@
 .lib-class-card-trending .lib-class-name { color: #6ee7b7; font-size: 1rem; text-align: center; }
 .lib-class-card-trending:hover .lib-class-name { color: #a7f3d0; }
 .lib-class-card-category { box-sizing: border-box; height: auto; min-height: 112px; min-width: 0; padding: 12px 10px; }
-.lib-class-card-category .lib-class-name { max-width: 100%; min-width: 0; font-size: clamp(.95rem, 1.2vw, 1.125rem); line-height: 1.15; overflow-wrap: anywhere; text-align: center; text-wrap: balance; }
+.lib-class-card-category .lib-class-name { max-width: 100%; min-width: 0; font-size: clamp(.95rem, 1.2vw, 1.125rem); line-height: 1.15; overflow-wrap: anywhere; text-align: center; text-transform: uppercase; text-wrap: balance; }
 .lib-class-card-category .lib-class-sub { max-width: 100%; text-align: center; }
 
 /* Loading hint on the shelf */
@@ -200,7 +200,7 @@
 .lib-resource-preview.preview-error,
 .lib-resource-preview.preview-unavailable { background: linear-gradient(145deg, #e8edf2, #f8fafc); }
 .lib-resource-preview.preview-error .lib-resource-preview-spinner { display: none; }
-.lib-resource-preview-title { display: block; max-width: 100%; margin-top: 6px; overflow: hidden; color: #0f172a; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.lib-resource-preview-title { display: block; max-width: 100%; margin-top: 6px; overflow: hidden; color: #0f172a; font-weight: 700; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 
 
 /* ---- Dashboard (class selected) ---- */
