@@ -907,12 +907,12 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
         {categories.length > 0 && (
           <section className="lib-shelf-group">
             <h2>Exam-board categories</h2>
-            <div className="lib-shelf-grid">
+            <div className="lib-shelf-grid lib-category-grid">
               {categories.map((category) => (
                 <button
                   key={category}
                   type="button"
-                  className="lib-class-card"
+                  className="lib-class-card lib-class-card-category"
                   onClick={() => onSelect({ label: category, keys: [], category })}
                 >
                   <span className="lib-class-name">{category}</span>

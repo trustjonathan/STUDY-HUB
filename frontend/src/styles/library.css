@@ -130,6 +130,9 @@
 .lib-shelf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (min-width: 640px) { .lib-shelf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 900px) { .lib-shelf-grid { grid-template-columns: repeat(9, minmax(0, 1fr)); } }
+.lib-shelf-grid.lib-category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) { .lib-shelf-grid.lib-category-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .lib-shelf-grid.lib-category-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 .lib-class-card {
   display: flex;
   flex-direction: column;
@@ -152,6 +155,9 @@
 .lib-class-card-trending { border-color: rgba(16, 185, 129, .35); background: linear-gradient(145deg, #10231f, #0f172a 72%); }
 .lib-class-card-trending .lib-class-name { color: #6ee7b7; font-size: 1rem; text-align: center; }
 .lib-class-card-trending:hover .lib-class-name { color: #a7f3d0; }
+.lib-class-card-category { box-sizing: border-box; height: auto; min-height: 112px; min-width: 0; padding: 12px 10px; }
+.lib-class-card-category .lib-class-name { max-width: 100%; min-width: 0; font-size: clamp(.95rem, 1.2vw, 1.125rem); line-height: 1.15; overflow-wrap: anywhere; text-align: center; text-wrap: balance; }
+.lib-class-card-category .lib-class-sub { max-width: 100%; text-align: center; }
 
 /* Loading hint on the shelf */
 .lib-shelf-status { margin: -8px 0 20px; color: #64748b; font-size: 13px; }
