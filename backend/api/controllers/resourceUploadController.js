@@ -13,6 +13,7 @@ const ALLOWED_RESOURCE_TYPES = new Set([
   'Past Papers', 'Marking Guides', 'Schemes of Work', 'Holiday Package',
   'Lesson Notes', 'Study Resources',
 ]);
+const RESERVED_CATEGORIES = new Set(['.git', '.github', 'node_modules', 'scripts', 'resource-catalog.json']);
 
 function sendServiceError(res, error, fallback) {
   console.error(fallback, error);
@@ -47,12 +48,32 @@ function parseClassKeys(value) {
   return [...new Set(parsed.length ? parsed : ['unsorted'])];
 }
 
+function validResourcePath(value) {
+  if (typeof value !== 'string' || value.length > 500) return false;
+  const parts = value.split('/');
+  return parts.length === 3
+    && parts.every((part) => part && part !== '.' && part !== '..' && !/[\\\u0000-\u001f\u007f]/.test(part));
+}
+
+function validYear(value) {
+  return typeof value === 'string' && /^(?:19\d{2}|20\d{2}|Undated)$/.test(value);
+}
+
 async function getCategories(req, res) {
   try {
     const categories = await githubResourceService.listCategories();
     return res.json({ categories });
   } catch (error) {
     return sendServiceError(res, error, 'Resource categories could not be loaded.');
+  }
+}
+
+async function getResources(req, res) {
+  try {
+    const resources = await githubResourceService.listResources();
+    return res.json(resources);
+  } catch (error) {
+    return sendServiceError(res, error, 'Archive resources could not be loaded.');
   }
 }
 
@@ -69,7 +90,9 @@ async function uploadResource(req, res) {
   const filename = cleanPathSegment(path.basename(file.originalname || ''), 180);
   const extension = path.extname(filename || '').toLowerCase();
 
-  if (!category) return res.status(400).json({ error: 'Enter a valid category name.' });
+  if (!category || RESERVED_CATEGORIES.has(category.toLowerCase())) {
+    return res.status(400).json({ error: 'Enter a valid category name.' });
+  }
   if (!year || !/^(?:19\d{2}|20\d{2}|Undated)$/.test(year)) {
     return res.status(400).json({ error: 'Choose a four-digit year or Undated.' });
   }
@@ -113,7 +136,61 @@ async function uploadResource(req, res) {
   }
 }
 
+async function archiveResource(req, res) {
+  const filePath = req.body && req.body.path;
+  if (!validResourcePath(filePath)) return res.status(400).json({ error: 'Choose a valid archive resource.' });
+  try {
+    const result = await githubResourceService.archiveResource(filePath);
+    return res.json({ success: true, message: 'Resource hidden from the public library and kept in the archive.', ...result });
+  } catch (error) {
+    return sendServiceError(res, error, 'The resource could not be archived.');
+  }
+}
+
+async function restoreResource(req, res) {
+  const filePath = req.body && req.body.path;
+  if (!validResourcePath(filePath)) return res.status(400).json({ error: 'Choose a valid archived resource.' });
+  try {
+    const result = await githubResourceService.restoreResource(filePath);
+    return res.json({ success: true, message: 'Resource restored to the public library.', ...result });
+  } catch (error) {
+    return sendServiceError(res, error, 'The resource could not be restored.');
+  }
+}
+
+async function moveResource(req, res) {
+  const filePath = req.body && req.body.path;
+  const category = cleanPathSegment(req.body && req.body.category, 100);
+  const year = cleanPathSegment(req.body && req.body.year, 7);
+  const rawFilename = req.body && req.body.filename;
+  const filename = rawFilename === undefined ? undefined : cleanPathSegment(rawFilename, 180);
+  const rawTitle = req.body && req.body.title;
+  const title = rawTitle === undefined ? undefined : typeof rawTitle === 'string' ? rawTitle.trim() : '';
+  if (!validResourcePath(filePath)) return res.status(400).json({ error: 'Choose a valid archive resource.' });
+  if (!category || RESERVED_CATEGORIES.has(category.toLowerCase())) {
+    return res.status(400).json({ error: 'Enter a valid destination category.' });
+  }
+  if (!validYear(year)) return res.status(400).json({ error: 'Choose a four-digit year or Undated.' });
+  if (rawFilename !== undefined && !filename) return res.status(400).json({ error: 'Enter a valid filename.' });
+  if (filename && !ALLOWED_EXTENSIONS.has(path.extname(filename).toLowerCase())) {
+    return res.status(400).json({ error: 'Choose a supported filename extension.' });
+  }
+  if (rawTitle !== undefined && (!title || title.length > 200)) {
+    return res.status(400).json({ error: 'Enter a library title of at most 200 characters.' });
+  }
+  try {
+    const result = await githubResourceService.moveResource({ filePath, category, year, filename, title });
+    return res.json({ success: true, message: 'Resource file and catalog entry updated.', ...result });
+  } catch (error) {
+    return sendServiceError(res, error, 'The resource could not be moved.');
+  }
+}
+
 module.exports = {
+  archiveResource,
   getCategories,
+  getResources,
+  moveResource,
+  restoreResource,
   uploadResource,
 };

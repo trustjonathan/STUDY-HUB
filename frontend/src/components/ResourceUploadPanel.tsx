@@ -11,6 +11,17 @@ interface UploadResult {
   resource?: { title?: string };
 }
 
+interface ManagedResource {
+  title: string;
+  filename: string;
+  path: string;
+  category: string;
+  year: string;
+  subject: string;
+  type: string;
+  archivedAt?: string;
+}
+
 const CLASS_OPTIONS = [
   { key: 'p1', label: 'P.1' }, { key: 'p2', label: 'P.2' }, { key: 'p3', label: 'P.3' },
   { key: 'p4', label: 'P.4' }, { key: 'p5', label: 'P.5' }, { key: 'p6', label: 'P.6' },
@@ -34,7 +45,17 @@ function getError(payload: unknown, fallback: string): string {
 export default function ResourceUploadPanel({ apiUrl }: { apiUrl: string }) {
   const [session, setSession] = useState<AuthSession<AdminUser> | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
+  const [resources, setResources] = useState<ManagedResource[]>([]);
+  const [archivedResources, setArchivedResources] = useState<ManagedResource[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [resourceCategoryFilter, setResourceCategoryFilter] = useState('all');
+  const [resourceSearch, setResourceSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<'upload' | 'manage'>('upload');
+  const [movingPath, setMovingPath] = useState('');
+  const [moveCategory, setMoveCategory] = useState('');
+  const [moveYear, setMoveYear] = useState('');
+  const [moveFilename, setMoveFilename] = useState('');
+  const [moveTitle, setMoveTitle] = useState('');
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -45,6 +66,8 @@ export default function ResourceUploadPanel({ apiUrl }: { apiUrl: string }) {
   const [type, setType] = useState('Past Papers');
   const [classKeys, setClassKeys] = useState<string[]>(['unsorted']);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingResources, setLoadingResources] = useState(false);
+  const [busyPath, setBusyPath] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -83,9 +106,39 @@ export default function ResourceUploadPanel({ apiUrl }: { apiUrl: string }) {
     }
   }, [apiBase, session?.token]);
 
+  const loadResources = useCallback(async () => {
+    if (!session?.token || !apiBase) return;
+    setLoadingResources(true);
+    setError('');
+    try {
+      const response = await fetch(`${apiBase}/api/resources/admin/archive/resources`, {
+        headers: { Authorization: ['Bearer', session.token].join(' ') },
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok) throw new Error(getError(payload, 'Archive resources could not be loaded.'));
+      if (
+        typeof payload !== 'object'
+        || payload === null
+        || !('resources' in payload)
+        || !Array.isArray(payload.resources)
+        || !('archivedResources' in payload)
+        || !Array.isArray(payload.archivedResources)
+      ) {
+        throw new Error('Archive resources response is invalid.');
+      }
+      setResources(payload.resources as ManagedResource[]);
+      setArchivedResources(payload.archivedResources as ManagedResource[]);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Archive resources could not be loaded.');
+    } finally {
+      setLoadingResources(false);
+    }
+  }, [apiBase, session?.token]);
+
   useEffect(() => {
     void loadCategories();
-  }, [loadCategories]);
+    void loadResources();
+  }, [loadCategories, loadResources]);
 
   function toggleClass(key: string) {
     setClassKeys((current) => {
@@ -142,11 +195,58 @@ export default function ResourceUploadPanel({ apiUrl }: { apiUrl: string }) {
       setCreatingCategory(false);
       setNewCategory('');
       if (createdCategory) setSelectedCategory(createdCategory);
-      await loadCategories();
+      await Promise.all([loadCategories(), loadResources()]);
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'The file could not be uploaded.');
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function updateResource(action: 'archive' | 'restore' | 'move', resource: ManagedResource) {
+    if (!session?.token || !apiBase) {
+      setError('Sign in with an administrator account and confirm the API is configured.');
+      return;
+    }
+    if (action === 'move' && (!moveCategory || !moveYear)) {
+      setError('Choose a destination category and year.');
+      return;
+    }
+    if (
+      action === 'move'
+      && !window.confirm('Moving changes this resource’s public URL. Previously shared links or existing paid-download links to the old URL may stop working. Continue?')
+    ) return;
+
+    const endpoint = action === 'move' ? 'move' : action;
+    const body = action === 'move'
+      ? { path: resource.path, category: moveCategory, year: moveYear, filename: moveFilename, title: moveTitle }
+      : { path: resource.path };
+    setBusyPath(resource.path);
+    setError('');
+    setMessage('');
+    try {
+      const response = await fetch(`${apiBase}/api/resources/admin/archive/resources/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          Authorization: ['Bearer', session.token].join(' '),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok) throw new Error(getError(payload, `The resource could not be ${action}d.`));
+      const result = payload as UploadResult;
+      setMessage(typeof result.error === 'string' ? result.error : (
+        action === 'archive' ? 'Resource hidden from the library. The file is retained and can be restored.'
+          : action === 'restore' ? 'Resource restored to the public library.'
+            : 'Resource moved or renamed successfully.'
+      ));
+      setMovingPath('');
+      await Promise.all([loadCategories(), loadResources()]);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : `The resource could not be ${action}d.`);
+    } finally {
+      setBusyPath('');
     }
   }
 
@@ -162,16 +262,21 @@ export default function ResourceUploadPanel({ apiUrl }: { apiUrl: string }) {
       <header className="admin-resource-header">
         <div>
           <p className="admin-payments-kicker">Study Hub admin</p>
-          <h1>Upload a library resource</h1>
-          <p>Choose an existing archive folder or create a category. The first upload creates new folders, updates the public archive catalog, and leaves Supabase resources untouched.</p>
+          <h1>{activeTab === 'upload' ? 'Archive resource management' : 'Manage archive resources'}</h1>
+          <p>Upload files, browse all category folders, hide resources without deleting them, restore archived files, or move a file to another category.</p>
         </div>
-        <button type="button" onClick={() => void loadCategories()} disabled={loadingCategories || uploading}>
-          {loadingCategories ? 'Loading folders…' : 'Refresh folders'}
+        <button type="button" onClick={() => void Promise.all([loadCategories(), loadResources()])} disabled={loadingCategories || loadingResources || uploading || Boolean(busyPath)}>
+          {loadingCategories || loadingResources ? 'Refreshing…' : 'Refresh archive'}
         </button>
       </header>
       {message && <p className="admin-payments-message" role="status">{message}</p>}
       {error && <p className="admin-payments-error" role="alert">{error}</p>}
       {!apiBase && <p className="admin-payments-error" role="alert">The Study Hub API is not configured.</p>}
+      <div className="admin-resource-tabs" role="group" aria-label="Resource archive actions">
+        <button type="button" aria-pressed={activeTab === 'upload'} className={activeTab === 'upload' ? 'is-active' : ''} onClick={() => setActiveTab('upload')}>Upload resource</button>
+        <button type="button" aria-pressed={activeTab === 'manage'} className={activeTab === 'manage' ? 'is-active' : ''} onClick={() => { setActiveTab('manage'); void loadResources(); }}>Browse and manage files <span>{resources.length + archivedResources.length}</span></button>
+      </div>
+      {activeTab === 'upload' ? (
       <form className="admin-resource-form" onSubmit={submitUpload}>
         <label>
           Category / repository folder
@@ -254,6 +359,108 @@ export default function ResourceUploadPanel({ apiUrl }: { apiUrl: string }) {
           {uploading ? 'Uploading and updating the library…' : 'Upload resource'}
         </button>
       </form>
+      ) : (
+        <section className="admin-resource-manager" aria-label="Archive resource list">
+          <div className="admin-resource-manager-filters">
+            <label>
+              Search by file name or title
+              <input value={resourceSearch} onChange={(event) => setResourceSearch(event.target.value)} placeholder="Search resources…" />
+            </label>
+            <label>
+              Category
+              <select value={resourceCategoryFilter} onChange={(event) => setResourceCategoryFilter(event.target.value)}>
+                <option value="all">All categories</option>
+                {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+              </select>
+            </label>
+          </div>
+          {loadingResources
+            ? <p className="admin-resource-list-state" role="status">Loading archive catalog…</p>
+            : (
+              <>
+                {[
+                  { title: 'In the public library', items: resources, archived: false },
+                  { title: 'Archived (hidden)', items: archivedResources, archived: true },
+                ].map((group) => {
+                  const query = resourceSearch.trim().toLocaleLowerCase();
+                  const filtered = group.items.filter((resource) =>
+                    (resourceCategoryFilter === 'all' || resource.category === resourceCategoryFilter)
+                    && (!query || `${resource.title} ${resource.filename} ${resource.subject} ${resource.category}`.toLocaleLowerCase().includes(query)));
+                  return (
+                    <section key={group.title} className="admin-resource-list-group">
+                      <h2>{group.title} <span>{filtered.length.toLocaleString()}</span></h2>
+                      {filtered.length === 0
+                        ? <p className="admin-resource-list-state">No files match this filter.</p>
+                        : filtered.map((resource) => (
+                          <article key={resource.path} className="admin-resource-list-item">
+                            <div className="admin-resource-list-details">
+                              <strong>{resource.title}</strong>
+                              <span>{resource.category} / {resource.year} / {resource.filename}</span>
+                              <small>{resource.subject} · {resource.type}{resource.archivedAt ? ` · Archived ${new Date(resource.archivedAt).toLocaleDateString()}` : ''}</small>
+                            </div>
+                            <div className="admin-resource-list-actions">
+                              {group.archived ? (
+                                <button type="button" disabled={busyPath === resource.path} onClick={() => void updateResource('restore', resource)}>
+                                  {busyPath === resource.path ? 'Restoring…' : 'Restore'}
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="is-secondary"
+                                    onClick={() => {
+                                      setMovingPath(movingPath === resource.path ? '' : resource.path);
+                                      setMoveCategory(resource.category);
+                                      setMoveYear(resource.year);
+                                      setMoveFilename(resource.filename || resource.path.split('/').pop() || '');
+                                      setMoveTitle(resource.title);
+                                      setError('');
+                                    }}
+                                  >
+                                    Move / Rename
+                                  </button>
+                                  <button type="button" className="is-archive" disabled={busyPath === resource.path} onClick={() => void updateResource('archive', resource)}>
+                                    {busyPath === resource.path ? 'Archiving…' : 'Hide'}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                            {movingPath === resource.path && !group.archived && (
+                              <div className="admin-resource-move-form">
+                                <label>
+                                  Destination category
+                                  <select value={moveCategory} onChange={(event) => setMoveCategory(event.target.value)}>
+                                    {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+                                  </select>
+                                </label>
+                                <label>
+                                  Year folder
+                                  <input value={moveYear} onChange={(event) => setMoveYear(event.target.value)} maxLength={7} />
+                                </label>
+                                <label>
+                                  File name
+                                  <input value={moveFilename} onChange={(event) => setMoveFilename(event.target.value)} maxLength={180} required />
+                                </label>
+                                <label>
+                                  Library title
+                                  <input value={moveTitle} onChange={(event) => setMoveTitle(event.target.value)} maxLength={200} required />
+                                </label>
+                                <button type="button" disabled={busyPath === resource.path} onClick={() => void updateResource('move', resource)}>
+                                  {busyPath === resource.path ? 'Saving…' : 'Confirm changes'}
+                                </button>
+                                <button type="button" className="is-secondary" onClick={() => setMovingPath('')}>Cancel</button>
+                              </div>
+                            )}
+                          </article>
+                        ))}
+                    </section>
+                  );
+                })}
+                <p className="admin-resource-retention-note">Hide keeps files in the repository and removes them from the public library. This board does not permanently delete archive files. Moves update the file path and catalog together; the public URL changes, so old shared or paid-download links may stop working.</p>
+              </>
+            )}
+        </section>
+      )}
     </main>
   );
 }

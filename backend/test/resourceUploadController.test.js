@@ -4,6 +4,10 @@ const githubResourceService = require('../services/githubResourceService');
 const controller = require('../api/controllers/resourceUploadController');
 
 const originalCommitResource = githubResourceService.commitResource;
+const originalListResources = githubResourceService.listResources;
+const originalArchiveResource = githubResourceService.archiveResource;
+const originalRestoreResource = githubResourceService.restoreResource;
+const originalMoveResource = githubResourceService.moveResource;
 
 function responseMock() {
   return {
@@ -41,6 +45,10 @@ function uploadRequest(body = {}, fileOverrides = {}) {
 
 afterEach(() => {
   githubResourceService.commitResource = originalCommitResource;
+  githubResourceService.listResources = originalListResources;
+  githubResourceService.archiveResource = originalArchiveResource;
+  githubResourceService.restoreResource = originalRestoreResource;
+  githubResourceService.moveResource = originalMoveResource;
 });
 
 test('validates archive metadata and stores canonical class keys', async () => {
@@ -83,4 +91,72 @@ test('maps an empty class selection to the Unsorted library shelf', async () => 
   await controller.uploadResource(uploadRequest({ classKeys: '[]' }), response);
 
   assert.equal(response.statusCode, 201);
+});
+
+test('returns active and archived resources for the protected archive manager', async () => {
+  githubResourceService.listResources = async () => ({
+    resources: [{ path: 'ACEITEKA/2026/paper.pdf' }],
+    archivedResources: [{ path: 'JJEB/2025/old.pdf', archivedAt: '2026-10-20T00:00:00.000Z' }],
+  });
+  const response = responseMock();
+
+  await controller.getResources({}, response);
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.resources[0].path, 'ACEITEKA/2026/paper.pdf');
+  assert.equal(response.body.archivedResources[0].path, 'JJEB/2025/old.pdf');
+});
+
+test('validates resource paths and move destinations before invoking archive operations', async () => {
+  let moved = false;
+  githubResourceService.moveResource = async () => { moved = true; };
+  const invalidPath = responseMock();
+  await controller.archiveResource({ body: { path: '../resource-catalog.json' } }, invalidPath);
+  assert.equal(invalidPath.statusCode, 400);
+
+  const invalidYear = responseMock();
+  await controller.moveResource({
+    body: { path: 'ACEITEKA/2026/paper.pdf', category: 'JJEB', year: '../' },
+  }, invalidYear);
+  assert.equal(invalidYear.statusCode, 400);
+  const invalidFilename = responseMock();
+  await controller.moveResource({
+    body: { path: 'ACEITEKA/2026/paper.pdf', category: 'JJEB', year: '2025', filename: '../paper.pdf' },
+  }, invalidFilename);
+  assert.equal(invalidFilename.statusCode, 400);
+  assert.equal(moved, false);
+});
+
+test('archives, restores, and moves valid archive resource paths', async () => {
+  githubResourceService.archiveResource = async (path) => ({ resource: { path } });
+  githubResourceService.restoreResource = async (path) => ({ resource: { path } });
+  githubResourceService.moveResource = async (input) => ({ resource: input });
+
+  const archived = responseMock();
+  await controller.archiveResource({ body: { path: 'ACEITEKA/2026/paper.pdf' } }, archived);
+  assert.equal(archived.statusCode, 200);
+  assert.equal(archived.body.resource.path, 'ACEITEKA/2026/paper.pdf');
+
+  const restored = responseMock();
+  await controller.restoreResource({ body: { path: 'ACEITEKA/2026/paper.pdf' } }, restored);
+  assert.equal(restored.statusCode, 200);
+
+  const moved = responseMock();
+  await controller.moveResource({
+    body: {
+      path: 'ACEITEKA/2026/paper.pdf',
+      category: 'JJEB',
+      year: '2025',
+      filename: 'new-name.pdf',
+      title: 'New title',
+    },
+  }, moved);
+  assert.equal(moved.statusCode, 200);
+  assert.deepEqual(moved.body.resource, {
+    filePath: 'ACEITEKA/2026/paper.pdf',
+    category: 'JJEB',
+    year: '2025',
+    filename: 'new-name.pdf',
+    title: 'New title',
+  });
 });

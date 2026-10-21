@@ -18,6 +18,27 @@
 .admin-resource-header > button, .admin-resource-secondary { min-height: 40px; padding: 9px 14px; border: 1px solid #cbd6dc; border-radius: 8px; background: #fff; color: #1e5947; cursor: pointer; font: 700 .8rem 'DM Sans', Arial, sans-serif; white-space: nowrap; }
 .admin-resource-header > button:disabled { opacity: .6; cursor: wait; }
 .admin-resource-form { display: grid; max-width: 1000px; gap: 18px; margin: 0 auto; padding: clamp(18px, 3vw, 28px); border: 1px solid #d8e0e6; border-radius: 14px; background: #fff; box-shadow: 0 8px 26px #172a3b0b; }
+.admin-resource-tabs { display: flex; max-width: 1000px; gap: 8px; margin: 0 auto 16px; border-bottom: 1px solid #d8e0e6; }
+.admin-resource-tabs button { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; padding: 9px 13px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #5b6c7b; cursor: pointer; font: 700 .8rem 'DM Sans', Arial, sans-serif; }
+.admin-resource-tabs button.is-active { border-bottom-color: #16805e; color: #126c50; }
+.admin-resource-tabs button span, .admin-resource-list-group h2 span { padding: 2px 7px; border-radius: 999px; background: #e9f3ee; color: #176344; font-size: .68rem; }
+.admin-resource-manager { display: grid; max-width: 1000px; gap: 18px; margin: 0 auto; }
+.admin-resource-manager-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(200px, 1fr); gap: 14px; padding: 16px; border: 1px solid #d8e0e6; border-radius: 12px; background: white; }
+.admin-resource-manager-filters label, .admin-resource-move-form label { display: grid; gap: 6px; color: #33485a; font-size: .75rem; font-weight: 800; }
+.admin-resource-manager-filters input, .admin-resource-manager-filters select, .admin-resource-move-form input, .admin-resource-move-form select { min-height: 40px; padding: 9px 10px; border: 1px solid #cbd6df; border-radius: 7px; background: white; color: #1b2938; font: 500 .82rem 'DM Sans', Arial, sans-serif; }
+.admin-resource-list-group { display: grid; gap: 10px; }
+.admin-resource-list-group h2 { display: flex; align-items: center; gap: 8px; margin: 0; color: #203244; font: 800 .98rem Manrope, sans-serif; }
+.admin-resource-list-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid #d8e0e6; border-radius: 10px; background: white; }
+.admin-resource-list-details { display: grid; min-width: 0; gap: 4px; }
+.admin-resource-list-details strong { color: #1b2938; font-size: .86rem; overflow-wrap: anywhere; }
+.admin-resource-list-details span, .admin-resource-list-details small { color: #637587; font-size: .72rem; overflow-wrap: anywhere; }
+.admin-resource-list-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.admin-resource-list-actions button, .admin-resource-move-form button { min-height: 34px; padding: 7px 10px; border: 0; border-radius: 7px; background: #126c50; color: white; cursor: pointer; font: 700 .72rem 'DM Sans', Arial, sans-serif; }
+.admin-resource-list-actions button:disabled, .admin-resource-move-form button:disabled { opacity: .6; cursor: wait; }
+.admin-resource-list-actions button.is-secondary, .admin-resource-move-form button.is-secondary { border: 1px solid #cbd6df; background: #fff; color: #315548; }
+.admin-resource-list-actions button.is-archive { background: #9b5a24; }
+.admin-resource-move-form { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) minmax(130px, .5fr) auto auto; gap: 10px; align-items: end; padding-top: 12px; border-top: 1px solid #e6ebef; }
+.admin-resource-retention-note, .admin-resource-list-state { margin: 0; padding: 12px; border-radius: 8px; background: #eef3f6; color: #536577; font-size: .76rem; line-height: 1.5; }
 .admin-resource-form > label, .admin-resource-fields label { display: grid; gap: 7px; color: #33485a; font-size: .78rem; font-weight: 800; }
 .admin-resource-form input:not([type='checkbox']), .admin-resource-form select { width: 100%; min-height: 42px; padding: 10px 11px; border: 1px solid #cbd6df; border-radius: 8px; background: #fff; color: #1b2938; font: 500 .84rem 'DM Sans', Arial, sans-serif; }
 .admin-resource-form input:focus, .admin-resource-form select:focus { outline: 2px solid #58dba8; outline-offset: 1px; }
@@ -41,6 +62,8 @@
   .admin-workspace-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; border: 0; background: #08132199; }
   .admin-resource-header { display: grid; }
   .admin-resource-fields { grid-template-columns: 1fr; }
+  .admin-resource-manager-filters, .admin-resource-move-form { grid-template-columns: 1fr; }
+  .admin-resource-list-item { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .admin-workspace-sidebar { transition: none; }

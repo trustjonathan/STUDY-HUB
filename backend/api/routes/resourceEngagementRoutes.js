@@ -52,6 +52,7 @@ router.put('/bookmark', authMiddleware.verifyToken, controller.saveBookmark);
 router.delete('/bookmark', authMiddleware.verifyToken, controller.removeBookmark);
 router.post('/share', limitShareRequests, controller.saveShare);
 router.get('/admin/archive/categories', authMiddleware.verifyToken, authMiddleware.isAdmin, uploadController.getCategories);
+router.get('/admin/archive/resources', authMiddleware.verifyToken, authMiddleware.isAdmin, uploadController.getResources);
 router.post(
   '/admin/archive/upload',
   authMiddleware.verifyToken,
@@ -68,5 +69,8 @@ router.post(
   }),
   uploadController.uploadResource,
 );
+router.post('/admin/archive/resources/archive', authMiddleware.verifyToken, authMiddleware.isAdmin, uploadController.archiveResource);
+router.post('/admin/archive/resources/restore', authMiddleware.verifyToken, authMiddleware.isAdmin, uploadController.restoreResource);
+router.post('/admin/archive/resources/move', authMiddleware.verifyToken, authMiddleware.isAdmin, uploadController.moveResource);
 
 module.exports = router;
