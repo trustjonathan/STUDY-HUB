@@ -1703,12 +1703,15 @@ import * as tus from 'tus-js-client';
       const storageOrigin = new URL(storagePrefix).origin;
       const isPublicResource = fileUrl.href.startsWith(storagePrefix);
       const isFreshTeacherResource = fileUrl.protocol === 'https:' && freshTeacherOrigins.has(fileUrl.origin);
+      const isPremiumArchiveResource = fileUrl.protocol === 'https:' &&
+        fileUrl.origin === 'https://raw.githubusercontent.com' &&
+        fileUrl.pathname.startsWith('/trustjonathan/STUDT-HUB-RESOURCES-2026/main/');
       const isPrivateReviewResource = reviewMode &&
         fileUrl.protocol === 'https:' &&
         fileUrl.origin === storageOrigin &&
         /^\/storage\/v1\/object\/sign\/study-hub-contributions\/contribution\//i.test(fileUrl.pathname) &&
         Boolean(fileUrl.searchParams.get('token'));
-      if (!isPublicResource && !isFreshTeacherResource && !isPrivateReviewResource) {
+      if (!isPublicResource && !isFreshTeacherResource && !isPremiumArchiveResource && !isPrivateReviewResource) {
         showError('This resource is not hosted in a supported Study Hub library. Return to the library and try again.');
         return;
       }
