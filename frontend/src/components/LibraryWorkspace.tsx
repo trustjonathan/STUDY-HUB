@@ -23,6 +23,13 @@ interface Resource {
   title: string;
   url: string;
   keys: string[];
+  category?: string;
+}
+
+interface LibrarySelection {
+  label: string;
+  keys: string[];
+  category?: string;
 }
 
 interface ResourceStats {
@@ -106,6 +113,16 @@ function titleCase(value: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
+function premiumResourceCategories(resources: Resource[]): string[] {
+  return Array.from(new Set(resources
+    .filter((resource): resource is Resource & { category: string } =>
+      resource.source === 'premium-resources'
+      && typeof resource.category === 'string'
+      && resource.category.length > 0)
+    .map((resource) => resource.category)))
+    .sort((left, right) => left.localeCompare(right));
+}
+
 // Normalise Supabase category/resource_type into the shared type vocabulary.
 function supaType(category: string, resourceType: string): string {
   if (category === 'papers') return 'Past Papers';
@@ -152,12 +169,14 @@ interface PremiumCatalogResource {
   title: string;
   year: string;
   classKeys: string[];
+  category?: string;
   subject?: string;
   type?: string;
 }
 
-const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v4';
+const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v5';
 const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
+const PREMIUM_CATALOG_CACHE_TTL = 60 * 1000;
 const LIBRARY_CLASS_KEY_PATTERN = /^(?:baby|top|middle|p[1-7]|s[1-6]|unsorted)$/;
 
 function isResourceRepositoryCatalogItem(value: unknown): value is ResourceRepositoryCatalogItem {
@@ -207,7 +226,7 @@ function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResour
     && validClassKeys;
 }
 
-async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
+async function fetchCachedCatalog(catalogUrl: string, cacheTtl = LIBRARY_CATALOG_CACHE_TTL): Promise<Response> {
   let cache: Cache | undefined;
   let staleResponse: Response | undefined;
   if ('caches' in window) {
@@ -215,7 +234,7 @@ async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
       cache = await window.caches.open(LIBRARY_CATALOG_CACHE);
       const cached = await cache.match(catalogUrl);
       const cachedAt = Number(cached?.headers.get('x-study-hub-cached-at'));
-      if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt < LIBRARY_CATALOG_CACHE_TTL) {
+      if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt < cacheTtl) {
         return cached;
       }
       staleResponse = cached;
@@ -296,7 +315,7 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
 }
 
 async function loadPremiumResources(): Promise<CatalogLoad> {
-  const response = await fetchCachedCatalog(PREMIUM_CATALOG_URL);
+  const response = await fetchCachedCatalog(PREMIUM_CATALOG_URL, PREMIUM_CATALOG_CACHE_TTL);
   if (!response.ok) throw new Error(`Premium resource catalog request failed (HTTP ${response.status}).`);
   const payload: unknown = await response.json();
   if (!payload || typeof payload !== 'object' || !('resources' in payload) || !Array.isArray(payload.resources)) {
@@ -318,6 +337,7 @@ async function loadPremiumResources(): Promise<CatalogLoad> {
         title: item.title,
         url: `${PREMIUM_RESOURCE_BASE_URL}/${encodedPath}`,
         keys,
+        category: typeof item.category === 'string' ? item.category : '',
       };
     });
   return { resources };
@@ -370,7 +390,7 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
 }
 
 export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUrl, embedded = false }: Props) {
-  const [selected, setSelected] = useState<{ label: string; keys: string[] } | null>(null);
+  const [selected, setSelected] = useState<LibrarySelection | null>(null);
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -510,6 +530,11 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       }
       if (!active) return;
       const resources = [...merged.values()];
+      const requestedCategory = new URLSearchParams(window.location.search).get('category');
+      const matchingCategory = requestedCategory
+        ? resources.find((resource) => resource.category === requestedCategory)?.category
+        : undefined;
+      if (matchingCategory) setSelected({ label: matchingCategory, keys: [], category: matchingCategory });
       setLoading(false);
       setLoadingMessage('');
       if (!resources.length) setError('No resources could be loaded. Please try again shortly.');
@@ -653,7 +678,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   function libraryStateUrl(): string {
     const url = new URL(`${base}library.html`, window.location.origin);
     if (selected) {
-      url.searchParams.set('class', selected.label);
+      if (selected.category) url.searchParams.set('category', selected.category);
+      else url.searchParams.set('class', selected.label);
       if (subjectFilter !== 'all') url.searchParams.set('subject', subjectFilter);
       if (typeFilter !== 'all') url.searchParams.set('type', typeFilter);
       if (search.trim()) url.searchParams.set('q', search.trim());
@@ -806,9 +832,11 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
 }
 
 
-function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, error, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; loadingMessage: string; error: string; onSelect: (sel: { label: string; keys: string[] }) => void; base: string }) {
+function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, error, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; loadingMessage: string; error: string; onSelect: (sel: LibrarySelection) => void; base: string }) {
   const countFor = (keys: string[]) => resources.filter((r) => keys.some((k) => r.keys.includes(k))).length;
   const classCount = libraryClassGroups.reduce((total, section) => total + section.items.length, 0);
+  const categories = premiumResourceCategories(resources);
+  const countForCategory = (category: string) => resources.filter((resource) => resource.category === category).length;
 
   return (
     <div className="lib-shelf">
@@ -876,6 +904,24 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
             </button>
           </div>
         </section>
+        {categories.length > 0 && (
+          <section className="lib-shelf-group">
+            <h2>Exam-board categories</h2>
+            <div className="lib-shelf-grid">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className="lib-class-card"
+                  onClick={() => onSelect({ label: category, keys: [], category })}
+                >
+                  <span className="lib-class-name">{category}</span>
+                  <span className="lib-class-sub">{countForCategory(category)} resources</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
@@ -883,7 +929,7 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
 
 
 interface DashboardProps {
-  selected: { label: string; keys: string[] };
+  selected: LibrarySelection;
   embedded: boolean;
   resources: Resource[];
   loading: boolean;
@@ -913,7 +959,7 @@ interface DashboardProps {
   onSearch: (v: string) => void;
   onToggleNavigation: () => void;
   onToggleFilters: () => void;
-  onSelectClass: (selection: { label: string; keys: string[] }) => void;
+  onSelectClass: (selection: LibrarySelection) => void;
   readerHref: (row: Resource) => string;
   checkoutHref: (row: Resource) => string;
   base: string;
@@ -1181,9 +1227,13 @@ function ClassDashboard(props: DashboardProps) {
   useEffect(() => () => cancelHoverClose(), []);
 
   const classResources = useMemo(
-    () => resources.filter((r) => selected.keys.some((k) => r.keys.includes(k))),
-    [resources, selected.keys]
+    () => selected.category
+      ? resources.filter((resource) => resource.category === selected.category)
+      : resources.filter((resource) => selected.keys.some((key) => resource.keys.includes(key))),
+    [resources, selected.category, selected.keys]
   );
+
+  const archiveCategories = useMemo(() => premiumResourceCategories(resources), [resources]);
 
   const types = useMemo(
     () => Array.from(new Set(classResources.map((r) => r.type))).sort(),
@@ -1271,7 +1321,7 @@ function ClassDashboard(props: DashboardProps) {
           <aside
             id="lib-class-drawer"
             className="lib-class-drawer"
-            aria-label="Browse all classes"
+            aria-label="Browse classes and resource categories"
             onPointerEnter={(event) => {
               if (event.pointerType !== 'mouse') return;
               cancelHoverClose();
@@ -1284,7 +1334,7 @@ function ClassDashboard(props: DashboardProps) {
             <div className="lib-class-drawer-head">
               <div>
                 <span className="lib-side-kicker">Study Hub Library</span>
-                <h2>Browse classes</h2>
+                <h2>Browse library</h2>
               </div>
               <button type="button" className="lib-class-drawer-close" aria-label="Close class navigation" onClick={() => { setClassesOpen(false); setClassesHovered(false); }}>
                 <LibraryIcon name="close" />
@@ -1316,6 +1366,31 @@ function ClassDashboard(props: DashboardProps) {
                   })}
                 </section>
               ))}
+              {archiveCategories.length > 0 && (
+                <section className="lib-class-drawer-group" key="archive-categories">
+                  <h3>Exam-board categories</h3>
+                  {archiveCategories.map((category) => {
+                    const count = resources.filter((resource) => resource.category === category).length;
+                    const active = selected.category === category;
+                    return (
+                      <button
+                        type="button"
+                        key={category}
+                        className={`lib-class-drawer-item ${active ? 'is-active' : ''}`}
+                        aria-current={active ? 'page' : undefined}
+                        onClick={() => {
+                          props.onSelectClass({ label: category, keys: [], category });
+                          setClassesOpen(false);
+                          setClassesHovered(false);
+                        }}
+                      >
+                        <span>{category}</span>
+                        <span className="lib-class-drawer-count">{count.toLocaleString()}</span>
+                      </button>
+                    );
+                  })}
+                </section>
+              )}
               <section className="lib-class-drawer-group" key="trending-2026">
                 <h3>Trending resources</h3>
                 <button

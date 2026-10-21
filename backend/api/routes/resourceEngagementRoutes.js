@@ -1,7 +1,14 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
 const authMiddleware = require('../../middleware/authMiddleware');
 const controller = require('../controllers/resourceEngagementController');
+const uploadController = require('../controllers/resourceUploadController');
+
+const resourceUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024, files: 1, fields: 8, fieldSize: 4096 },
+});
 
 const SHARE_WINDOW_MS = 60_000;
 const MAX_SHARES_PER_WINDOW = 30;
@@ -44,5 +51,22 @@ router.delete('/vote', authMiddleware.verifyToken, controller.removeVote);
 router.put('/bookmark', authMiddleware.verifyToken, controller.saveBookmark);
 router.delete('/bookmark', authMiddleware.verifyToken, controller.removeBookmark);
 router.post('/share', limitShareRequests, controller.saveShare);
+router.get('/admin/archive/categories', authMiddleware.verifyToken, authMiddleware.isAdmin, uploadController.getCategories);
+router.post(
+  '/admin/archive/upload',
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  (req, res, next) => resourceUpload.single('file')(req, res, (error) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Files must be 25 MB or smaller.' });
+    }
+    if (error instanceof multer.MulterError) {
+      return res.status(400).json({ error: 'The upload form is invalid or contains too many fields.' });
+    }
+    return next(error);
+  }),
+  uploadController.uploadResource,
+);
 
 module.exports = router;
