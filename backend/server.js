@@ -6,6 +6,7 @@ const morgan = require("morgan")
 const { google } = require("googleapis")
 
 const app = express()
+const performanceMonitoringService = require("./services/performanceMonitoringService")
 
 // Middleware
 const allowedOrigins = (process.env.STUDY_HUB_ALLOWED_ORIGINS || '')
@@ -19,6 +20,7 @@ app.use(cors(allowedOrigins.length ? {
       return callback(new Error('Origin is not allowed by Study Hub CORS policy.'))
    },
 } : {}))
+app.use(performanceMonitoringService.recordApiRequest)
 app.use("/api/ai-study-companion", express.json({ limit: "1mb" }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -30,6 +32,7 @@ app.get("/health", (req, res) => {
 
 // Routes
 const identityRoutes = require("./api/routes/identityRoutes")
+const adminPerformanceRoutes = require("./api/routes/adminPerformanceRoutes")
 const resourceEngagementRoutes = require("./api/routes/resourceEngagementRoutes")
 const documentPaymentRoutes = require("./api/routes/documentPaymentRoutes")
 const aiTutorRoutes = require("./api/routes/aiRoutes.js")
@@ -53,6 +56,7 @@ catch (err) { console.warn("timetableRoutes not found yet") }
 app.use("/api/auth", identityRoutes)
 app.use("/api/resources", resourceEngagementRoutes)
 app.use("/api/document-payments", documentPaymentRoutes)
+app.use("/api/admin/performance", adminPerformanceRoutes)
 app.use("/api/bio-gpt", aiTutorRoutes)
 app.use("/api/ai-study-companion", aiStudyCompanionRoutes)
 app.use("/api/lesson-guide", lessonGuideRoutes)

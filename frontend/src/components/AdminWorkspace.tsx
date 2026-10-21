@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import AdminPerformanceDashboard from './AdminPerformanceDashboard';
 import AdminPaymentDashboard from './AdminPaymentDashboard';
 import ResourceUploadPanel from './ResourceUploadPanel';
 
-type AdminSection = 'payments' | 'resources';
+type AdminSection = 'payments' | 'resources' | 'performance';
 
 export default function AdminWorkspace({ apiUrl }: { apiUrl: string }) {
   const [section, setSection] = useState<AdminSection>('payments');
@@ -49,6 +50,14 @@ export default function AdminWorkspace({ apiUrl }: { apiUrl: string }) {
           >
             <span aria-hidden="true">↥</span> Resource uploads
           </button>
+          <button
+            type="button"
+            className={section === 'performance' ? 'is-active' : ''}
+            aria-current={section === 'performance' ? 'page' : undefined}
+            onClick={() => selectSection('performance')}
+          >
+            <span aria-hidden="true">▥</span> Performance &amp; AI
+          </button>
         </nav>
       </aside>
       <div className="admin-workspace-content">
@@ -64,7 +73,9 @@ export default function AdminWorkspace({ apiUrl }: { apiUrl: string }) {
         <div className="admin-workspace-panel">
           {section === 'payments'
             ? <AdminPaymentDashboard apiUrl={apiUrl} />
-            : <ResourceUploadPanel apiUrl={apiUrl} />}
+            : section === 'resources'
+              ? <ResourceUploadPanel apiUrl={apiUrl} />
+              : <AdminPerformanceDashboard apiUrl={apiUrl} />}
         </div>
       </div>
     </div>
