@@ -40,7 +40,7 @@ const subjects = [
   <Fragment slot="head">
     <meta name="study-hub-supabase-url" content={supabaseUrl}>
     <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
-    <meta name="study-hub-fresh-teacher-catalog" content={`${home}/fresh-teacher-catalog.json`}>
+    <meta name="study-hub-resource-repository-catalog" content={`${home}/study-hub-resources-1-catalog.json`}>
   </Fragment>
   <main class="library-guide">
     <section class="guide-intro" id="guide-start" aria-labelledby="guide-title">
@@ -247,7 +247,7 @@ const subjects = [
   const refreshButton = document.querySelector<HTMLButtonElement>('[data-resource-count-refresh]');
   const supabaseUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-url"]')?.content.replace(/\/+$/, '');
   const anonKey = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-anon-key"]')?.content;
-  const freshTeacherCatalogUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-fresh-teacher-catalog"]')?.content;
+  const resourceRepositoryCatalogUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-resource-repository-catalog"]')?.content;
   const subjectTemplate = document.querySelector<HTMLTemplateElement>('template[data-subject-rows]');
   const pageSize = 1000;
   let isLoading = false;
@@ -291,12 +291,12 @@ const subjects = [
     counts.set(label, subjectCount);
   }
 
-  async function fetchFreshTeacherCounts(subjectKeys: Map<string, string>) {
-    if (!freshTeacherCatalogUrl) throw new Error('Additional subject catalog URL is not configured.');
-    const response = await fetch(freshTeacherCatalogUrl);
-    if (!response.ok) throw new Error(`Additional subject catalog returned HTTP ${response.status}.`);
+  async function fetchResourceRepositoryCounts(subjectKeys: Map<string, string>) {
+    if (!resourceRepositoryCatalogUrl) throw new Error('Resource repository catalog URL is not configured.');
+    const response = await fetch(resourceRepositoryCatalogUrl);
+    if (!response.ok) throw new Error(`Resource repository catalog returned HTTP ${response.status}.`);
     const data = await response.json();
-    if (!Array.isArray(data?.items)) throw new Error('Additional subject catalog returned an invalid list.');
+    if (!Array.isArray(data?.items)) throw new Error('Resource repository catalog returned an invalid list.');
 
     const counts = new Map<string, SubjectCounts>();
     let fetched = 0;
@@ -395,23 +395,23 @@ const subjects = [
 
     try {
       const subjectKeys = makeSubjectKeys();
-      const [freshTeacherResult, studyHubResult] = await Promise.allSettled([
-        fetchFreshTeacherCounts(subjectKeys),
+      const [resourceRepositoryResult, studyHubResult] = await Promise.allSettled([
+        fetchResourceRepositoryCounts(subjectKeys),
         fetchStudyHubCounts(subjectKeys),
       ]);
       const failures: string[] = [];
-      const freshTeacher = freshTeacherResult.status === 'fulfilled' ? freshTeacherResult.value : null;
+      const resourceRepository = resourceRepositoryResult.status === 'fulfilled' ? resourceRepositoryResult.value : null;
       const studyHub = studyHubResult.status === 'fulfilled' ? studyHubResult.value : null;
-      if (freshTeacherResult.status === 'rejected') {
-        failures.push(`Additional catalog: ${freshTeacherResult.reason instanceof Error ? freshTeacherResult.reason.message : 'request failed'}`);
+      if (resourceRepositoryResult.status === 'rejected') {
+        failures.push(`Resource repository: ${resourceRepositoryResult.reason instanceof Error ? resourceRepositoryResult.reason.message : 'request failed'}`);
       }
       if (studyHubResult.status === 'rejected') {
         failures.push(`Study Hub: ${studyHubResult.reason instanceof Error ? studyHubResult.reason.message : 'request failed'}`);
       }
-      if (!freshTeacher && !studyHub) throw new Error(failures.join(' '));
+      if (!resourceRepository && !studyHub) throw new Error(failures.join(' '));
 
       const counts = new Map<string, SubjectCounts>();
-      for (const sourceCounts of [freshTeacher?.counts, studyHub?.counts]) {
+      for (const sourceCounts of [resourceRepository?.counts, studyHub?.counts]) {
         sourceCounts?.forEach((sourceCount, subject) => {
           const combined = counts.get(subject) || { notes: 0, papers: 0, other: 0, total: 0 };
           combined.notes += sourceCount.notes;
@@ -427,7 +427,7 @@ const subjects = [
       if (status) {
         status.textContent = failures.length
           ? `Partial count: ${formatCount(totals.total)} resources across ${subjectCount} subject groups. ${failures.join(' ')} Last updated ${updatedAt}.`
-          : `Counted ${formatCount(totals.total)} resources across ${subjectCount} subject groups: ${formatCount(freshTeacher?.fetched || 0)} additional catalog files and ${formatCount(studyHub?.fetched || 0)} Study Hub files. Last updated ${updatedAt}.`;
+          : `Counted ${formatCount(totals.total)} resources across ${subjectCount} subject groups: ${formatCount(resourceRepository?.fetched || 0)} resource repository files and ${formatCount(studyHub?.fetched || 0)} Study Hub files. Last updated ${updatedAt}.`;
       }
     } catch (error) {
       console.error('Unable to refresh all-subject Study Hub resource counts:', error);

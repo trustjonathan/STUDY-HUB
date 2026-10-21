@@ -480,7 +480,7 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
               <StudyPlanWorkspace
                 compact
                 apiBase={apiBase()}
-                catalogUrl={`${baseHref}fresh-teacher-catalog.json`}
+                resourceCatalogUrl={`${baseHref}study-hub-resources-1-catalog.json`}
                 readerBase={`${baseHref}full_page_flipbook_viewer/index.html`}
                 classLevel={user.classLevel || ''}
                 subjects={subjects}
@@ -504,7 +504,7 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
             {user?.learnerType === 'student' ? (
               <StudyPlanWorkspace
                 apiBase={apiBase()}
-                catalogUrl={`${baseHref}fresh-teacher-catalog.json`}
+                resourceCatalogUrl={`${baseHref}study-hub-resources-1-catalog.json`}
                 readerBase={`${baseHref}full_page_flipbook_viewer/index.html`}
                 classLevel={user.classLevel || ''}
                 subjects={subjects}

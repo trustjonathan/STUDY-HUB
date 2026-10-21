@@ -86,6 +86,40 @@ test('rejects invalid phone numbers and unsupported resource URLs before inserti
   assert.equal(inserted, false);
 });
 
+test('accepts repository downloads and rejects other raw GitHub paths', async () => {
+  const resourceUrl = 'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main/Resources/Primary/P1/Mathematics/Paper%202024.pdf';
+  sequelize.query = async (sql, options) => {
+    assert.match(sql, /INSERT INTO public\.study_hub_document_payments/);
+    assert.equal(options.replacements.resourceId, `ft:${resourceUrl}`);
+    assert.equal(options.replacements.deliveryUrl, resourceUrl);
+    return [{ id: 6, resourceTitle: 'P1 Mathematics Paper 2024', amountUgx: 1000, status: 'pending' }];
+  };
+
+  const accepted = responseMock();
+  await controller.submitPayment(validRequest({
+    resourceId: `ft:${resourceUrl}`,
+    resourceTitle: 'P1 Mathematics Paper 2024',
+  }), accepted);
+  assert.equal(accepted.statusCode, 201);
+
+  let inserted = false;
+  sequelize.query = async () => { inserted = true; return []; };
+  const rejectedUrls = [
+    'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main-evil/Resources/paper.pdf',
+    'https://raw.githubusercontent.com/another-owner/STUDY-HUB-RESOURCES-1/main/Resources/paper.pdf',
+    'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/dev/Resources/paper.pdf',
+    'https://raw.githubusercontent.com/trustjonathan/OTHER-REPO/main/Resources/paper.pdf',
+    'http://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main/Resources/paper.pdf',
+    'https://user@raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main/Resources/paper.pdf',
+  ];
+  for (const url of rejectedUrls) {
+    const rejected = responseMock();
+    await controller.submitPayment(validRequest({ resourceId: `ft:${url}` }), rejected);
+    assert.equal(rejected.statusCode, 400, url);
+  }
+  assert.equal(inserted, false);
+});
+
 test('admin verification releases an eligible request without sending the document outside the one-time flow', async () => {
   sequelize.query = async (sql, options) => {
     assert.match(sql, /SET status = 'approved'/);

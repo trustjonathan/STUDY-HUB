@@ -38,7 +38,7 @@ interface LibraryResource {
   type: string;
   url: string;
   classKeys: string[];
-  source: 'fresh-teacher' | 'study-hub';
+  source: 'resource-repository' | 'study-hub';
 }
 
 interface Recommendation {
@@ -48,7 +48,7 @@ interface Recommendation {
 
 interface Props {
   apiBase: string;
-  catalogUrl: string;
+  resourceCatalogUrl: string;
   readerBase: string;
   classLevel: string;
   subjects: string[];
@@ -74,8 +74,8 @@ function readerHref(readerBase: string, baseHref: string, resource: LibraryResou
   url.searchParams.set('title', resource.title);
   url.searchParams.set('subject', resource.subject.toLowerCase());
   url.searchParams.set('resource_id', resource.id);
-  if (resource.source === 'fresh-teacher') {
-    url.searchParams.set('source', 'fresh-teacher');
+  if (resource.source === 'resource-repository') {
+    url.searchParams.set('source', 'resource-repository');
     if (resource.classKeys[0]) url.searchParams.set('class_key', resource.classKeys[0]);
   }
   url.searchParams.set('return', `${baseHref}library.html?class=${encodeURIComponent(classLevelFromKey(classKey))}`);
@@ -99,7 +99,7 @@ const SUPABASE_CLASS_KEYS: Record<string, string[]> = {
 
 export default function StudyPlanWorkspace({
   apiBase,
-  catalogUrl,
+  resourceCatalogUrl,
   readerBase,
   classLevel,
   subjects,
@@ -188,21 +188,21 @@ export default function StudyPlanWorkspace({
   useEffect(() => {
     let active = true;
     async function loadRecommendations() {
-      if (!plan || (!classLevel && !subjects.length) || !catalogUrl || !apiBase || !studyKey()) {
+      if (!plan || (!classLevel && !subjects.length) || !resourceCatalogUrl || !apiBase || !studyKey()) {
         if (plan) setRecommendationsError('Add your class and subjects in profile settings to get matching Library recommendations.');
         return;
       }
       setRecommendationsBusy(true);
       setRecommendationsError('');
       try {
-        const response = await fetch(catalogUrl, { signal: AbortSignal.timeout(15_000) });
+        const response = await fetch(resourceCatalogUrl, { signal: AbortSignal.timeout(15_000) });
         if (!response.ok) throw new Error(`The Study Library catalog is unavailable (HTTP ${response.status}).`);
         const catalog: unknown = await response.json();
         const catalogItems: unknown = catalog && typeof catalog === 'object' && 'items' in catalog
           ? (catalog as { items: unknown }).items
           : [];
-        const freshItems: LibraryResource[] = Array.isArray(catalogItems)
-          ? (catalogItems as Array<{ title?: string; subject?: string; type?: string; url?: string; classKey?: string }>)
+        const repositoryItems: LibraryResource[] = Array.isArray(catalogItems)
+          ? (catalogItems as Array<{ title?: string; subject?: string; type?: string; url?: string; classKey?: string; classKeys?: string[] }>)
             .filter((item) => typeof item.url === 'string' && item.url)
             .map((item) => ({
               id: `ft:${item.url}`,
@@ -210,8 +210,10 @@ export default function StudyPlanWorkspace({
               subject: item.subject?.toLowerCase() === 'all subjects' ? 'General' : item.subject || 'General',
               type: item.type || 'Resources',
               url: item.url as string,
-              classKeys: item.classKey ? [item.classKey] : [],
-              source: 'fresh-teacher',
+              classKeys: Array.isArray(item.classKeys) && item.classKeys.length
+                ? item.classKeys
+                : item.classKey ? [item.classKey] : [],
+              source: 'resource-repository',
             }))
           : [];
         let studyHubItems: LibraryResource[] = [];
@@ -241,7 +243,7 @@ export default function StudyPlanWorkspace({
           }).filter((item) => item.url);
         }
         if (!active) return;
-        const items = [...freshItems, ...studyHubItems];
+        const items = [...repositoryItems, ...studyHubItems];
         const key = classKeyForLevel(classLevel);
         const preferred = new Set(subjects.map((subject) => subject.toLowerCase()));
         const subjectTopics = new Set(plan.topics
@@ -277,7 +279,7 @@ export default function StudyPlanWorkspace({
     }
     void loadRecommendations();
     return () => { active = false; };
-  }, [plan, classLevel, subjects, catalogUrl, apiBase, supabaseUrl, anonKey]);
+  }, [plan, classLevel, subjects, resourceCatalogUrl, apiBase, supabaseUrl, anonKey]);
 
   async function markComplete(topicId: string) {
     setSaving(true);
@@ -399,7 +401,7 @@ export default function StudyPlanWorkspace({
                       if (!resource) return null;
                       const key = classKeyForLevel(classLevel);
                       return <li key={recommendation.id}>
-                        <a href={readerHref(readerBase, catalogUrl.replace(/fresh-teacher-catalog\.json(?:\?.*)?$/, ''), resource, key)} target="_blank" rel="noreferrer">{resource.title} <span aria-hidden="true">↗</span></a>
+                        <a href={readerHref(readerBase, new URL('.', new URL(resourceCatalogUrl, window.location.href)).href, resource, key)} target="_blank" rel="noreferrer">{resource.title} <span aria-hidden="true">↗</span></a>
                         <small>{resource.subject} · {resource.type}</small>
                         <p>{recommendation.reason}</p>
                       </li>;

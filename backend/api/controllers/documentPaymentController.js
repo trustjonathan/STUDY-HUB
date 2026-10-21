@@ -13,6 +13,14 @@ const FRESH_TEACHER_ORIGINS = new Set([
   'https://s6-fresh-teacher.vercel.app',
   'https://freshteachers.vercel.app',
 ]);
+const RESOURCE_REPOSITORY_ORIGIN = 'https://raw.githubusercontent.com';
+const RESOURCE_REPOSITORY_PATH = '/trustjonathan/STUDY-HUB-RESOURCES-1/main/';
+
+function isSupportedExternalResourceUrl(url) {
+  if (url.protocol !== 'https:' || url.username !== '' || url.password !== '') return false;
+  return FRESH_TEACHER_ORIGINS.has(url.origin) ||
+    (url.origin === RESOURCE_REPOSITORY_ORIGIN && url.pathname.startsWith(RESOURCE_REPOSITORY_PATH));
+}
 
 function responseError(res, status, error) {
   return res.status(status).json({ error });
@@ -34,7 +42,7 @@ async function submitPayment(req, res) {
   if (freshTeacherMatch) {
     try {
       const parsedUrl = new URL(freshTeacherMatch[1]);
-      if (FRESH_TEACHER_ORIGINS.has(parsedUrl.origin) && parsedUrl.username === '' && parsedUrl.password === '') {
+      if (isSupportedExternalResourceUrl(parsedUrl)) {
         deliveryUrl = parsedUrl.href;
       }
     } catch {
@@ -202,7 +210,7 @@ async function downloadApprovedPayment(req, res) {
       );
     } else if (freshTeacherMatch && payment.deliveryUrl) {
       const delivery = new URL(payment.deliveryUrl);
-      if (!FRESH_TEACHER_ORIGINS.has(delivery.origin) || delivery.href !== freshTeacherMatch[1]) {
+      if (!isSupportedExternalResourceUrl(delivery) || delivery.href !== freshTeacherMatch[1]) {
         await restoreApproved();
         return responseError(res, 400, 'The approved document URL is invalid.');
       }
@@ -290,7 +298,7 @@ async function previewPaymentDelivery(req, res) {
       );
     } else if (freshTeacherMatch && payment.deliveryUrl) {
       const delivery = new URL(payment.deliveryUrl);
-      if (!FRESH_TEACHER_ORIGINS.has(delivery.origin) || delivery.href !== freshTeacherMatch[1]) {
+      if (!isSupportedExternalResourceUrl(delivery) || delivery.href !== freshTeacherMatch[1]) {
         return responseError(res, 400, 'The external document URL is invalid.');
       }
       deliveryUrl = delivery.href;

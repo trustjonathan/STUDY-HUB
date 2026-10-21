@@ -12,7 +12,7 @@ interface Props {
   embedded?: boolean;
 }
 
-type Source = 'study-hub' | 'fresh-teacher' | 'premium-resources';
+type Source = 'study-hub' | 'resource-repository' | 'premium-resources';
 type LibraryIconName = 'menu' | 'panel-left' | 'panel-left-open' | 'panel-right' | 'panel-right-open' | 'home' | 'bookshelf' | 'classes' | 'assistant' | 'close' | 'document' | 'shield' | 'scale';
 
 interface Resource {
@@ -35,6 +35,8 @@ interface ResourceStats {
 
 const TRENDING_2026_CLASS = { label: '2026 trending', keys: ['trending2026'] };
 const UNSORTED_CLASS = { label: 'Unsorted files', keys: ['unsorted'] };
+const RESOURCE_REPOSITORY_CATALOG = 'study-hub-resources-1-catalog.json';
+const RESOURCE_REPOSITORY_BASE_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main';
 const PREMIUM_CATALOG_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/resource-catalog.json';
 const PREMIUM_RESOURCE_BASE_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main';
 
@@ -121,6 +123,16 @@ interface CatalogLoad {
   totalCount: number;
 }
 
+interface ResourceRepositoryCatalogItem {
+  path: string;
+  title: string;
+  year: string;
+  classKeys: string[];
+  classKey?: string;
+  subject?: string;
+  type?: string;
+}
+
 interface PremiumCatalogResource {
   path: string;
   title: string;
@@ -132,6 +144,20 @@ interface PremiumCatalogResource {
 
 const LIBRARY_CATALOG_CACHE = 'study-hub-library-catalog-v3';
 const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
+
+function isResourceRepositoryCatalogItem(value: unknown): value is ResourceRepositoryCatalogItem {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  const allowedClassKeys = /^(?:baby|top|middle|p[1-7]|s[1-6]|unsorted)$/;
+  const validClassKeys = Array.isArray(item.classKeys)
+    && item.classKeys.every((key) => typeof key === 'string' && allowedClassKeys.test(key));
+  return typeof item.path === 'string'
+    && item.path.startsWith('Resources/')
+    && item.path.split('/').every((part) => part !== '' && part !== '.' && part !== '..' && !part.includes('\\'))
+    && typeof item.title === 'string'
+    && typeof item.year === 'string'
+    && validClassKeys;
+}
 
 function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResource {
   if (!value || typeof value !== 'object') return false;
@@ -188,27 +214,29 @@ async function fetchCachedCatalog(catalogUrl: string): Promise<Response> {
   return response;
 }
 
-async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
-  const res = await fetchCachedCatalog(catalogUrl);
-  if (!res.ok) throw new Error(`Additional subject catalog request failed (HTTP ${res.status}).`);
-  const data = await res.json();
-  const items: Array<{ classKey?: string; subject?: string; type?: string; title?: string; url?: string }>
-    = Array.isArray(data?.items) ? data.items : [];
+async function loadResourceRepository(catalogUrl: string): Promise<CatalogLoad> {
+  const response = await fetchCachedCatalog(catalogUrl);
+  if (!response.ok) throw new Error(`Study Hub resource repository catalog request failed (HTTP ${response.status}).`);
+  const data = await response.json();
+  const items: unknown[] = Array.isArray(data?.items) ? data.items : [];
   const resources = items
-    .filter((i) => typeof i.url === 'string' && i.url)
-    .map((i) => {
-      const subject = titleCase(i.subject || 'General');
+    .filter(isResourceRepositoryCatalogItem)
+    .map((item) => {
+      const encodedPath = item.path.split('/').map(encodeURIComponent).join('/');
+      const url = `${RESOURCE_REPOSITORY_BASE_URL}/${encodedPath}`;
+      const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
+      if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
-        id: `ft:${i.url}`,
-        subject: subject === 'All Subjects' ? 'General' : subject,
-        type: i.type || 'Resources',
-        source: 'fresh-teacher' as Source,
-        title: (i.title || i.url || 'Untitled').trim(),
-        url: i.url as string,
-        keys: i.classKey ? [i.classKey] : [],
+        id: `ft:${url}`,
+        subject: titleCase(item.subject || 'General'),
+        type: item.type || 'Study Resources',
+        source: 'resource-repository' as Source,
+        title: item.title.trim() || 'Untitled resource',
+        url,
+        keys,
       };
     });
-  return { resources, totalCount: resources.length };
+  return { resources, totalCount: Number.isSafeInteger(data?.count) ? data.count : resources.length };
 }
 
 async function loadPremiumResources(): Promise<CatalogLoad> {
@@ -310,7 +338,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   const [engagementRefreshing, setEngagementRefreshing] = useState(false);
 
   const base = homeHref.endsWith('/') ? homeHref : `${homeHref}/`;
-  const catalogUrl = `${base}fresh-teacher-catalog.json`;
+  const catalogUrl = `${base}${RESOURCE_REPOSITORY_CATALOG}`;
   const readerBase = `${base}full_page_flipbook_viewer/index.html`;
   const apiBase = apiUrl.replace(/\/+$/, '');
 
@@ -389,7 +417,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     async function load() {
       setLoading(true);
       setError('');
-      const tasks: Promise<CatalogLoad>[] = [loadFreshTeacher(catalogUrl), loadPremiumResources()];
+      const tasks: Promise<CatalogLoad>[] = [loadResourceRepository(catalogUrl), loadPremiumResources()];
       if (supabaseUrl && anonKey) tasks.push(loadSupabase(supabaseUrl, anonKey));
       const results = await Promise.allSettled(tasks);
       if (!active) return;
@@ -560,8 +588,8 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     url.searchParams.set('title', row.title);
     url.searchParams.set('subject', row.subject.toLowerCase());
     url.searchParams.set('resource_id', row.id);
-    if (row.source === 'fresh-teacher') {
-      url.searchParams.set('source', 'fresh-teacher');
+    if (row.source === 'resource-repository') {
+      url.searchParams.set('source', 'resource-repository');
       if (row.keys[0]) url.searchParams.set('class_key', row.keys[0]);
     } else if (row.source === 'premium-resources') {
       url.searchParams.set('source', 'premium-resources');
@@ -1100,11 +1128,14 @@ function ClassDashboard(props: DashboardProps) {
     }).sort((left, right) => {
       const leftStats = props.resourceStats[left.id];
       const rightStats = props.resourceStats[right.id];
+      const leftEngagement = (leftStats?.upVotes ?? 0) + (leftStats?.shareCount ?? 0);
+      const rightEngagement = (rightStats?.upVotes ?? 0) + (rightStats?.shareCount ?? 0);
       const leftPercent = leftStats?.totalVotes ? leftStats.upVotes / leftStats.totalVotes : -1;
       const rightPercent = rightStats?.totalVotes ? rightStats.upVotes / rightStats.totalVotes : -1;
-      return rightPercent - leftPercent
-        || (rightStats?.totalVotes ?? 0) - (leftStats?.totalVotes ?? 0)
+      return rightEngagement - leftEngagement
+        || (rightStats?.upVotes ?? 0) - (leftStats?.upVotes ?? 0)
         || (rightStats?.shareCount ?? 0) - (leftStats?.shareCount ?? 0)
+        || rightPercent - leftPercent
         || left.title.localeCompare(right.title);
     });
   }, [classResources, resources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, savedOnly, props.bookmarks, props.resourceStats]);

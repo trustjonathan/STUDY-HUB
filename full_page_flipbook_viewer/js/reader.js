@@ -15,6 +15,14 @@ import * as tus from 'tus-js-client';
     'https://s6-fresh-teacher.vercel.app',
     'https://freshteachers.vercel.app'
   ]);
+  const resourceRepositoryOrigin = 'https://raw.githubusercontent.com';
+  const resourceRepositoryPath = '/trustjonathan/STUDY-HUB-RESOURCES-1/main/';
+
+  function isResourceRepositoryUrl(url) {
+    return url.protocol === 'https:' &&
+      url.origin === resourceRepositoryOrigin &&
+      url.pathname.startsWith(resourceRepositoryPath);
+  }
   const toolbar = document.querySelector('#reader-toolbar');
   const readerResumeBanner = document.querySelector('#reader-resume');
   const readerResumeMessage = document.querySelector('#reader-resume-message');
@@ -137,7 +145,12 @@ import * as tus from 'tus-js-client';
 
     try {
       const fileUrl = new URL(requestedFile);
-      if (params.get('source') === 'fresh-teacher' || freshTeacherOrigins.has(fileUrl.origin)) {
+      if (
+        params.get('source') === 'resource-repository' ||
+        params.get('source') === 'fresh-teacher' ||
+        freshTeacherOrigins.has(fileUrl.origin) ||
+        isResourceRepositoryUrl(fileUrl)
+      ) {
         return `ft:${requestedFile}`;
       }
       const match = fileUrl.pathname.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
@@ -343,7 +356,7 @@ import * as tus from 'tus-js-client';
   }
 
   function resourceType(item) {
-    if (item.source === 'fresh-teacher') return item.type || 'Study resource';
+    if (item.source === 'resource-repository' || item.source === 'fresh-teacher') return item.type || 'Study resource';
     const type = item.resource_type;
     if (type === 'notes' || type === 'guide' || type === 'paper') {
       return type === 'paper' ? 'Practice paper' : type === 'guide' ? 'Marking guide' : 'Study notes';
@@ -368,10 +381,12 @@ import * as tus from 'tus-js-client';
     link.searchParams.set('file', resourcePublicUrl(item));
     link.searchParams.set('title', resourceTitle(item));
     link.searchParams.set('subject', subject);
-    if (item.source === 'fresh-teacher') {
-      link.searchParams.set('source', 'fresh-teacher');
+    if (item.source === 'resource-repository' || item.source === 'fresh-teacher') {
+      const source = item.source === 'resource-repository' ? 'resource-repository' : 'fresh-teacher';
+      link.searchParams.set('source', source);
       link.searchParams.set('resource_id', `ft:${resourcePublicUrl(item)}`);
-      if (item.classKey) link.searchParams.set('class_key', item.classKey);
+      const classKey = item.classKey || item.classKeys?.[0];
+      if (classKey) link.searchParams.set('class_key', classKey);
     } else if (item.storage_path) {
       link.searchParams.set('resource_id', `sh:${item.storage_path}`);
     }
@@ -482,6 +497,8 @@ import * as tus from 'tus-js-client';
 
   async function loadRelatedDocuments() {
     const sourceUrl = requestedFile ? new URL(requestedFile) : null;
+    const isResourceRepository = params.get('source') === 'resource-repository' ||
+      Boolean(sourceUrl && isResourceRepositoryUrl(sourceUrl));
     const isFreshTeacher = params.get('source') === 'fresh-teacher' ||
       Boolean(sourceUrl && freshTeacherOrigins.has(sourceUrl.origin));
     const subject = (params.get('subject') || currentSubject()).trim().toLowerCase();
@@ -496,17 +513,20 @@ import * as tus from 'tus-js-client';
       return;
     }
 
-    if (isFreshTeacher) {
+    if (isFreshTeacher || isResourceRepository) {
       relatedList.replaceChildren(Object.assign(document.createElement('p'), {
         className: 'related-status',
         textContent: `Loading ${subjectName} documents…`
       }));
       try {
-        const catalogUrl = new URL('../fresh-teacher-catalog.json', window.location.href);
+        const catalogName = isResourceRepository
+          ? 'study-hub-resources-1-catalog.json'
+          : 'fresh-teacher-catalog.json';
+        const catalogUrl = new URL(`../${catalogName}`, window.location.href);
         const response = await fetch(catalogUrl);
-        if (!response.ok) throw new Error(`Fresh Teacher catalog request failed (HTTP ${response.status}).`);
+        if (!response.ok) throw new Error(`External resource catalog request failed (HTTP ${response.status}).`);
         const catalog = await response.json();
-        if (!Array.isArray(catalog?.items)) throw new Error('Fresh Teacher catalog returned an invalid list.');
+        if (!Array.isArray(catalog?.items)) throw new Error('External resource catalog returned an invalid list.');
         const classKey = params.get('class_key') || '';
         const items = catalog.items
           .filter((item) => {
@@ -517,17 +537,20 @@ import * as tus from 'tus-js-client';
               const url = new URL(item.url);
               const extension = url.pathname.split('.').pop().toLowerCase();
               return url.protocol === 'https:' &&
-                freshTeacherOrigins.has(url.origin) &&
+                (isResourceRepository ? isResourceRepositoryUrl(url) : freshTeacherOrigins.has(url.origin)) &&
                 ['pdf', 'doc', 'docx', 'rtf'].includes(extension);
             } catch {
               return false;
             }
           })
           .slice(0, 30)
-          .map((item) => ({ ...item, source: 'fresh-teacher' }));
+          .map((item) => ({
+            ...item,
+            source: isResourceRepository ? 'resource-repository' : 'fresh-teacher',
+          }));
         renderRelatedDocuments(items, subject);
       } catch (error) {
-        console.error('Unable to load related Fresh Teacher documents:', error);
+        console.error('Unable to load related external resource documents:', error);
         relatedList.replaceChildren(Object.assign(document.createElement('p'), {
           className: 'related-status',
           textContent: 'Related documents could not be loaded right now.'
@@ -1703,6 +1726,7 @@ import * as tus from 'tus-js-client';
       const storageOrigin = new URL(storagePrefix).origin;
       const isPublicResource = fileUrl.href.startsWith(storagePrefix);
       const isFreshTeacherResource = fileUrl.protocol === 'https:' && freshTeacherOrigins.has(fileUrl.origin);
+      const isRepositoryResource = isResourceRepositoryUrl(fileUrl);
       const isPremiumArchiveResource = fileUrl.protocol === 'https:' &&
         fileUrl.origin === 'https://raw.githubusercontent.com' &&
         fileUrl.pathname.startsWith('/trustjonathan/STUDT-HUB-RESOURCES-2026/main/');
@@ -1711,7 +1735,7 @@ import * as tus from 'tus-js-client';
         fileUrl.origin === storageOrigin &&
         /^\/storage\/v1\/object\/sign\/study-hub-contributions\/contribution\//i.test(fileUrl.pathname) &&
         Boolean(fileUrl.searchParams.get('token'));
-      if (!isPublicResource && !isFreshTeacherResource && !isPremiumArchiveResource && !isPrivateReviewResource) {
+      if (!isPublicResource && !isFreshTeacherResource && !isRepositoryResource && !isPremiumArchiveResource && !isPrivateReviewResource) {
         showError('This resource is not hosted in a supported Study Hub library. Return to the library and try again.');
         return;
       }
