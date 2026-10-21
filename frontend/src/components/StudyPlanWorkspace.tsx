@@ -38,7 +38,7 @@ interface LibraryResource {
   type: string;
   url: string;
   classKeys: string[];
-  source: 'resource-repository' | 'study-hub';
+  source: 'resource-repository' | 'fresh-teacher' | 'study-hub';
 }
 
 interface Recommendation {
@@ -49,6 +49,7 @@ interface Recommendation {
 interface Props {
   apiBase: string;
   resourceCatalogUrl: string;
+  freshTeacherCatalogUrl: string;
   readerBase: string;
   classLevel: string;
   subjects: string[];
@@ -77,6 +78,8 @@ function readerHref(readerBase: string, baseHref: string, resource: LibraryResou
   if (resource.source === 'resource-repository') {
     url.searchParams.set('source', 'resource-repository');
     if (resource.classKeys[0]) url.searchParams.set('class_key', resource.classKeys[0]);
+  } else if (resource.source === 'fresh-teacher') {
+    url.searchParams.set('source', 'fresh-teacher');
   }
   url.searchParams.set('return', `${baseHref}library.html?class=${encodeURIComponent(classLevelFromKey(classKey))}`);
   return url.href;
@@ -100,6 +103,7 @@ const SUPABASE_CLASS_KEYS: Record<string, string[]> = {
 export default function StudyPlanWorkspace({
   apiBase,
   resourceCatalogUrl,
+  freshTeacherCatalogUrl,
   readerBase,
   classLevel,
   subjects,
@@ -195,27 +199,67 @@ export default function StudyPlanWorkspace({
       setRecommendationsBusy(true);
       setRecommendationsError('');
       try {
-        const response = await fetch(resourceCatalogUrl, { signal: AbortSignal.timeout(15_000) });
-        if (!response.ok) throw new Error(`The Study Library catalog is unavailable (HTTP ${response.status}).`);
-        const catalog: unknown = await response.json();
-        const catalogItems: unknown = catalog && typeof catalog === 'object' && 'items' in catalog
-          ? (catalog as { items: unknown }).items
-          : [];
-        const repositoryItems: LibraryResource[] = Array.isArray(catalogItems)
-          ? (catalogItems as Array<{ title?: string; subject?: string; type?: string; url?: string; classKey?: string; classKeys?: string[] }>)
-            .filter((item) => typeof item.url === 'string' && item.url)
-            .map((item) => ({
+        const catalogResults = await Promise.allSettled([
+          fetch(resourceCatalogUrl, { signal: AbortSignal.timeout(15_000) }),
+          fetch(freshTeacherCatalogUrl, { signal: AbortSignal.timeout(15_000) }),
+        ]);
+        const externalItems: LibraryResource[] = [];
+        for (const [index, result] of catalogResults.entries()) {
+          if (result.status === 'rejected') {
+            console.warn('A library resource catalog could not be loaded for recommendations.', result.reason);
+            continue;
+          }
+          if (!result.value.ok) {
+            console.warn(`A library resource catalog request failed (HTTP ${result.value.status}).`);
+            continue;
+          }
+          let catalog: unknown;
+          try {
+            catalog = await result.value.json();
+          } catch (catalogError) {
+            console.warn('A library resource catalog returned invalid JSON for recommendations.', catalogError);
+            continue;
+          }
+          const catalogItems: unknown = catalog && typeof catalog === 'object' && 'items' in catalog
+            ? (catalog as { items: unknown }).items
+            : [];
+          if (!Array.isArray(catalogItems)) {
+            console.warn('A library resource catalog returned an invalid item list for recommendations.');
+            continue;
+          }
+          const source = index === 0 ? 'resource-repository' : 'fresh-teacher';
+          for (const item of catalogItems as Array<{
+            title?: string;
+            subject?: string;
+            type?: string;
+            url?: string;
+            classKey?: string;
+            classKeys?: string[];
+          }>) {
+            if (typeof item.url !== 'string' || !item.url) continue;
+            try {
+              const url = new URL(item.url);
+              const acceptedOrigin = source === 'resource-repository'
+                ? url.origin === 'https://raw.githubusercontent.com'
+                  && url.pathname.startsWith('/trustjonathan/STUDY-HUB-RESOURCES-1/main/')
+                : ['https://fresh-teacher.github.io', 'https://s6-fresh-teacher.vercel.app', 'https://freshteachers.vercel.app'].includes(url.origin);
+              if (url.protocol !== 'https:' || url.username || url.password || !acceptedOrigin) continue;
+            } catch {
+              continue;
+            }
+            externalItems.push({
               id: `ft:${item.url}`,
               title: item.title || item.url || 'Untitled resource',
               subject: item.subject?.toLowerCase() === 'all subjects' ? 'General' : item.subject || 'General',
               type: item.type || 'Resources',
-              url: item.url as string,
+              url: item.url,
               classKeys: Array.isArray(item.classKeys) && item.classKeys.length
                 ? item.classKeys
                 : item.classKey ? [item.classKey] : [],
-              source: 'resource-repository',
-            }))
-          : [];
+              source,
+            });
+          }
+        }
         let studyHubItems: LibraryResource[] = [];
         if (supabaseUrl && anonKey) {
           const endpoint = new URL('/rest/v1/study_hub_resources', supabaseUrl);
@@ -243,7 +287,7 @@ export default function StudyPlanWorkspace({
           }).filter((item) => item.url);
         }
         if (!active) return;
-        const items = [...repositoryItems, ...studyHubItems];
+        const items = [...externalItems, ...studyHubItems];
         const key = classKeyForLevel(classLevel);
         const preferred = new Set(subjects.map((subject) => subject.toLowerCase()));
         const subjectTopics = new Set(plan.topics
@@ -279,7 +323,7 @@ export default function StudyPlanWorkspace({
     }
     void loadRecommendations();
     return () => { active = false; };
-  }, [plan, classLevel, subjects, resourceCatalogUrl, apiBase, supabaseUrl, anonKey]);
+  }, [plan, classLevel, subjects, resourceCatalogUrl, freshTeacherCatalogUrl, apiBase, supabaseUrl, anonKey]);
 
   async function markComplete(topicId: string) {
     setSaving(true);

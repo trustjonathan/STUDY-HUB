@@ -6,9 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "predev": "node scripts/prepare-site-assets.mjs && node scripts/copy-flipbook-assets.mjs && node scripts/build-resource-repository-catalog.mjs",
+    "predev": "node scripts/prepare-site-assets.mjs && node scripts/copy-flipbook-assets.mjs && node scripts/build-fresh-teacher-catalog.mjs && node scripts/build-resource-repository-catalog.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/prepare-site-assets.mjs && node scripts/build-resource-repository-catalog.mjs",
+    "prebuild": "node scripts/prepare-site-assets.mjs && node scripts/build-fresh-teacher-catalog.mjs && node scripts/build-resource-repository-catalog.mjs",
     "build": "astro check && node scripts/copy-flipbook-assets.mjs && astro build && node scripts/flatten-html-routes.mjs",
     "preview": "astro preview"
   },

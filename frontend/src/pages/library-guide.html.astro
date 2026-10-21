@@ -41,6 +41,7 @@ const subjects = [
     <meta name="study-hub-supabase-url" content={supabaseUrl}>
     <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
     <meta name="study-hub-resource-repository-catalog" content={`${home}/study-hub-resources-1-catalog.json`}>
+    <meta name="study-hub-fresh-teacher-catalog" content={`${home}/fresh-teacher-catalog.json`}>
   </Fragment>
   <main class="library-guide">
     <section class="guide-intro" id="guide-start" aria-labelledby="guide-title">
@@ -248,6 +249,7 @@ const subjects = [
   const supabaseUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-url"]')?.content.replace(/\/+$/, '');
   const anonKey = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-anon-key"]')?.content;
   const resourceRepositoryCatalogUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-resource-repository-catalog"]')?.content;
+  const freshTeacherCatalogUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-fresh-teacher-catalog"]')?.content;
   const subjectTemplate = document.querySelector<HTMLTemplateElement>('template[data-subject-rows]');
   const pageSize = 1000;
   let isLoading = false;
@@ -291,17 +293,20 @@ const subjects = [
     counts.set(label, subjectCount);
   }
 
-  async function fetchResourceRepositoryCounts(subjectKeys: Map<string, string>) {
-    if (!resourceRepositoryCatalogUrl) throw new Error('Resource repository catalog URL is not configured.');
-    const response = await fetch(resourceRepositoryCatalogUrl);
-    if (!response.ok) throw new Error(`Resource repository catalog returned HTTP ${response.status}.`);
+  async function fetchExternalCatalogCounts(catalogUrl: string | undefined, source: string, subjectKeys: Map<string, string>) {
+    if (!catalogUrl) throw new Error(`${source} catalog URL is not configured.`);
+    const response = await fetch(catalogUrl);
+    if (!response.ok) throw new Error(`${source} catalog returned HTTP ${response.status}.`);
     const data = await response.json();
-    if (!Array.isArray(data?.items)) throw new Error('Resource repository catalog returned an invalid list.');
+    if (!Array.isArray(data?.items)) throw new Error(`${source} catalog returned an invalid list.`);
 
     const counts = new Map<string, SubjectCounts>();
+    const countedUrls = new Set<string>();
     let fetched = 0;
     for (const item of data.items) {
       if (typeof item?.url !== 'string' || !item.url.trim()) continue;
+      if (countedUrls.has(item.url)) continue;
+      countedUrls.add(item.url);
       addResourceCount(counts, String(item.subject || 'General'), String(item.type || ''), subjectKeys);
       fetched += 1;
     }
@@ -395,23 +400,28 @@ const subjects = [
 
     try {
       const subjectKeys = makeSubjectKeys();
-      const [resourceRepositoryResult, studyHubResult] = await Promise.allSettled([
-        fetchResourceRepositoryCounts(subjectKeys),
+      const [resourceRepositoryResult, freshTeacherResult, studyHubResult] = await Promise.allSettled([
+        fetchExternalCatalogCounts(resourceRepositoryCatalogUrl, 'Resource repository', subjectKeys),
+        fetchExternalCatalogCounts(freshTeacherCatalogUrl, 'Fresh Teacher', subjectKeys),
         fetchStudyHubCounts(subjectKeys),
       ]);
       const failures: string[] = [];
       const resourceRepository = resourceRepositoryResult.status === 'fulfilled' ? resourceRepositoryResult.value : null;
+      const freshTeacher = freshTeacherResult.status === 'fulfilled' ? freshTeacherResult.value : null;
       const studyHub = studyHubResult.status === 'fulfilled' ? studyHubResult.value : null;
       if (resourceRepositoryResult.status === 'rejected') {
         failures.push(`Resource repository: ${resourceRepositoryResult.reason instanceof Error ? resourceRepositoryResult.reason.message : 'request failed'}`);
       }
+      if (freshTeacherResult.status === 'rejected') {
+        failures.push(`Fresh Teacher: ${freshTeacherResult.reason instanceof Error ? freshTeacherResult.reason.message : 'request failed'}`);
+      }
       if (studyHubResult.status === 'rejected') {
         failures.push(`Study Hub: ${studyHubResult.reason instanceof Error ? studyHubResult.reason.message : 'request failed'}`);
       }
-      if (!resourceRepository && !studyHub) throw new Error(failures.join(' '));
+      if (!resourceRepository && !freshTeacher && !studyHub) throw new Error(failures.join(' '));
 
       const counts = new Map<string, SubjectCounts>();
-      for (const sourceCounts of [resourceRepository?.counts, studyHub?.counts]) {
+      for (const sourceCounts of [resourceRepository?.counts, freshTeacher?.counts, studyHub?.counts]) {
         sourceCounts?.forEach((sourceCount, subject) => {
           const combined = counts.get(subject) || { notes: 0, papers: 0, other: 0, total: 0 };
           combined.notes += sourceCount.notes;
@@ -427,7 +437,7 @@ const subjects = [
       if (status) {
         status.textContent = failures.length
           ? `Partial count: ${formatCount(totals.total)} resources across ${subjectCount} subject groups. ${failures.join(' ')} Last updated ${updatedAt}.`
-          : `Counted ${formatCount(totals.total)} resources across ${subjectCount} subject groups: ${formatCount(resourceRepository?.fetched || 0)} resource repository files and ${formatCount(studyHub?.fetched || 0)} Study Hub files. Last updated ${updatedAt}.`;
+          : `Counted ${formatCount(totals.total)} resources across ${subjectCount} subject groups: ${formatCount(resourceRepository?.fetched || 0)} resource repository files, ${formatCount(freshTeacher?.fetched || 0)} Fresh Teacher files, and ${formatCount(studyHub?.fetched || 0)} Study Hub files. Last updated ${updatedAt}.`;
       }
     } catch (error) {
       console.error('Unable to refresh all-subject Study Hub resource counts:', error);
