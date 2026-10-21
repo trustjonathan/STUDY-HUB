@@ -1760,18 +1760,32 @@ import * as tus from 'tus-js-client';
         applyReadingColor(readerState.color || 'original');
         renderBookmarks();
         showReaderResume('scroll');
-      } else if (extension === 'doc') {
+      } else if (['doc', 'ppt', 'pptx', 'xls', 'xlsx'].includes(extension)) {
         documentFrame.title = `${title} reader`;
         documentFrame.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl.href)}`;
         documentFrame.hidden = false;
         applyReadingColor(readerState.color || 'original');
         renderBookmarks();
-      } else {
-        documentFrame.title = `${title} reader`;
-        documentFrame.src = fileUrl.href;
-        documentFrame.hidden = false;
+      } else if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension)) {
+        const image = document.createElement('img');
+        image.alt = title;
+        image.src = fileUrl.href;
+        image.addEventListener('error', () => showError('This image could not be loaded. Return to the library and try again.'));
+        documentContent.replaceChildren(image);
+        documentContent.hidden = false;
+        documentReader.hidden = false;
         applyReadingColor(readerState.color || 'original');
-        renderBookmarks();
+      } else {
+        const message = document.createElement('p');
+        message.textContent = 'A preview is not available for this file type.';
+        const link = document.createElement('a');
+        link.href = fileUrl.href;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Open or download the original file';
+        documentContent.replaceChildren(message, link);
+        documentContent.hidden = false;
+        documentReader.hidden = false;
       }
     } catch (error) {
       showError(error instanceof Error ? error.message : 'This document could not be opened.');
