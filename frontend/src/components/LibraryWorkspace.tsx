@@ -311,7 +311,7 @@ async function loadPremiumResources(): Promise<CatalogLoad> {
       const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
-        id: `premium:${resourcePath}`,
+        id: `ft:${PREMIUM_RESOURCE_BASE_URL}/${encodedPath}`,
         subject: typeof item.subject === 'string' ? item.subject : 'General',
         type: typeof item.type === 'string' ? item.type : 'Study Resources',
         source: 'premium-resources' as Source,
@@ -379,6 +379,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   const [resources, setResources] = useState<Resource[]>([]);
   const [totalResourceCount, setTotalResourceCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Loading library catalogs…');
   const [error, setError] = useState('');
   const [profileToken, setProfileToken] = useState('');
   const [profileClass, setProfileClass] = useState('');
@@ -473,20 +474,25 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     let active = true;
     async function load() {
       setLoading(true);
+      setLoadingMessage('Loading library catalogs…');
       setError('');
-      const tasks: Promise<CatalogLoad>[] = [
-        loadResourceRepository(catalogUrl),
-        loadFreshTeacher(freshTeacherCatalogUrl),
-        loadPremiumResources(),
+      const sources: Array<{ label: string; load: () => Promise<CatalogLoad> }> = [
+        { label: 'Study Hub Resources', load: () => loadResourceRepository(catalogUrl) },
+        { label: '2026 archive', load: loadPremiumResources },
       ];
-      if (supabaseUrl && anonKey) tasks.push(loadSupabase(supabaseUrl, anonKey));
-      const results = await Promise.allSettled(tasks);
-      if (!active) return;
+      if (supabaseUrl && anonKey) {
+        sources.push({ label: 'Supabase library', load: () => loadSupabase(supabaseUrl, anonKey) });
+      }
+      sources.push({ label: 'Fresh Teacher library', load: () => loadFreshTeacher(freshTeacherCatalogUrl) });
+
       const merged = new Map<string, Resource>();
-      let failed = 0;
-      for (const r of results) {
-        if (r.status === 'fulfilled') {
-          for (const resource of r.value.resources) {
+      const failures: string[] = [];
+      for (const source of sources) {
+        if (!active) return;
+        setLoadingMessage(`Loading ${source.label}…`);
+        try {
+          const result = await source.load();
+          for (const resource of result.resources) {
             const existing = merged.get(resource.id);
             if (existing) {
               existing.keys = [...new Set([...existing.keys, ...resource.keys])];
@@ -494,20 +500,27 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
               merged.set(resource.id, resource);
             }
           }
+          const availableResources = [...merged.values()];
+          setResources(availableResources);
+          setTotalResourceCount(availableResources.length);
+        } catch (sourceError) {
+          console.error(`${source.label} catalog could not be loaded.`, sourceError);
+          failures.push(source.label);
         }
-        else failed += 1;
       }
+      if (!active) return;
       const resources = [...merged.values()];
-      setResources(resources);
-      setTotalResourceCount(resources.length);
       setLoading(false);
+      setLoadingMessage('');
       if (!resources.length) setError('No resources could be loaded. Please try again shortly.');
-      else if (failed > 0) setError('Some resource catalogs could not be loaded; showing what is available.');
+      else if (failures.length > 0) {
+        setError(`Some catalogs could not be loaded (${failures.join(', ')}); showing available resources.`);
+      }
     }
     void load();
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catalogUrl, supabaseUrl, anonKey]);
+  }, [catalogUrl, freshTeacherCatalogUrl, supabaseUrl, anonKey]);
 
   useEffect(() => {
     const header = document.querySelector('.site-header');
@@ -725,6 +738,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           embedded={embedded}
           resources={resources}
           loading={loading}
+          loadingMessage={loadingMessage}
           error={error}
           subjectFilter={subjectFilter}
           typeFilter={typeFilter}
@@ -785,14 +799,14 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           onBackToShelf={() => setSelected(null)}
         />
       ) : (
-        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} error={error} onSelect={setSelected} base={base} />
+        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} loadingMessage={loadingMessage} error={error} onSelect={setSelected} base={base} />
       )}
     </div>
   );
 }
 
 
-function ClassShelf({ resources, totalResourceCount, loading, error, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; error: string; onSelect: (sel: { label: string; keys: string[] }) => void; base: string }) {
+function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, error, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; loadingMessage: string; error: string; onSelect: (sel: { label: string; keys: string[] }) => void; base: string }) {
   const countFor = (keys: string[]) => resources.filter((r) => keys.some((k) => r.keys.includes(k))).length;
   const classCount = libraryClassGroups.reduce((total, section) => total + section.items.length, 0);
 
@@ -823,7 +837,9 @@ function ClassShelf({ resources, totalResourceCount, loading, error, onSelect, b
           </div>
           <span className="lib-shelf-class-count">{classCount} classes</span>
         </div>
-        {(loading || error) && <p className="lib-shelf-status" role={error ? 'alert' : 'status'}>{loading ? 'Loading resources…' : error}</p>}
+        {loading
+          ? <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{loadingMessage} {totalResourceCount > 0 ? `${totalResourceCount.toLocaleString()} resources ready.` : 'Please wait while resources load.'}</p>
+          : error && <p className="lib-shelf-status" role="alert">{error}</p>}
         {libraryClassGroups.map((section) => (
           <section key={section.group} className="lib-shelf-group">
             <h2>{section.group}</h2>
@@ -871,6 +887,7 @@ interface DashboardProps {
   embedded: boolean;
   resources: Resource[];
   loading: boolean;
+  loadingMessage: string;
   error: string;
   subjectFilter: string;
   typeFilter: string;
@@ -935,10 +952,6 @@ function ResourceShare({ row, apiBase, shareCount, readerHref, onShareTracked }:
       } catch (shareError) {
         if (shareError instanceof Error && shareError.name === 'AbortError') return;
         setError(shareError instanceof Error ? shareError.message : 'This resource could not be shared.');
-        return;
-      }
-      if (row.source === 'premium-resources') {
-        setMessage('Link shared');
         return;
       }
       if (!apiBase) throw new Error('The share count service is not configured.');
@@ -1089,7 +1102,6 @@ function ResourceEngagement({
   const totalVotes = stats?.totalVotes ?? 0;
   const upPercent = totalVotes ? Math.round(((stats?.upVotes ?? 0) / totalVotes) * 100) : 0;
   const downPercent = totalVotes ? 100 - upPercent : 0;
-  if (row.source === 'premium-resources') return <span className="lib-resource-meta">Public archive</span>;
 
   return (
     <div className="lib-engagement">
@@ -1508,7 +1520,7 @@ function ClassDashboard(props: DashboardProps) {
 
           <div id="library-resources" className="lib-resource-results" aria-busy={loading}>
             {error && <p className="lib-banner" role="alert">{error}</p>}
-            {loading && <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />Loading class resources…</p>}
+            {loading && <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{props.loadingMessage} {resources.length.toLocaleString()} resources ready.</p>}
 
             {!loading && shown.length === 0 ? (
               <p className="lib-empty">No resources match these filters yet.</p>
@@ -1538,6 +1550,7 @@ function ClassDashboard(props: DashboardProps) {
                               data-preview-worker={previewFormat(row.url) ? `${props.base}full_page_flipbook_viewer/js/pdf.worker.min.js` : undefined}
                               aria-hidden="true"
                             >
+                              {previewFormat(row.url) && <span className="lib-resource-preview-spinner" aria-hidden="true" />}
                               <span className="dashboard-preview-placeholder" aria-hidden="true">{previewFormat(row.url).toUpperCase() || 'FILE'}</span>
                               <span className="dashboard-preview-caption">
                                 {previewFormat(row.url) ? 'Loading first-page preview…' : 'Preview unavailable · Open to view'}

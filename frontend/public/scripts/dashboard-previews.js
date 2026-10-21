@@ -5,6 +5,31 @@
   const scripts = new Map();
   const observedPreviews = new WeakSet();
   const previewResizeObservers = new WeakMap();
+  const queuedPreviews = new WeakSet();
+  const previewQueue = [];
+  const MAX_ACTIVE_PREVIEWS = 2;
+  let activePreviews = 0;
+
+  function enqueuePreview(preview) {
+    if (queuedPreviews.has(preview)) return;
+    queuedPreviews.add(preview);
+    previewQueue.push(preview);
+    processPreviewQueue();
+  }
+
+  function processPreviewQueue() {
+    while (activePreviews < MAX_ACTIVE_PREVIEWS && previewQueue.length) {
+      const preview = previewQueue.shift();
+      if (!preview.isConnected) continue;
+      activePreviews += 1;
+      renderPreview(preview)
+        .catch((error) => handlePreviewError(preview, error))
+        .finally(() => {
+          activePreviews -= 1;
+          processPreviewQueue();
+        });
+    }
+  }
 
   function loadScript(url) {
     if (!scripts.has(url)) {
@@ -161,7 +186,7 @@
           entries.forEach((entry) => {
             if (!entry.isIntersecting) return;
             currentObserver.unobserve(entry.target);
-            renderPreview(entry.target).catch((error) => handlePreviewError(entry.target, error));
+            enqueuePreview(entry.target);
           });
       }, { root, rootMargin: '180px 0px' })
       : null;
@@ -191,7 +216,7 @@
       observedPreviews.add(preview);
       const previewObserver = observerFor(preview);
       if (previewObserver) previewObserver.observe(preview);
-      else renderPreview(preview).catch((error) => handlePreviewError(preview, error));
+      else enqueuePreview(preview);
     });
   }
 

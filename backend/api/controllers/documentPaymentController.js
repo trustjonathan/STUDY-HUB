@@ -15,11 +15,13 @@ const FRESH_TEACHER_ORIGINS = new Set([
 ]);
 const RESOURCE_REPOSITORY_ORIGIN = 'https://raw.githubusercontent.com';
 const RESOURCE_REPOSITORY_PATH = '/trustjonathan/STUDY-HUB-RESOURCES-1/main/';
+const PREMIUM_ARCHIVE_PATH = '/trustjonathan/STUDT-HUB-RESOURCES-2026/main/';
 
 function isSupportedExternalResourceUrl(url) {
   if (url.protocol !== 'https:' || url.username !== '' || url.password !== '') return false;
   return FRESH_TEACHER_ORIGINS.has(url.origin) ||
-    (url.origin === RESOURCE_REPOSITORY_ORIGIN && url.pathname.startsWith(RESOURCE_REPOSITORY_PATH));
+    (url.origin === RESOURCE_REPOSITORY_ORIGIN &&
+      (url.pathname.startsWith(RESOURCE_REPOSITORY_PATH) || url.pathname.startsWith(PREMIUM_ARCHIVE_PATH)));
 }
 
 function responseError(res, status, error) {

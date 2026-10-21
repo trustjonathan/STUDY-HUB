@@ -186,11 +186,14 @@
 .lib-resource-preview .dashboard-preview-document .docx-wrapper > section.docx { width: 816px !important; min-height: 1056px !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box; }
 .lib-resource-preview.has-preview canvas { opacity: 1; }
 .lib-resource-preview.has-preview .dashboard-preview-placeholder,
-.lib-resource-preview.has-preview .dashboard-preview-caption { display: none; }
+.lib-resource-preview.has-preview .dashboard-preview-caption,
+.lib-resource-preview.has-preview .lib-resource-preview-spinner { display: none; }
 .lib-resource-preview .dashboard-preview-placeholder { color: #0f766e; font-size: 1.6rem; }
 .lib-resource-preview .dashboard-preview-caption { position: absolute; right: 5px; bottom: 4px; left: 5px; overflow: hidden; color: #526273; font-size: .62rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.lib-resource-preview-spinner { position: absolute; top: 10px; left: calc(50% - 8px); width: 16px; height: 16px; border: 2px solid rgba(36, 107, 73, .22); border-top-color: #246b49; border-radius: 50%; animation: lib-progress-spin .8s linear infinite; }
 .lib-resource-preview.preview-error,
 .lib-resource-preview.preview-unavailable { background: linear-gradient(145deg, #e8edf2, #f8fafc); }
+.lib-resource-preview.preview-error .lib-resource-preview-spinner { display: none; }
 .lib-resource-preview-title { display: block; max-width: 100%; margin-top: 6px; overflow: hidden; color: #0f172a; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 
 
@@ -424,6 +427,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lib-rail, .lib-side, .lib-class-card, .lib-shelf-cta, .lib-resource-cta, .lib-panel-toggle, .lib-class-drawer, .lib-progress-spinner { transition: none; animation: none; }
+  .lib-rail, .lib-side, .lib-class-card, .lib-shelf-cta, .lib-resource-cta, .lib-panel-toggle, .lib-class-drawer, .lib-progress-spinner, .lib-resource-preview-spinner { transition: none; animation: none; }
   .lib-class-card:hover { transform: none; }
 }

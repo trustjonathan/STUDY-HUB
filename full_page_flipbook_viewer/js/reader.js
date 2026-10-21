@@ -23,6 +23,11 @@ import * as tus from 'tus-js-client';
       url.origin === resourceRepositoryOrigin &&
       url.pathname.startsWith(resourceRepositoryPath);
   }
+  function isPremiumArchiveUrl(url) {
+    return url.protocol === 'https:' &&
+      url.origin === resourceRepositoryOrigin &&
+      url.pathname.startsWith('/trustjonathan/STUDT-HUB-RESOURCES-2026/main/');
+  }
   const toolbar = document.querySelector('#reader-toolbar');
   const readerResumeBanner = document.querySelector('#reader-resume');
   const readerResumeMessage = document.querySelector('#reader-resume-message');
@@ -149,7 +154,8 @@ import * as tus from 'tus-js-client';
         params.get('source') === 'resource-repository' ||
         params.get('source') === 'fresh-teacher' ||
         freshTeacherOrigins.has(fileUrl.origin) ||
-        isResourceRepositoryUrl(fileUrl)
+        isResourceRepositoryUrl(fileUrl) ||
+        isPremiumArchiveUrl(fileUrl)
       ) {
         return `ft:${requestedFile}`;
       }
@@ -1727,9 +1733,7 @@ import * as tus from 'tus-js-client';
       const isPublicResource = fileUrl.href.startsWith(storagePrefix);
       const isFreshTeacherResource = fileUrl.protocol === 'https:' && freshTeacherOrigins.has(fileUrl.origin);
       const isRepositoryResource = isResourceRepositoryUrl(fileUrl);
-      const isPremiumArchiveResource = fileUrl.protocol === 'https:' &&
-        fileUrl.origin === 'https://raw.githubusercontent.com' &&
-        fileUrl.pathname.startsWith('/trustjonathan/STUDT-HUB-RESOURCES-2026/main/');
+      const isPremiumArchiveResource = isPremiumArchiveUrl(fileUrl);
       const isPrivateReviewResource = reviewMode &&
         fileUrl.protocol === 'https:' &&
         fileUrl.origin === storageOrigin &&
