@@ -532,11 +532,26 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
           )}
         </div>
         <aside className="auth-card-aside">
-          <img className="auth-dashboard-art" src={`${homeHref.replace(/\/$/, '')}/assets/study-dashboard-devices.png`} alt="Study Hub AI Study dashboard on laptop, tablet, and phone" />
-          <p className="auth-eyebrow">Your study space, reimagined</p>
-          <h2>Our study dashboard has gotten even better.</h2>
-          <p>Your AI tutor, learning profile, and Study Hub Library now work together in one focused space, ready for every device.</p>
-          <a href={`${homeHref.replace(/\/$/, '')}/study.html`}>Explore AI Study <span aria-hidden="true">→</span></a>
+          <div className="auth-aside-kicker">
+            <span className="auth-aside-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z" /><path d="M4 5.5v16M8 7h8m-8 4h7" /></svg>
+            </span>
+            <p className="auth-eyebrow">A better place to begin</p>
+          </div>
+          <div className="auth-art-stage">
+            <span className="auth-art-orbit auth-art-orbit-one" aria-hidden="true"></span>
+            <span className="auth-art-orbit auth-art-orbit-two" aria-hidden="true"></span>
+            <span className="auth-art-label">Study Hub · Wherever you learn</span>
+            <img className="auth-dashboard-art" src={`${homeHref.replace(/\/$/, '')}/assets/study-dashboard-devices.png`} alt="Study Hub learning dashboard displayed across a laptop, tablet, and phone" />
+          </div>
+          <p className="auth-eyebrow">Your next chapter</p>
+          <h2>Make room for what you’re learning.</h2>
+          <p>Bring your class, subject resources, and AI Study into one space that feels ready for the way you learn.</p>
+          <ul className="auth-aside-points" aria-label="Study Hub account benefits">
+            <li><span aria-hidden="true">01</span><span>Shape your Library around your class and subjects</span></li>
+            <li><span aria-hidden="true">02</span><span>Return to your learning profile and saved resources</span></li>
+          </ul>
+          <a className="auth-aside-link" href={`${homeHref.replace(/\/$/, '')}/study.html`}>Explore AI Study <span aria-hidden="true">→</span></a>
         </aside>
       </section>
       <p className="auth-page-note">Your class and subject preferences can be changed from your learning profile at any time.</p>
