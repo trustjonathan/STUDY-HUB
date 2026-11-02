@@ -453,20 +453,20 @@ body[data-page] .legacy-site-footer {
 
 body[data-page] .legacy-footer-inner {
   display: grid;
-  grid-template-columns: minmax(110px, .8fr) repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(190px, 1.1fr) repeat(3, minmax(0, 1fr));
   align-items: start;
-  gap: clamp(28px, 4vw, 68px);
-  max-width: 1660px;
+  gap: clamp(20px, 3vw, 48px);
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 76px 40px 40px;
+  padding: 52px 32px 22px;
 }
 
 body[data-page] .legacy-footer-brand {
   display: flex;
-  min-height: 360px;
+  min-width: 0;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
+  gap: 12px;
 }
 
 body[data-page] .legacy-footer-mark { display: inline-flex; min-height: auto; align-items: center; }
@@ -489,7 +489,7 @@ body[data-page] .legacy-footer-socials a:first-child svg { fill: currentColor; s
 body[data-page] .legacy-footer-brand p,
 body[data-page] .legacy-footer-contact p {
   max-width: 300px;
-  margin: 14px 0 8px;
+  margin: 0;
   color: var(--legacy-muted);
   font-size: 0.9rem;
 }
@@ -500,31 +500,49 @@ body[data-page] .legacy-footer-note {
 }
 
 body[data-page] .legacy-footer-links,
-body[data-page] .legacy-footer-contact,
-body[data-page] .legacy-footer-column {
+body[data-page] .legacy-footer-contact {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-body[data-page] .legacy-footer-links h2,
-body[data-page] .legacy-footer-contact h2,
-body[data-page] .legacy-footer-column h2 {
-  margin: 0 0 18px;
-  color: #111827;
-  font-size: 1.05rem;
-  letter-spacing: 0;
-  text-transform: none;
+body[data-page] .legacy-footer-column {
+  display: block;
+  min-width: 0;
 }
 
+body[data-page] .legacy-footer-disclosure {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body[data-page] .legacy-footer-disclosure > summary {
+  display: flex;
+  min-height: 32px;
+  align-items: flex-start;
+  color: var(--legacy-ink);
+  font-size: 1rem;
+  font-weight: 750;
+  cursor: default;
+  list-style: none;
+}
+
+body[data-page] .legacy-footer-disclosure > summary::-webkit-details-marker { display: none; }
+body[data-page] .legacy-footer-disclosure > summary::after { display: none; }
+body[data-page] .legacy-footer-disclosure > nav { display: flex; flex-direction: column; align-items: flex-start; }
+body[data-page] .legacy-footer-disclosure > .legacy-footer-subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+body[data-page] .legacy-footer-inner .legacy-footer-subject-grid a { min-height: 40px; font-size: .875rem; line-height: 1.3; }
 body[data-page] .legacy-footer-subheading { margin: 22px 0 6px; color: #596273; font-size: .73rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 
 body[data-page] .legacy-site-footer a:not(.brand):not(.legacy-footer-mark):not(.legacy-footer-socials a) {
   display: inline-flex;
-  min-height: 48px;
+  min-height: 40px;
   align-items: center;
-  color: #586174;
-  font-size: 1rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   transition: color 150ms ease, transform 150ms ease;
@@ -537,8 +555,9 @@ body[data-page] .legacy-site-footer a:not(.brand):not(.legacy-footer-mark):not(.
   text-underline-offset: 3px;
 }
 
-body[data-page] .legacy-site-footer a:focus-visible {
-  outline: 3px solid #173e2e;
+body[data-page] .legacy-site-footer a:focus-visible,
+body[data-page] .legacy-footer-disclosure > summary:focus-visible {
+  outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
 
@@ -548,13 +567,15 @@ body[data-page] .legacy-footer-bottom {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 8px;
-  padding-top: 20px;
-  border-top: 1px solid #e6e8ed;
-  color: #687184;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-muted);
   font-size: 0.8rem;
 }
 
+body[data-page] .legacy-footer-bottom nav { display: flex; flex-wrap: wrap; gap: 0 14px; }
+body[data-page] .legacy-footer-bottom nav a { min-height: 32px; }
 body[data-page] .legacy-footer-bottom a {
   min-height: 40px;
   padding: 0 12px;
@@ -563,7 +584,15 @@ body[data-page] .legacy-footer-bottom a {
   background: #f7f8fa;
 }
 
+body[data-page] .legacy-footer-bottom nav a { min-height: 32px; }
 body[data-page] .legacy-footer-bottom a span { margin-left: 7px; color: var(--legacy-green); }
+
+body[data-page] .legacy-footer-disclosure > summary {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
 
 body[data-page] details {
   margin: 12px 0;
@@ -724,10 +753,15 @@ body[data-page] .site-header.clean-site-header .site-nav a { min-height: 42px; w
 
   body[data-page] .legacy-footer-inner {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 32px 24px;
-    padding: 48px 24px 24px;
+    gap: 24px;
+    padding: 36px 24px 20px;
   }
-  body[data-page] .legacy-footer-brand { min-height: 0; grid-column: 1 / -1; flex-direction: row; align-items: center; }
+  body[data-page] .legacy-footer-brand { grid-column: 1 / -1; }
+  body[data-page] .legacy-footer-disclosure { border-bottom: 1px solid var(--color-line); }
+  body[data-page] .legacy-footer-disclosure > summary { min-height: 48px; align-items: center; justify-content: space-between; cursor: pointer; }
+  body[data-page] .legacy-footer-disclosure > summary::after { display: block; color: var(--color-primary); content: "+"; font-size: 1.2rem; line-height: 1; }
+  body[data-page] .legacy-footer-disclosure[open] > summary::after { content: "−"; }
+  body[data-page] .legacy-footer-disclosure > nav { padding: 0 0 12px; }
 }
 
 @media (max-width: 420px) {
@@ -754,15 +788,17 @@ body[data-page] .site-header.clean-site-header .site-nav a { min-height: 42px; w
 
   body[data-page] .legacy-footer-inner {
     grid-template-columns: 1fr;
-    gap: 22px;
-    padding: 36px 18px 20px;
+    gap: 12px;
+    padding: 28px 16px 16px;
   }
-  body[data-page] .legacy-footer-brand { grid-column: auto; }
+  body[data-page] .legacy-footer-brand { grid-column: auto; padding-bottom: 8px; }
 
   body[data-page] .legacy-footer-bottom {
     grid-column: auto;
     align-items: flex-start;
     flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
   }
 }
 
