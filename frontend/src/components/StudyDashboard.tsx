@@ -74,6 +74,7 @@ function Icon({ name }: { name: 'spark' | 'book' | 'target' | 'calendar' | 'arro
 
 export default function StudyDashboard({ baseHref, libraryHref, signInHref, initialView = 'home' }: Props) {
   const [user, setUser] = useState<StudyUser | null>(null);
+  const [profileReady, setProfileReady] = useState(false);
   const [view, setView] = useState<'home' | 'tutor' | 'library' | 'plan' | 'preferences'>(initialView);
   const [online, setOnline] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
@@ -236,6 +237,7 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
         }
       }
     }
+    setProfileReady(true);
 
     function updateNetwork() {
       setOnline(navigator.onLine);
@@ -333,10 +335,10 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
     <div className="study-app">
       {mobileNavOpen && <button className="study-mobile-backdrop" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} />}
       <aside className={`study-sidebar${mobileNavOpen ? ' is-open' : ''}`}>
-        <button className="study-brand" type="button" onClick={() => openView('home')}>
+        <a className="study-brand" href={baseHref} aria-label="Study Hub home">
           <img src={`${baseHref}favicon.svg`} alt="" />
           <span><strong>Study Hub</strong><small>AI Study</small></span>
-        </button>
+        </a>
         <button className="study-mobile-close" type="button" aria-label="Close study navigation" onClick={() => setMobileNavOpen(false)}>×</button>
         <p className="study-nav-label">WORKSPACE</p>
         <nav className="study-nav" aria-label="AI Study navigation">
@@ -437,9 +439,15 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
           </section>
 
           <section className="study-lower-grid">
-            <div id="study-progress-panel" className="study-panel study-progress-panel">
+            <div id="study-progress-panel" className="study-panel study-progress-panel" aria-busy={!profileReady}>
               <div className="study-panel-heading"><div><p className="study-section-kicker">YOUR PROGRESS</p><h2>Build your study rhythm</h2></div><span className="study-panel-symbol"><Icon name="target" /></span></div>
-              {personalized ? (
+              {!profileReady ? (
+                <div className="study-progress-skeleton" role="status" aria-label="Loading your learning profile">
+                  <span className="study-progress-skeleton-line" />
+                  <span className="study-progress-skeleton-line is-short" />
+                  <span className="study-progress-skeleton-action" />
+                </div>
+              ) : personalized ? (
                 <div className="study-subject-list">
                   <p>Your personal study plan tracks topics, study streaks, progress, and recommendations.</p>
                   <div className="study-profile-tags">

@@ -582,6 +582,7 @@ export default function LibraryWorkspace({
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [engagementError, setEngagementError] = useState('');
   const [engagementLoading, setEngagementLoading] = useState(false);
+  const [engagementLoaded, setEngagementLoaded] = useState(false);
   const [engagementRefreshing, setEngagementRefreshing] = useState(false);
 
   const base = homeHref.endsWith('/') ? homeHref : `${homeHref}/`;
@@ -607,7 +608,9 @@ export default function LibraryWorkspace({
     let active = true;
     async function loadEngagement() {
       if (!apiBase) return;
+      setEngagementLoaded(false);
       setEngagementLoading(true);
+      setEngagementError('');
       try {
         const response = await fetch(`${apiBase}/api/resources/stats`);
         if (!response.ok) throw new Error(`Resource ratings request failed (HTTP ${response.status}).`);
@@ -646,7 +649,10 @@ export default function LibraryWorkspace({
         console.error('Resource engagement could not be loaded.', loadError);
         if (active) setEngagementError('Ratings or saved documents could not be loaded.');
       } finally {
-        if (active) setEngagementLoading(false);
+        if (active) {
+          setEngagementLoading(false);
+          setEngagementLoaded(true);
+        }
       }
     }
     void loadEngagement();
@@ -996,6 +1002,7 @@ export default function LibraryWorkspace({
           bookmarks={bookmarks}
           engagementError={engagementError}
           engagementLoading={engagementLoading}
+          engagementLoaded={engagementLoaded}
           engagementRefreshing={engagementRefreshing}
           signInHref={signInHref}
           onVoteSaved={(resourceId, vote) => {
@@ -1081,6 +1088,18 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
   const classCount = libraryClassGroups.reduce((total, section) => total + section.items.length, 0);
   const categories = premiumResourceCategories(resources);
   const countForCategory = (category: string) => resources.filter((resource) => resource.category === category).length;
+  const countsUnavailable = loading || (Boolean(error) && totalResourceCount === 0);
+
+  function resourceCount(count: number) {
+    if (loading) return <span className="lib-count-skeleton" aria-hidden="true" />;
+    if (error && totalResourceCount === 0) return 'Unavailable';
+    return `${count.toLocaleString()} resources`;
+  }
+  function classCardLabel(label: string, count: number) {
+    if (loading) return `Open ${label}; resource count loading`;
+    if (countsUnavailable) return `Open ${label}; resource count unavailable`;
+    return `Open ${label}, ${count.toLocaleString()} resources`;
+  }
 
   return (
     <div className="lib-shelf">
@@ -1092,16 +1111,23 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
           <span className="lib-shelf-eyebrow">STUDY-HUB · YOUR DIGITAL LIBRARY</span>
           <h1 id="lib-shelf-heading">A good place to begin.</h1>
           <p>Find clear notes, helpful guides and papers for every step of your learning journey.</p>
-          <div className="lib-shelf-stats" aria-label="Library overview">
+          <div className="lib-shelf-stats" aria-label={loading ? 'Loading library overview' : 'Library overview'}>
             <span><strong>{classCount}</strong> learning levels</span>
-            <span><strong>{totalResourceCount.toLocaleString()}</strong> site-wide resources</span>
+            <span>
+              {loading
+                ? <span className="lib-count-skeleton" aria-hidden="true" />
+                : error && totalResourceCount === 0
+                  ? <strong>Unavailable</strong>
+                  : <strong>{totalResourceCount.toLocaleString()}</strong>}
+              {' '}site-wide resources
+            </span>
           </div>
           <a className="lib-shelf-cta" href="#library-classes">
             Explore your class <span aria-hidden="true">↓</span>
           </a>
         </div>
       </section>
-      <div id="library-classes" className="lib-shelf-classes">
+      <div id="library-classes" className="lib-shelf-classes" aria-busy={loading}>
         <div className="lib-shelf-section-heading">
           <div>
             <span className="lib-shelf-section-kicker">Choose a learning level</span>
@@ -1110,17 +1136,23 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
           <span className="lib-shelf-class-count">{classCount} classes</span>
         </div>
         {loading
-          ? <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{loadingMessage} {totalResourceCount > 0 ? `${totalResourceCount.toLocaleString()} resources ready.` : 'Please wait while resources load.'}</p>
+          ? <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{loadingMessage} {totalResourceCount > 0 ? `${totalResourceCount.toLocaleString()} resources ready so far.` : 'Please wait while resources load.'}</p>
           : error && <p className="lib-shelf-status" role="alert">{error}</p>}
+        {!loading && !error && totalResourceCount === 0 && (
+          <p className="lib-empty-state" role="status">
+            <strong>No resources are available yet.</strong>
+            <span>Try again later while the catalogue is refreshed.</span>
+          </p>
+        )}
         <CatalogSourceNotice sources={catalogSources} />
         {libraryClassGroups.map((section) => (
           <section key={section.group} className="lib-shelf-group">
             <h2>{section.group}</h2>
             <div className="lib-shelf-grid">
               {section.items.map((item) => (
-                <button key={item.label} type="button" className="lib-class-card" onClick={() => onSelect({ label: item.label, keys: item.keys })}>
+                <button key={item.label} type="button" className="lib-class-card" aria-label={classCardLabel(item.label, countFor(item.keys))} onClick={() => onSelect({ label: item.label, keys: item.keys })}>
                   <span className="lib-class-name">{item.label}</span>
-                  <span className="lib-class-sub">{countFor(item.keys)} resources</span>
+                  <span className="lib-class-sub">{resourceCount(countFor(item.keys))}</span>
                 </button>
               ))}
             </div>
@@ -1132,20 +1164,20 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
             <button
               type="button"
               className="lib-class-card lib-class-card-trending"
-              aria-label={`Open 2026 trending resources, ${countFor(TRENDING_2026_CLASS.keys)} resources`}
+              aria-label={classCardLabel('2026 trending', countFor(TRENDING_2026_CLASS.keys))}
               onClick={() => onSelect(TRENDING_2026_CLASS)}
             >
               <span className="lib-class-name">2026 trending</span>
-              <span className="lib-class-sub">{countFor(TRENDING_2026_CLASS.keys)} resources</span>
+              <span className="lib-class-sub">{resourceCount(countFor(TRENDING_2026_CLASS.keys))}</span>
             </button>
             <button
               type="button"
               className="lib-class-card"
-              aria-label={`Open unsorted files, ${countFor(UNSORTED_CLASS.keys)} resources`}
+              aria-label={classCardLabel('unsorted files', countFor(UNSORTED_CLASS.keys))}
               onClick={() => onSelect(UNSORTED_CLASS)}
             >
               <span className="lib-class-name">Unsorted files</span>
-              <span className="lib-class-sub">{countFor(UNSORTED_CLASS.keys)} resources</span>
+              <span className="lib-class-sub">{resourceCount(countFor(UNSORTED_CLASS.keys))}</span>
             </button>
           </div>
         </section>
@@ -1161,7 +1193,7 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
                   onClick={() => onSelect({ label: category, keys: [], category })}
                 >
                   <span className="lib-class-name">{category}</span>
-                  <span className="lib-class-sub">{countForCategory(category)} resources</span>
+                  <span className="lib-class-sub">{resourceCount(countForCategory(category))}</span>
                 </button>
               ))}
             </div>
@@ -1194,6 +1226,7 @@ interface DashboardProps {
   bookmarks: string[];
   engagementError: string;
   engagementLoading: boolean;
+  engagementLoaded: boolean;
   engagementRefreshing: boolean;
   signInHref: () => string;
   onVoteSaved: (resourceId: string, vote: 1 | -1 | null) => void;
@@ -1430,6 +1463,12 @@ function ClassDashboard(props: DashboardProps) {
   const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const classDrawerOpen = classesOpen;
 
+  function countContents(count: number) {
+    if (loading) return <span className="lib-count-skeleton" aria-hidden="true" />;
+    if (error && resources.length === 0) return '—';
+    return count.toLocaleString();
+  }
+
   function cancelHoverClose() {
     if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
   }
@@ -1578,7 +1617,7 @@ function ClassDashboard(props: DashboardProps) {
                         }}
                       >
                         <span>{item.label}</span>
-                        <span className="lib-class-drawer-count">{count.toLocaleString()}</span>
+                        <span className="lib-class-drawer-count">{countContents(count)}</span>
                       </button>
                     );
                   })}
@@ -1602,7 +1641,7 @@ function ClassDashboard(props: DashboardProps) {
                         }}
                       >
                         <span>{category}</span>
-                        <span className="lib-class-drawer-count">{count.toLocaleString()}</span>
+                        <span className="lib-class-drawer-count">{countContents(count)}</span>
                       </button>
                     );
                   })}
@@ -1621,7 +1660,7 @@ function ClassDashboard(props: DashboardProps) {
                 >
                   <span>2026 trending</span>
                   <span className="lib-class-drawer-count">
-                    {resources.filter((resource) => TRENDING_2026_CLASS.keys.some((key) => resource.keys.includes(key))).length.toLocaleString()}
+                    {countContents(resources.filter((resource) => TRENDING_2026_CLASS.keys.some((key) => resource.keys.includes(key))).length)}
                   </span>
                 </button>
               </section>
@@ -1638,7 +1677,7 @@ function ClassDashboard(props: DashboardProps) {
                 >
                   <span>Unsorted files</span>
                   <span className="lib-class-drawer-count">
-                    {resources.filter((resource) => UNSORTED_CLASS.keys.some((key) => resource.keys.includes(key))).length.toLocaleString()}
+                    {countContents(resources.filter((resource) => UNSORTED_CLASS.keys.some((key) => resource.keys.includes(key))).length)}
                   </span>
                 </button>
               </section>
@@ -1681,7 +1720,7 @@ function ClassDashboard(props: DashboardProps) {
               onClick={() => chooseSubject('all')}
             >
               All Subjects
-              <span className="lib-cat-count">{classResources.length.toLocaleString()}</span>
+              <span className="lib-cat-count">{countContents(classResources.length)}</span>
             </button>
             {subjects.map((subject) => (
               <button
@@ -1692,9 +1731,9 @@ function ClassDashboard(props: DashboardProps) {
               >
                 {subject}
                 <span className="lib-cat-count">
-                  {classResources.filter((resource) =>
+                  {countContents(classResources.filter((resource) =>
                     subjectsForClassSelection(resource, selected.category ? undefined : selected.keys).includes(subject)
-                  ).length.toLocaleString()}
+                  ).length)}
                 </span>
               </button>
             ))}
@@ -1766,11 +1805,25 @@ function ClassDashboard(props: DashboardProps) {
               <span className="lib-resource-eyebrow">{selected.label} · YOUR STUDY SPACE</span>
               <h1 id="lib-resource-heading">Room to explore.</h1>
               <p>Pick up where curiosity leads — your class resources are all gathered here.</p>
-              <div className="lib-resource-stats">
-                <span><strong>{classResources.length.toLocaleString()}</strong> resources</span>
-                <span><strong>{new Set(classResources.flatMap((resource) =>
-                  subjectsForClassSelection(resource, selected.category ? undefined : selected.keys)
-                )).size}</strong> subjects</span>
+              <div className="lib-resource-stats" aria-label={loading ? 'Loading class resource totals' : 'Class resource totals'}>
+                <span>
+                  {loading
+                    ? <span className="lib-count-skeleton" aria-hidden="true" />
+                    : error && resources.length === 0
+                      ? <strong>Unavailable</strong>
+                      : <strong>{classResources.length.toLocaleString()}</strong>}
+                  {' '}resources
+                </span>
+                <span>
+                  {loading
+                    ? <span className="lib-count-skeleton" aria-hidden="true" />
+                    : error && resources.length === 0
+                      ? <strong>Unavailable</strong>
+                      : <strong>{new Set(classResources.flatMap((resource) =>
+                        subjectsForClassSelection(resource, selected.category ? undefined : selected.keys)
+                      )).size}</strong>}
+                  {' '}subjects
+                </span>
               </div>
             </div>
             <a className="lib-resource-cta" href="#library-resources" aria-label="Browse class resources">↓</a>
@@ -1778,7 +1831,15 @@ function ClassDashboard(props: DashboardProps) {
           <div className="lib-main-head">
             <div className="lib-resource-list-heading">
               <span className="lib-shelf-section-kicker">Made for your class</span>
-              <h2>{savedOnly ? 'Your bookmarks' : search.trim() ? 'Search all resources' : 'Browse resources'} <span>{filtered.length.toLocaleString()}</span></h2>
+              <h2>
+                {savedOnly ? 'Your bookmarks' : search.trim() ? 'Search all resources' : 'Browse resources'}
+                {' '}
+                <span aria-label={loading ? 'Loading resource count' : error && resources.length === 0 ? 'Resource count unavailable' : `${filtered.length.toLocaleString()} resources`}>
+                  {loading
+                    ? <span className="lib-count-skeleton" aria-hidden="true" />
+                    : error && resources.length === 0 ? '—' : filtered.length.toLocaleString()}
+                </span>
+              </h2>
             </div>
             <div className="lib-main-tools">
               <input
@@ -1803,7 +1864,7 @@ function ClassDashboard(props: DashboardProps) {
                 }}
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" /></svg>
-                Saved ({props.bookmarks.length})
+                {props.engagementLoaded && !props.engagementError ? `Saved (${props.bookmarks.length})` : 'Saved'}
               </button>
             </div>
           </div>
@@ -1825,10 +1886,22 @@ function ClassDashboard(props: DashboardProps) {
           <div id="library-resources" className="lib-resource-results" aria-busy={loading}>
             <CatalogSourceNotice sources={props.catalogSources} />
             {error && <p className="lib-banner" role="alert">{error}</p>}
-            {loading && <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{props.loadingMessage} {resources.length.toLocaleString()} resources ready.</p>}
+            {loading && <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{props.loadingMessage}{resources.length > 0 ? ` ${resources.length.toLocaleString()} resources ready so far.` : ' Results will appear as catalogues load.'}</p>}
 
-            {!loading && shown.length === 0 ? (
-              <p className="lib-empty">No resources match these filters yet.</p>
+            {loading ? (
+              <div className="lib-results-skeleton" role="status" aria-label="Loading library resources">
+                <span className="lib-results-skeleton-label">Loading resources</span>
+                {Array.from({ length: 4 }, (_, index) => (
+                  <div className="lib-results-skeleton-row" key={index} aria-hidden="true">
+                    <span /><span /><span />
+                  </div>
+                ))}
+              </div>
+            ) : shown.length === 0 ? (
+              <div className={`lib-empty ${resources.length === 0 ? 'is-unavailable' : ''}`}>
+                <strong>{resources.length === 0 ? 'No library resources are available.' : 'No resources match these filters.'}</strong>
+                <span>{resources.length === 0 ? 'Use the catalogue message above to check availability, then try again later.' : 'Try a different search or filter to see more resources.'}</span>
+              </div>
             ) : (
               <div className="lib-table-wrap">
                 <table className="lib-table">

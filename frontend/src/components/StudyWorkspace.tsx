@@ -529,8 +529,13 @@ export default function StudyWorkspace({
         <div className="ws-content">
           {loading && (
             <div className="ws-state ws-loading" role="status">
-              <span className="ws-spinner" aria-hidden="true" />
               <p>Thinking through your question about “{activeTitle}”…</p>
+              <div className="ws-note-skeleton" aria-hidden="true">
+                <span className="ws-note-skeleton-line" />
+                <span className="ws-note-skeleton-line is-short" />
+                <span className="ws-note-skeleton-block" />
+                <span className="ws-note-skeleton-line" />
+              </div>
             </div>
           )}
 

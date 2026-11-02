@@ -31,7 +31,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 </script>
 
 <style>
-  :global(body[data-page='study']) { background: #f5f7f4; }
+  :global(body[data-page='study']) { background: var(--color-canvas); }
   :global(body[data-page='study'] .site-header) { display: none; }
   :global(body[data-page='study'] main) { max-width: none; padding: 0; }
   :global(body[data-page='study'] .site-footer) { display: none; }
