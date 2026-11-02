@@ -2,6 +2,7 @@
 import sharedStyles from '../styles/astro-site.css?url';
 import tokenStyles from '../styles/design-tokens.css?url';
 import legacyStyles from '../styles/legacy-refresh.css?url';
+import FooterTextLinks from '../components/FooterTextLinks.astro';
 import ResumeProgress from '../components/ResumeProgress.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SubjectMoreSubjects from '../components/SubjectMoreSubjects.astro';
@@ -86,6 +87,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <slot />
     {currentSubject && <SubjectMoreSubjects subject={currentSubject.slug} />}
     <SiteFooter home={home} />
+    <FooterTextLinks home={home} />
     <ResumeProgress />
   </body>
 </html>

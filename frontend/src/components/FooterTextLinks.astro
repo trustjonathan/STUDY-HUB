@@ -1,0 +1,54 @@
+---
+interface Props {
+  home: string;
+}
+
+const { home } = Astro.props;
+---
+
+<div class="footer-text-row">
+  <span>© {new Date().getFullYear()} Study Hub</span>
+  <nav aria-label="Legal policies">
+    <a href={`${home}/privacy.html`}>Privacy</a>
+    <a href={`${home}/terms.html`}>Terms</a>
+    <a href={`${home}/copyright.html`}>Copyright</a>
+  </nav>
+  <span>Proudly supporting Ugandan learners for two years.</span>
+</div>
+
+<style>
+  .footer-text-row {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    width: 100%;
+    min-height: 30px;
+    clear: both;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 20px;
+    padding: 5px clamp(16px, 3vw, 36px);
+    border-top: 1px solid var(--color-line);
+    color: var(--color-muted);
+    font: 400 .75rem/1.35 var(--font-sans);
+  }
+
+  .footer-text-row nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+  }
+
+  .footer-text-row a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .footer-text-row a:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+</style>

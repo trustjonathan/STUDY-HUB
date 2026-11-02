@@ -1,6 +1,7 @@
 ---
 import '../styles/astro-site.css';
 import '../styles/design-tokens.css';
+import FooterTextLinks from '../components/FooterTextLinks.astro';
 import ResumeProgress from '../components/ResumeProgress.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -93,6 +94,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     {showFooter && (
       <SiteFooter home={home} />
     )}
+    <FooterTextLinks home={home} />
     <ResumeProgress />
   </body>
 </html>
