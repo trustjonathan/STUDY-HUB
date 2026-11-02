@@ -62,7 +62,7 @@ const notices: Notice[] = [
 ];
 ---
 
-<aside class="study-billboard home-study-carousel" aria-label="Study Hub announcements and featured links" data-study-billboard>
+<aside class="study-billboard" aria-label="Study Hub announcements and featured links" data-study-billboard>
   <div class="billboard-stage" data-billboard-stage role="region" aria-label="Study Hub spotlight" aria-roledescription="carousel">
     {notices.map((notice, index) => (
       <article
@@ -109,18 +109,11 @@ const notices: Notice[] = [
   const rotationInterval = 5000;
   const exitDuration = 600;
 
-  function syncViewportGutter(): void {
-    const gutter = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
-    document.documentElement.style.setProperty('--viewport-scrollbar-gutter', `${gutter}px`);
-    document.documentElement.style.setProperty('--viewport-scrollbar-gutter-half', `${gutter / 2}px`);
-  }
-
   function cleanupBillboards(): void {
     billboardCleanups.splice(0).forEach((cleanup) => cleanup());
   }
 
   function initializeBillboards(): void {
-    syncViewportGutter();
     cleanupBillboards();
 
     document.querySelectorAll<HTMLElement>('[data-study-billboard]').forEach((billboard) => {
@@ -266,7 +259,6 @@ const notices: Notice[] = [
 
   document.addEventListener('astro:page-load', initializeBillboards);
   document.addEventListener('astro:before-swap', cleanupBillboards);
-  window.addEventListener('resize', syncViewportGutter, { passive: true });
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeBillboards, { once: true });
   } else {
@@ -562,114 +554,4 @@ const notices: Notice[] = [
     .billboard-card { will-change: auto; }
   }
 
-  .home-study-carousel.study-billboard {
-    position: relative;
-    display: block;
-    min-height: max(620px, calc(100svh - 54px));
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: #102d2b;
-    box-shadow: none;
-  }
-
-  .home-study-carousel .billboard-stage {
-    height: auto;
-    min-height: inherit;
-    overflow: hidden;
-    perspective: none;
-  }
-
-  .home-study-carousel .billboard-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: clamp(20px, 4vh, 40px);
-    overflow: hidden;
-    padding: clamp(32px, 8vw, 120px);
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    transform-style: flat;
-  }
-
-  .home-study-carousel .billboard-card::after {
-    background: linear-gradient(90deg, rgba(8, 30, 28, .91), rgba(8, 30, 28, .67) 58%, rgba(8, 30, 28, .28));
-  }
-
-  .home-study-carousel .billboard-card-copy {
-    width: min(100%, 1000px);
-    flex: 0 0 auto;
-  }
-
-  .home-study-carousel .billboard-card-badge {
-    width: fit-content;
-    max-width: 100%;
-    overflow: visible;
-    padding: 7px 12px;
-    font-size: clamp(.68rem, 1vw, .85rem);
-    white-space: normal;
-  }
-
-  .home-study-carousel .billboard-card h2 {
-    max-width: 950px;
-    overflow: visible;
-    margin: 18px 0 14px;
-    font-size: clamp(2.5rem, 7vw, 6.8rem);
-    line-height: 1.04;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
-  .home-study-carousel .billboard-card p {
-    display: block;
-    max-width: 64ch;
-    overflow: visible;
-    font-size: clamp(1rem, 1.8vw, 1.38rem);
-    line-height: 1.65;
-    -webkit-line-clamp: unset;
-  }
-
-  .home-study-carousel .billboard-card-action {
-    flex: 0 0 auto;
-    align-items: flex-start;
-    margin-left: clamp(32px, 8vw, 120px);
-  }
-
-  .home-study-carousel .billboard-card-cta {
-    min-height: 52px;
-    padding: 0 22px;
-    border-radius: 8px;
-    font-size: .9rem;
-  }
-
-  .home-study-carousel .billboard-utility {
-    position: absolute;
-    z-index: 50;
-    right: clamp(16px, 4vw, 56px);
-    bottom: clamp(16px, 4vh, 40px);
-  }
-
-  .home-study-carousel .billboard-count { color: rgba(255, 255, 255, .85); font-size: .76rem; }
-  .home-study-carousel .billboard-control { min-width: 38px; min-height: 36px; border-color: rgba(255, 255, 255, .38); background: rgba(10, 31, 29, .46); color: #fff; font-size: .82rem; }
-  .home-study-carousel .billboard-control:hover:not(:disabled) { border-color: #fff; background: rgba(255, 255, 255, .16); }
-  .home-study-carousel .billboard-card-cta:focus-visible,
-  .home-study-carousel .billboard-control:focus-visible { outline-color: #fff; }
-
-  @media (max-width: 760px) {
-    .home-study-carousel.study-billboard { min-height: max(620px, calc(100svh - 54px)); }
-    .home-study-carousel .billboard-card { gap: 26px; padding: 36px 25px 96px; }
-    .home-study-carousel .billboard-card h2 { font-size: clamp(2.35rem, 11vw, 4.4rem); }
-    .home-study-carousel .billboard-card p { max-width: 48ch; font-size: 1rem; }
-    .home-study-carousel .billboard-card-action { margin-left: 0; }
-    .home-study-carousel .billboard-utility { right: 18px; bottom: 18px; }
-  }
-
-  @media (max-width: 420px) {
-    .home-study-carousel .billboard-card { padding: 30px 18px 94px; }
-    .home-study-carousel .billboard-card h2 { font-size: clamp(2.1rem, 10vw, 3rem); }
-    .home-study-carousel .billboard-card p { font-size: .94rem; }
-    .home-study-carousel .billboard-control { min-width: 34px; min-height: 32px; }
-  }
 </style>

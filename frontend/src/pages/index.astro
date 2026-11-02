@@ -14,35 +14,21 @@ const featuredSubjects = availableSubjects.slice(0, 4);
   description="See how Study Hub connects subject libraries, class-based resource discovery, a document reader, and AI study tools for Ugandan learners."
 >
   <main class="landing-page">
-    <section class="landing-spotlight" aria-label="Featured Study Hub highlights">
-      <StudyBillboard base={base} />
-    </section>
-
     <section class="landing-hero" id="overview">
       <div class="landing-hero-copy">
-        <p class="landing-eyebrow"><span></span> A guided place to learn</p>
         <h1>From “I’m stuck” to <em>“I understand.”</em></h1>
         <p class="landing-intro">
-          Study Hub brings subject notes, exam resources, a comfortable document reader, and AI study tools into one connected learning journey.
-          Start with what you need today; the next step is always close by.
+          Find class resources and study topics with a connected library and AI tools.
         </p>
         <div class="landing-hero-actions">
           <a class="landing-button landing-button-primary" href={`${base}library.html`}>Explore the Library <span aria-hidden="true">→</span></a>
           <a class="landing-button landing-button-secondary" href={`${base}assistant.html`}>Open AI Study <span aria-hidden="true">↗</span></a>
         </div>
-        <p class="landing-hero-note">Free study resources for Ugandan learners · Use on desktop, tablet, or phone</p>
       </div>
-      <aside class="landing-path-card" aria-label="A typical Study Hub learning journey">
-        <div class="landing-path-top"><span>YOUR STUDY PATH</span><span>01—04</span></div>
-        <div class="landing-path-line" aria-hidden="true"></div>
-        <ol>
-          <li><span class="landing-path-number">01</span><div><strong>Find your class</strong><small>Browse by level, subject, or title</small></div></li>
-          <li><span class="landing-path-number">02</span><div><strong>Open a resource</strong><small>Read notes and exam papers</small></div></li>
-          <li><span class="landing-path-number">03</span><div><strong>Work through the idea</strong><small>Ask AI Study for another explanation</small></div></li>
-          <li><span class="landing-path-number">04</span><div><strong>Return when ready</strong><small>Pick up where you left off</small></div></li>
-        </ol>
-        <a href="#site-tour">Take the two-minute tour <span aria-hidden="true">↓</span></a>
-      </aside>
+    </section>
+
+    <section class="landing-spotlight" aria-label="Featured Study Hub highlights">
+      <StudyBillboard base={base} />
     </section>
 
     <section class="landing-section landing-subjects" id="subjects">
@@ -107,7 +93,7 @@ const featuredSubjects = availableSubjects.slice(0, 4);
               </div>
             </div>
           </div>
-          <figcaption><span>LIBRARY PREVIEW</span> Class shelf · filters · searchable resources</figcaption>
+          <figcaption><span>ILLUSTRATIVE PREVIEW</span> Library layout · class filters · searchable resources</figcaption>
         </figure>
       </article>
 
@@ -144,7 +130,7 @@ const featuredSubjects = availableSubjects.slice(0, 4);
               <div class="landing-ai-input">Ask a question or enter a study topic… <span>↑</span></div>
             </div>
           </div>
-          <figcaption><span>AI STUDY PREVIEW</span> Ask a topic question · explore a guide · continue learning</figcaption>
+          <figcaption><span>ILLUSTRATIVE PREVIEW</span> AI Study layout · ask about a topic · explore a guide</figcaption>
         </figure>
       </article>
 
@@ -169,7 +155,7 @@ const featuredSubjects = availableSubjects.slice(0, 4);
               <aside class="landing-related-panel"><small>RELATED DOCUMENTS</small><b>More for this subject</b><span>Revision notes</span><span>Past paper</span><span>Marking guide</span></aside>
             </div>
           </div>
-          <figcaption><span>READER PREVIEW</span> Page tools · related resources · optional AI help</figcaption>
+          <figcaption><span>ILLUSTRATIVE PREVIEW</span> Reader layout · page tools · related resources</figcaption>
         </figure>
       </article>
     </section>
