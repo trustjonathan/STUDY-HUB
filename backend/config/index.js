@@ -6,8 +6,8 @@ const config = {
 
   // Server
   server: {
-    port: process.env.PORT || 5000,
-    baseUrl: process.env.BASE_URL || 'http://localhost:5000',
+    port: process.env.PORT || 4000,
+    baseUrl: process.env.BASE_URL || 'http://localhost:4000',
   },
 
   // JWT / Auth

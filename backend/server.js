@@ -4,6 +4,7 @@ const express = require("express")
 const cors = require("cors")
 const morgan = require("morgan")
 const { google } = require("googleapis")
+const { server: serverConfig } = require("./config")
 
 const app = express()
 const performanceMonitoringService = require("./services/performanceMonitoringService")
@@ -85,7 +86,6 @@ const oauth2Client = new google.auth.OAuth2(
 )
 
 // Start Server
-const PORT = process.env.PORT || 4000
-app.listen(PORT, () => {
-   console.log(`🚀 Study Hub server running on port ${PORT}`)
+app.listen(serverConfig.port, () => {
+   console.log(`🚀 Study Hub server running on port ${serverConfig.port}`)
 })
