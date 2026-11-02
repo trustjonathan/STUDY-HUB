@@ -2,6 +2,7 @@ const { afterEach, beforeEach, test } = require("node:test");
 const assert = require("node:assert/strict");
 const { handler } = require("../api/controllers/lessonGuide.controller");
 const sequelize = require("../database/config/database");
+const { DEFAULT_GEMINI_MODEL } = require("../config/gemini");
 
 const envKeys = [
   "GEMINI_API_KEY",
@@ -78,7 +79,7 @@ test("answers a study question through the server-side Gemini model", async () =
   assert.equal(res.body.source, "generated-unsaved");
   assert.equal(requests.length, 3);
   assert.ok(requests.every(({ url }) =>
-    url.pathname === "/v1beta/models/gemini-3.8-flash:generateContent"
+    url.pathname === `/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent`
   ));
   assert.equal(requests[0].body.systemInstruction.parts.length, 1);
   assert.equal(

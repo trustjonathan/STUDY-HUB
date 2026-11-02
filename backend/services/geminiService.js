@@ -1,5 +1,6 @@
+const { DEFAULT_GEMINI_MODEL } = require('../config/gemini');
+
 const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = "gemini-3.5-flash";
 const DEFAULT_FALLBACK_MODEL = "gemini-3.5-flash-lite";
 
 function endpointFor(model) {
@@ -38,7 +39,7 @@ async function requestModel(apiKey, model, payload, attempts = 3, timeoutMs = 15
 }
 
 async function generateContent(apiKey, payload, timeoutMs = 15_000) {
-  const primaryModel = process.env.GEMINI_MODEL?.trim() || DEFAULT_MODEL;
+  const primaryModel = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
   const fallbackModel = process.env.GEMINI_FALLBACK_MODEL?.trim() || DEFAULT_FALLBACK_MODEL;
   let response;
   try {
