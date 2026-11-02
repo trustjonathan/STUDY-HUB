@@ -424,20 +424,22 @@ export default function StudyPlanWorkspace({
             ))}
           </div>
 
-          <form className="study-plan-chat" onSubmit={(event) => void adjustPlan(event)}>
-            <label htmlFor="study-plan-adjustment">Chat with your planner to adjust this plan</label>
-            <div>
-              <input
-                id="study-plan-adjustment"
-                value={adjustment}
-                onChange={(event) => setAdjustment(event.target.value)}
-                maxLength={500}
-                placeholder="e.g. Give me more Biology revision this week"
-                disabled={saving}
-              />
-              <button type="submit" disabled={saving || !adjustment.trim()}>{saving ? 'Updating…' : 'Adjust plan'}</button>
-            </div>
-          </form>
+          {!compact && (
+            <form className="study-plan-chat" onSubmit={(event) => void adjustPlan(event)}>
+              <label htmlFor="study-plan-adjustment">Chat with your planner to adjust this plan</label>
+              <div>
+                <input
+                  id="study-plan-adjustment"
+                  value={adjustment}
+                  onChange={(event) => setAdjustment(event.target.value)}
+                  maxLength={500}
+                  placeholder="e.g. Give me more Biology revision this week"
+                  disabled={saving}
+                />
+                <button type="submit" disabled={saving || !adjustment.trim()}>{saving ? 'Updating…' : 'Adjust plan'}</button>
+              </div>
+            </form>
+          )}
 
           <section className="study-plan-recommendations" aria-labelledby="study-plan-resources-heading">
             <div className="study-plan-subheading">

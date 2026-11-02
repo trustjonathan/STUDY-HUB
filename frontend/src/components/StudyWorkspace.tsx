@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { renderMarkdown } from './markdown';
 import { readAuthSession } from '../utils/authSession';
 import { availableSubjects } from '../data/availableSubjects';
@@ -55,7 +55,11 @@ const suggestedQuestions = [
   'Compare mitosis and meiosis'
 ];
 const RECENTS_STORAGE_KEY = 'study-hub-ai-study-recents';
+const RECENTS_REFRESHED_AT_KEY = 'study-hub-ai-study-recents-refreshed-at';
+const GUIDE_HANDOFF_STORAGE_KEY = 'study-hub-ai-guide-handoff';
 const MAX_RECENT_GUIDES = 20;
+const RECENTS_REFRESH_INTERVAL = 5 * 60 * 1000;
+const MAX_CONTINUATION_GUIDE_LENGTH = 20_000;
 
 function isNote(value: unknown): value is Note {
   if (typeof value !== 'object' || value === null) return false;
@@ -101,15 +105,23 @@ export default function StudyWorkspace({
   const base = apiBase();
   const [recents, setRecents] = useState<Note[]>([]);
   const [recentsLoading, setRecentsLoading] = useState(false);
+  const [recentsError, setRecentsError] = useState('');
   const [recentSearch, setRecentSearch] = useState('');
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
   const [markdown, setMarkdown] = useState('');
+  const [previousGuide, setPreviousGuide] = useState<{ topic: string; markdown: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [draft, setDraft] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
+  const [historySidebarCollapsed, setHistorySidebarCollapsed] = useState(false);
+  const [historySidebarWidth, setHistorySidebarWidth] = useState(260);
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState<number | null>(null);
   const [source, setSource] = useState('');
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
@@ -121,6 +133,95 @@ export default function StudyWorkspace({
   const [memoryStatus, setMemoryStatus] = useState('');
   const [tourOpen, setTourOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const historySidebarExpandedWidth = useRef(260);
+  const historySidebarDragStartWidth = useRef(260);
+
+  useEffect(() => {
+    const breakpoint = window.matchMedia('(max-width: 719px)');
+    const updateLayout = () => setIsMobileLayout(breakpoint.matches);
+    updateLayout();
+    breakpoint.addEventListener('change', updateLayout);
+    return () => breakpoint.removeEventListener('change', updateLayout);
+  }, []);
+
+  function resizeSidebar(clientX: number) {
+    const sidebar = document.getElementById('ws-navigation');
+    if (!sidebar) return;
+    const width = Math.min(360, Math.max(70, clientX - sidebar.getBoundingClientRect().left));
+    setSidebarWidth(width);
+    setSidebarCollapsed(width <= 135);
+  }
+
+  function finishSidebarResize(event: ReactPointerEvent<HTMLDivElement>) {
+    const sidebar = document.getElementById('ws-navigation');
+    if (!sidebar) return;
+    const width = event.clientX - sidebar.getBoundingClientRect().left;
+    if (width <= 135) {
+      setSidebarWidth(70);
+      setSidebarCollapsed(true);
+    } else {
+      setSidebarWidth(Math.min(360, Math.max(190, width)));
+      setSidebarCollapsed(false);
+    }
+  }
+
+  function toggleDesktopSidebar() {
+    const collapsed = !sidebarCollapsed;
+    setSidebarWidth(collapsed ? 70 : (window.innerWidth <= 900 ? 220 : 248));
+    setSidebarCollapsed(collapsed);
+  }
+
+  function resizeHistorySidebar(clientX: number) {
+    const workspace = document.querySelector('.ws-embedded');
+    if (!workspace) return;
+    const right = workspace.getBoundingClientRect().right;
+    const width = Math.min(380, Math.max(80, right - clientX));
+    setHistorySidebarWidth(width);
+    setHistorySidebarCollapsed(false);
+  }
+
+  function finishHistorySidebarResize(event: ReactPointerEvent<HTMLDivElement>) {
+    const workspace = document.querySelector('.ws-embedded');
+    if (!workspace) return;
+    const width = workspace.getBoundingClientRect().right - event.clientX;
+    if (width < 125) {
+      setHistorySidebarWidth(historySidebarDragStartWidth.current);
+      setHistorySidebarCollapsed(true);
+    } else {
+      const expandedWidth = Math.min(380, Math.max(190, width));
+      historySidebarExpandedWidth.current = expandedWidth;
+      setHistorySidebarWidth(expandedWidth);
+      setHistorySidebarCollapsed(false);
+    }
+  }
+
+  function toggleHistorySidebar() {
+    if (isMobileLayout) {
+      setHistorySidebarCollapsed(false);
+      setHistoryPanelOpen((open) => !open);
+      return;
+    }
+    setHistorySidebarCollapsed((collapsed) => {
+      if (collapsed) {
+        setHistorySidebarWidth(historySidebarExpandedWidth.current);
+        return false;
+      }
+      return true;
+    });
+  }
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSidebarOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [sidebarOpen]);
 
   useEffect(() => {
     const requestedSubject = new URLSearchParams(window.location.search).get('subject')?.trim().toLowerCase();
@@ -168,22 +269,70 @@ export default function StudyWorkspace({
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(GUIDE_HANDOFF_STORAGE_KEY);
+      if (!saved) return;
+      localStorage.removeItem(GUIDE_HANDOFF_STORAGE_KEY);
+      const handoff: unknown = JSON.parse(saved);
+      if (
+        typeof handoff !== 'object'
+        || handoff === null
+        || !('topic' in handoff)
+        || !('markdown' in handoff)
+        || typeof handoff.topic !== 'string'
+        || !handoff.topic.trim()
+        || handoff.topic.length > 180
+        || typeof handoff.markdown !== 'string'
+        || !handoff.markdown.trim()
+        || handoff.markdown.length > MAX_CONTINUATION_GUIDE_LENGTH
+      ) {
+        setNotice('The AI Library guide could not be loaded into this chat. Open the guide again and retry.');
+        return;
+      }
+      const guide = { topic: handoff.topic.trim(), markdown: handoff.markdown };
+      setActiveTitle(guide.topic);
+      setActiveSlug(slugifyTopic(guide.topic));
+      setMarkdown(guide.markdown);
+      setPreviousGuide(guide);
+      setSource('generated');
+      setDraft('');
+      setNotice('Guide loaded from AI Library. Ask a follow-up below to continue.');
+    } catch {
+      setNotice('The AI Library guide could not be read from this browser. Open the guide again and retry.');
+    }
+  }, []);
+
   async function refreshRecents() {
     if (!base) return;
+    try {
+      const lastRefresh = Number(localStorage.getItem(RECENTS_REFRESHED_AT_KEY) || 0);
+      if (Date.now() - lastRefresh < RECENTS_REFRESH_INTERVAL) return;
+    } catch {
+      console.warn('The recent-guide refresh time could not be read from browser storage.');
+    }
     setRecentsLoading(true);
     try {
       const response = await fetch(`${base}/api/lesson-guide`);
       if (!response.ok) throw new Error(`Recent study guides could not be refreshed (HTTP ${response.status}).`);
       const data = await response.json().catch(() => ({}));
       if (!Array.isArray(data.notes)) throw new Error('Recent study guides returned an invalid response.');
+      setRecentsError('');
+      try {
+        localStorage.setItem(RECENTS_REFRESHED_AT_KEY, String(Date.now()));
+      } catch {
+        console.warn('The recent-guide refresh time could not be saved to browser storage.');
+      }
       const serverNotes: Note[] = data.notes.filter((note: unknown): note is Note => isNote(note));
       setRecents((current) => {
         const localNotes = current.filter((note) => note.markdown);
         const merged = [...localNotes, ...serverNotes.filter((note) => !localNotes.some((local) => local.slug === note.slug))];
         return merged.slice(0, MAX_RECENT_GUIDES);
       });
-    } catch {
-      setNotice('Recent study guides could not be refreshed. Your current study session is still available.');
+    } catch (error) {
+      setRecentsError(error instanceof Error && error.message !== 'Failed to fetch'
+        ? error.message
+        : 'Shared recent guides are unavailable right now. This does not affect your current chat.');
     } finally {
       setRecentsLoading(false);
     }
@@ -199,9 +348,10 @@ export default function StudyWorkspace({
         else localStorage.removeItem(RECENTS_STORAGE_KEY);
       }
     } catch {
-      setNotice('Saved recent study guides could not be read in this browser.');
+      setRecentsError('Saved recent study guides could not be read in this browser.');
     }
-    void refreshRecents();
+    const refreshTimer = window.setTimeout(() => void refreshRecents(), 1200);
+    return () => window.clearTimeout(refreshTimer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base]);
 
@@ -211,18 +361,20 @@ export default function StudyWorkspace({
     try {
       localStorage.setItem(RECENTS_STORAGE_KEY, JSON.stringify(next.filter((item) => item.markdown)));
     } catch {
-      setNotice('Your answer is ready, but this browser could not save it to Recents.');
+      setRecentsError('Your answer is ready, but this browser could not save it to Recents.');
     }
   }
 
   function openRecent(note: Note) {
     if (!note.markdown) {
+      setPreviousGuide(null);
       void openNote(note.title);
       return;
     }
     setActiveSlug(note.slug);
     setActiveTitle(note.title);
     setMarkdown(note.markdown);
+    setPreviousGuide({ topic: note.title, markdown: note.markdown });
     setSource(note.source || '');
     setError('');
     setNotice('');
@@ -236,6 +388,13 @@ export default function StudyWorkspace({
     const clean = topic.trim();
     if (!clean) return;
     setDraft(clean);
+    const savedAnswer = !signedIn
+      ? recents.find((note) => note.markdown && note.title.trim().toLowerCase() === clean.toLowerCase())
+      : undefined;
+    if (savedAnswer) {
+      openRecent(savedAnswer);
+      return;
+    }
     if (!base) {
       setError('The Study Assistant is not connected yet. Configure the backend API URL to enable it.');
       return;
@@ -259,6 +418,7 @@ export default function StudyWorkspace({
         },
         body: JSON.stringify({
           topic: clean,
+          ...(previousGuide ? { previousGuide } : {}),
           ...(profile && (profile.classLevel || profile.subjects.length)
             ? { learningProfile: {
               learnerType: profile.learnerType,
@@ -282,6 +442,7 @@ export default function StudyWorkspace({
         throw new Error(result.error || 'This study note could not be generated. Please try again.');
       }
       setMarkdown(result.markdown);
+      setPreviousGuide({ topic: result.topic ?? titleFromTopic(clean), markdown: result.markdown });
       setSource(typeof result.source === 'string' ? result.source : '');
       setActiveSlug(result.slug ?? null);
       setActiveTitle(result.topic ?? titleFromTopic(clean));
@@ -297,7 +458,6 @@ export default function StudyWorkspace({
       } else if (result.memorySaved === true) {
         setNotice('This study topic was saved to your private account memory.');
       }
-      void refreshRecents();
     } catch (err) {
       setMarkdown('');
       const message = err instanceof Error ? err.message : '';
@@ -320,6 +480,7 @@ export default function StudyWorkspace({
     setActiveSlug(null);
     setActiveTitle('');
     setMarkdown('');
+    setPreviousGuide(null);
     setSource('');
     setCopyError('');
     setError('');
@@ -418,18 +579,33 @@ export default function StudyWorkspace({
   const visibleRecents = recents.filter((note) => note.title.toLowerCase().includes(recentSearch.trim().toLowerCase()));
 
   return (
-    <div className={`ws ${sidebarOpen ? 'ws-sidebar-open' : ''}${embedded ? ' ws-embedded' : ''}`} aria-busy={loading}>
-      <aside className="ws-sidebar" aria-label="Study Hub navigation">
+    <div
+      className={`ws${sidebarOpen ? ' ws-sidebar-open' : ''}${sidebarCollapsed ? ' ws-sidebar-collapsed' : ''}${historySidebarCollapsed ? ' ws-history-collapsed' : ''}${embedded ? ' ws-embedded' : ''}`}
+      style={{
+        ...(sidebarWidth === null ? {} : { '--ws-sidebar-width': `${sidebarWidth}px` }),
+        '--ws-history-width': `${historySidebarWidth}px`,
+      } as CSSProperties}
+      aria-busy={loading}
+    >
+      <aside id="ws-navigation" className="ws-sidebar" aria-label="Study Hub navigation">
         <div className="ws-brand">
           <span className="ws-brand-mark" aria-hidden="true">▰</span>
-          <span className="ws-brand-name">STUDY-HUB</span>
+          <span className="ws-brand-name" aria-hidden={sidebarCollapsed}>STUDY-HUB</span>
+          <button
+            type="button"
+            className="ws-sidebar-toggle"
+            aria-label={sidebarCollapsed ? 'Expand study navigation' : 'Collapse study navigation'}
+            aria-controls="ws-navigation"
+            aria-expanded={!sidebarCollapsed}
+            onClick={toggleDesktopSidebar}
+          >{sidebarCollapsed ? '›' : '‹'}</button>
           <button type="button" className="ws-sidebar-close" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}>×</button>
         </div>
 
         <nav className="ws-nav" aria-label="Primary">
-          <a className="ws-nav-item" href={homeHref}><WorkspaceIcon name="home" /> Home</a>
-          <a className="ws-nav-item" href={libraryHref}><WorkspaceIcon name="library" /> Library</a>
-          <button type="button" className="ws-nav-item" onClick={startNewQuestion} disabled={loading}><WorkspaceIcon name="plus" /> New question</button>
+          <a className="ws-nav-item" href={homeHref} aria-label="Home" title={sidebarCollapsed ? 'Home' : undefined}><WorkspaceIcon name="home" /><span className="ws-nav-label">Home</span></a>
+          <a className="ws-nav-item" href={libraryHref} aria-label="Library" title={sidebarCollapsed ? 'Library' : undefined}><WorkspaceIcon name="library" /><span className="ws-nav-label">Library</span></a>
+          <button type="button" className="ws-nav-item" onClick={startNewQuestion} aria-label="New question" title={sidebarCollapsed ? 'New question' : undefined} disabled={loading}><WorkspaceIcon name="plus" /><span className="ws-nav-label">New question</span></button>
         </nav>
 
         <div className="ws-recents">
@@ -485,9 +661,9 @@ export default function StudyWorkspace({
 
         <nav className="ws-sidebar-resources" aria-label="Help and policies">
           <p className="ws-recents-label">Help &amp; policies</p>
-          <a className="ws-resource-link" href={`${homeHref.replace(/\/$/, '')}/sign-in.html`}><WorkspaceIcon name="account" /> Sign in</a>
-          <a className="ws-resource-link" href={documentationHref}><WorkspaceIcon name="document" /> Documentation</a>
-          <a className="ws-resource-link" href={legalHref}><WorkspaceIcon name="shield" /> Legal</a>
+          <a className="ws-resource-link" href={`${homeHref.replace(/\/$/, '')}/sign-in.html`} aria-label="Sign in" title={sidebarCollapsed ? 'Sign in' : undefined}><WorkspaceIcon name="account" /><span className="ws-nav-label">Sign in</span></a>
+          <a className="ws-resource-link" href={documentationHref} aria-label="Documentation" title={sidebarCollapsed ? 'Documentation' : undefined}><WorkspaceIcon name="document" /><span className="ws-nav-label">Documentation</span></a>
+          <a className="ws-resource-link" href={legalHref} aria-label="Legal" title={sidebarCollapsed ? 'Legal' : undefined}><WorkspaceIcon name="shield" /><span className="ws-nav-label">Legal</span></a>
         </nav>
 
         <div className="ws-sidebar-foot">
@@ -499,18 +675,82 @@ export default function StudyWorkspace({
               .join('')
               .toUpperCase()}
           </span>
-          <span>{profile?.username || profile?.email || 'Guest learner'}</span>
+          <span className="ws-sidebar-user-label">{profile?.username || profile?.email || 'Guest learner'}</span>
         </div>
+        <div
+          className="ws-sidebar-resize"
+          role="separator"
+          aria-label="Resize study navigation"
+          aria-orientation="vertical"
+          aria-controls="ws-navigation"
+          aria-valuemin={70}
+          aria-valuemax={360}
+          aria-valuenow={sidebarCollapsed ? 70 : Math.round(sidebarWidth ?? 248)}
+          tabIndex={0}
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            resizeSidebar(event.clientX);
+          }}
+          onPointerMove={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) resizeSidebar(event.clientX);
+          }}
+          onPointerUp={finishSidebarResize}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+              event.preventDefault();
+              const currentWidth = sidebarWidth ?? 248;
+              const next = event.key === 'ArrowRight'
+                ? (sidebarCollapsed ? 190 : Math.min(360, currentWidth + 16))
+                : (currentWidth <= 206 ? 70 : Math.max(190, currentWidth - 16));
+              setSidebarWidth(next);
+              setSidebarCollapsed(next === 70);
+            } else if (event.key === 'Home') {
+              event.preventDefault();
+              setSidebarWidth(70);
+              setSidebarCollapsed(true);
+            } else if (event.key === 'End') {
+              event.preventDefault();
+              setSidebarWidth(360);
+              setSidebarCollapsed(false);
+            }
+          }}
+        />
       </aside>
 
       <button type="button" className="ws-sidebar-backdrop" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />
 
       <div className="ws-main">
         <header className="ws-topbar">
-          <button type="button" className="ws-hamburger" aria-label="Open navigation" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)}>☰</button>
+          {!embedded && (
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className="ws-hamburger"
+              aria-label="Toggle navigation"
+              aria-controls="ws-navigation"
+              aria-expanded={sidebarOpen || !sidebarCollapsed}
+              onClick={() => {
+                if (window.matchMedia('(max-width: 719px)').matches) setSidebarOpen((open) => !open);
+                else toggleDesktopSidebar();
+              }}
+            >☰</button>
+          )}
           <span className="ws-topbar-title">{activeTitle || 'Study Assistant'}</span>
           <span className="ws-topbar-meta">{profile?.username ? `For ${profile.username}` : 'Academic tutor'}</span>
         </header>
+        {embedded && (
+          <div className="ws-embedded-toolbar">
+            <button
+              type="button"
+              aria-controls="ws-history-panel"
+              aria-expanded={isMobileLayout ? historyPanelOpen : !historySidebarCollapsed}
+              onClick={toggleHistorySidebar}
+            >{isMobileLayout
+                ? historyPanelOpen ? 'Close study history' : 'Study history & AI memory'
+                : historySidebarCollapsed ? 'Show study history' : 'Hide study history'}</button>
+          </div>
+        )}
 
         {tourOpen && profile && (
           <div className="ws-onboarding-backdrop">
@@ -556,7 +796,7 @@ export default function StudyWorkspace({
             </div>
           )}
 
-          {!loading && !error && !notice && !hasNote && (
+          {!loading && !error && !hasNote && (
             <div className="ws-empty">
               <span className="ws-empty-mark" aria-hidden="true">✳</span>
               <p className="ws-empty-eyebrow">YOUR STUDY PARTNER</p>
@@ -571,19 +811,6 @@ export default function StudyWorkspace({
                   The AI service is not connected. Set <code>PUBLIC_STUDY_HUB_API_URL</code> in the frontend environment to your backend URL.
                 </p>
               )}
-              <div className="ws-suggestions" aria-label="Try a suggested question">
-                {suggestedQuestions.map((question) => (
-                  <button
-                    key={question}
-                    type="button"
-                    className="ws-suggestion"
-                    disabled={loading}
-                    onClick={() => void openNote(question)}
-                  >
-                    {question}<span aria-hidden="true">↗</span>
-                  </button>
-                ))}
-              </div>
             </div>
           )}
 
@@ -600,50 +827,18 @@ export default function StudyWorkspace({
               </div>
               {copyError && <p className="ws-copy-error" role="status">{copyError}</p>}
               {copying && <p className="ws-memory-status" role="status">Copying your answer…</p>}
-              {source === 'generated-unsaved' && (
-                <p className="ws-save-note">This answer is available now, but is not saved to the shared library.</p>
+              {(source === 'generated-unsaved' || source === 'generated-pending') && (
+                <p className="ws-save-note">
+                  {source === 'generated-pending'
+                    ? 'This answer is ready; saving it to the shared library continues in the background.'
+                    : 'This answer is available now, but is not saved to the shared library.'}
+                </p>
               )}
 
                   <div className="ws-prose">{renderMarkdown(markdown)}</div>
                 </article>
               )}
 
-              {embedded && (
-                <details className="ws-embedded-context">
-                  <summary>Your study history and AI memory</summary>
-                  {recents.length > 0 ? (
-                    <>
-                      <input
-                        className="ws-recents-search"
-                        type="search"
-                        value={recentSearch}
-                        onChange={(event) => setRecentSearch(event.target.value)}
-                        placeholder="Search recent guides"
-                        aria-label="Search recent study guides"
-                      />
-                      <ul className="ws-embedded-recents">
-                        {visibleRecents.map((note) => (
-                          <li key={note.slug}>
-                            <button type="button" disabled={loading} onClick={() => openRecent(note)}>{note.title}</button>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : <p className="ws-recents-empty">Your recent guides will appear here after you ask the tutor a question.</p>}
-                  <section className="ws-memory" aria-label="AI memory">
-                    {signedIn ? (
-                      <>
-                        <p className="ws-memory-note">Account memory stores study topics, not full answers. Recent guides stay on this device.</p>
-                        <div className="ws-memory-actions">
-                          <button type="button" onClick={() => void exportAccountMemory()} disabled={memoryBusy}>{memoryAction === 'export' ? 'Exporting memory…' : 'Export memory'}</button>
-                          <button type="button" onClick={() => void deleteAccountMemory()} disabled={memoryBusy}>{memoryAction === 'delete' ? 'Deleting memory…' : 'Delete memory'}</button>
-                        </div>
-                        {memoryStatus && <p className="ws-memory-status" role="status">{memoryStatus}</p>}
-                      </>
-                    ) : <p className="ws-memory-note">Sign in to save study topics to your account. Guest questions are not saved to account memory.</p>}
-                  </section>
-                </details>
-              )}
         </div>
 
         <form className="ws-prompt" onSubmit={handleSubmit}>
@@ -664,8 +859,125 @@ export default function StudyWorkspace({
           </button>
         </form>
 
+        {!hasNote && (
+          <div className="ws-suggestions" aria-label="Try a suggested question">
+            {suggestedQuestions.map((question) => (
+              <button
+                key={question}
+                type="button"
+                className="ws-suggestion"
+                disabled={loading}
+                onClick={() => void openNote(question)}
+              >
+                {question}<span aria-hidden="true">↗</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <p className="ws-disclaimer">AI can make mistakes. Check important answers against your class notes and teacher’s guidance.</p>
       </div>
+      {embedded && (
+        <>
+          {historyPanelOpen && <button type="button" className="ws-history-backdrop" aria-label="Close study history" onClick={() => setHistoryPanelOpen(false)} />}
+          <aside id="ws-history-panel" className={`ws-history-sidebar${historyPanelOpen ? ' is-open' : ''}`} aria-label="Study history and AI memory">
+            <div
+              className="ws-history-resize"
+              role="separator"
+              aria-label="Resize study history and AI memory panel"
+              aria-orientation="vertical"
+              aria-controls="ws-history-panel"
+              aria-valuemin={0}
+              aria-valuemax={380}
+              aria-valuenow={historySidebarCollapsed ? 0 : historySidebarWidth}
+              tabIndex={0}
+              onPointerDown={(event) => {
+                if (event.button !== 0 || isMobileLayout) return;
+                historySidebarDragStartWidth.current = historySidebarWidth;
+                event.currentTarget.setPointerCapture(event.pointerId);
+                resizeHistorySidebar(event.clientX);
+              }}
+              onPointerMove={(event) => {
+                if (!isMobileLayout && event.currentTarget.hasPointerCapture(event.pointerId)) {
+                  resizeHistorySidebar(event.clientX);
+                }
+              }}
+              onPointerUp={finishHistorySidebarResize}
+              onPointerCancel={finishHistorySidebarResize}
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                  event.preventDefault();
+                  const nextWidth = historySidebarWidth + (event.key === 'ArrowLeft' ? 16 : -16);
+                  if (nextWidth < 125) {
+                    setHistorySidebarWidth(historySidebarExpandedWidth.current);
+                    setHistorySidebarCollapsed(true);
+                  } else {
+                    const expandedWidth = Math.min(380, nextWidth);
+                    historySidebarExpandedWidth.current = expandedWidth;
+                    setHistorySidebarWidth(expandedWidth);
+                    setHistorySidebarCollapsed(false);
+                  }
+                } else if (event.key === 'Home') {
+                  event.preventDefault();
+                  setHistorySidebarCollapsed(true);
+                } else if (event.key === 'End') {
+                  event.preventDefault();
+                  historySidebarExpandedWidth.current = 260;
+                  setHistorySidebarWidth(260);
+                  setHistorySidebarCollapsed(false);
+                }
+              }}
+            />
+            <h2>Study history</h2>
+            {recentsLoading && <p className="ws-recents-loading" role="status">Syncing recent study guides…</p>}
+            {recentsError && <p className="ws-recents-error" role="status">{recentsError}</p>}
+            {recents.length > 0 && (
+              <input
+                className="ws-recents-search"
+                type="search"
+                value={recentSearch}
+                onChange={(event) => setRecentSearch(event.target.value)}
+                placeholder="Search recent guides"
+                aria-label="Search recent study guides"
+              />
+            )}
+            {recents.length === 0 ? (
+              <p className="ws-recents-empty">Your recent study guides will appear here after you ask the tutor a question.</p>
+            ) : visibleRecents.length === 0 ? (
+              <p className="ws-recents-empty">No recent guides match that search.</p>
+            ) : (
+              <ul className="ws-history-list">
+                {visibleRecents.map((note) => (
+                  <li key={note.slug}>
+                    <button
+                      type="button"
+                      className={`ws-recent ${activeSlug === note.slug ? 'is-active' : ''}`}
+                      disabled={loading}
+                      onClick={() => {
+                        openRecent(note);
+                        setHistoryPanelOpen(false);
+                      }}
+                    >{note.title}</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <section className="ws-history-memory" aria-labelledby="ws-history-memory-heading">
+              <h2 id="ws-history-memory-heading">AI memory</h2>
+              {signedIn ? (
+                <>
+                  <p className="ws-memory-note">Account memory stores study topics, not full answers. Recent guides stay on this device.</p>
+                  <div className="ws-memory-actions">
+                    <button type="button" onClick={() => void exportAccountMemory()} disabled={memoryBusy}>{memoryAction === 'export' ? 'Exporting memory…' : 'Export memory'}</button>
+                    <button type="button" onClick={() => void deleteAccountMemory()} disabled={memoryBusy}>{memoryAction === 'delete' ? 'Deleting memory…' : 'Delete memory'}</button>
+                  </div>
+                  {memoryStatus && <p className="ws-memory-status" role="status">{memoryStatus}</p>}
+                </>
+              ) : <p className="ws-memory-note">Sign in to save study topics to your account. Guest questions are not saved to account memory.</p>}
+            </section>
+          </aside>
+        </>
+      )}
     </div>
   );
 }

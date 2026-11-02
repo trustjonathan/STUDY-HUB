@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import { clearAuthSession, readAuthSession, updateAuthSessionUser } from '../utils/authSession';
 import StudyWorkspace from './StudyWorkspace';
 import LibraryWorkspace from './LibraryWorkspace';
@@ -84,10 +84,40 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
   const [studyPlanPreparing, setStudyPlanPreparing] = useState(false);
   const [profileSyncing, setProfileSyncing] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState<number | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [notice, setNotice] = useState('');
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [profileSetupRequired, setProfileSetupRequired] = useState(false);
   const planPreparationInFlight = useRef(false);
+
+  function resizeSidebar(clientX: number) {
+    const sidebar = document.getElementById('study-navigation');
+    if (!sidebar) return;
+    const width = Math.min(360, Math.max(76, clientX - sidebar.getBoundingClientRect().left));
+    setSidebarWidth(width);
+    setSidebarCollapsed(width <= 145);
+  }
+
+  function finishSidebarResize(event: ReactPointerEvent<HTMLDivElement>) {
+    const sidebar = document.getElementById('study-navigation');
+    if (!sidebar) return;
+    const width = event.clientX - sidebar.getBoundingClientRect().left;
+    if (width <= 145) {
+      setSidebarWidth(76);
+      setSidebarCollapsed(true);
+    } else {
+      setSidebarWidth(Math.min(360, Math.max(190, width)));
+      setSidebarCollapsed(false);
+    }
+  }
+
+  function toggleDesktopSidebar() {
+    const collapsed = !sidebarCollapsed;
+    setSidebarWidth(collapsed ? 76 : (window.innerWidth <= 900 ? 230 : 258));
+    setSidebarCollapsed(collapsed);
+  }
 
   function openView(next: 'home' | 'tutor' | 'library' | 'plan' | 'preferences') {
     setView(next);
@@ -102,6 +132,18 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
     const requested = new URLSearchParams(window.location.search).get('view');
     if (requested === 'tutor' || requested === 'library' || requested === 'plan' || requested === 'preferences') setView(requested);
   }, []);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileNavOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [mobileNavOpen]);
 
   function openPreferences() {
     if (user) openView('preferences');
@@ -333,22 +375,38 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
   ];
 
   return (
-    <div className="study-app">
+    <div
+      className={`study-app${sidebarCollapsed ? ' is-sidebar-collapsed' : ''}`}
+      style={sidebarWidth === null ? undefined : { '--study-sidebar-width': `${sidebarWidth}px` } as CSSProperties}
+    >
       {mobileNavOpen && <button className="study-mobile-backdrop" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} />}
-      <aside className={`study-sidebar${mobileNavOpen ? ' is-open' : ''}`}>
-        <a className="study-brand" href={landingHref} aria-label="Study Hub home">
-          <img src={`${baseHref}favicon.svg`} alt="" />
-          <span><strong>Study Hub</strong><small>AI Study</small></span>
-        </a>
+      <aside id="study-navigation" className={`study-sidebar${mobileNavOpen ? ' is-open' : ''}`} aria-label="Study Hub navigation">
+        <div className="study-sidebar-heading">
+          <a className="study-brand" href={landingHref} aria-label="Study Hub home">
+            <img src={`${baseHref}favicon.svg`} alt="" />
+            <span><strong>Study Hub</strong><small>AI Study</small></span>
+          </a>
+          <button
+            type="button"
+            className="study-sidebar-toggle"
+            aria-label={sidebarCollapsed ? 'Expand study navigation' : 'Collapse study navigation'}
+            aria-controls="study-navigation"
+            aria-expanded={!sidebarCollapsed}
+            onClick={toggleDesktopSidebar}
+          >{sidebarCollapsed ? '›' : '‹'}</button>
+        </div>
         <button className="study-mobile-close" type="button" aria-label="Close study navigation" onClick={() => setMobileNavOpen(false)}>×</button>
         <p className="study-nav-label">WORKSPACE</p>
         <nav className="study-nav" aria-label="AI Study navigation">
           {nav.map((item) => (
-            <button key={item.label} id={item.key === 'tutor' ? 'ai-tutor-btn' : item.key === 'library' ? 'study-library-nav' : item.key === 'plan' ? 'study-plan-nav' : undefined} type="button" aria-current={view === item.key ? 'page' : undefined} onClick={() => openView(item.key)}>
+            <button key={item.label} id={item.key === 'tutor' ? 'ai-tutor-btn' : item.key === 'library' ? 'study-library-nav' : item.key === 'plan' ? 'study-plan-nav' : undefined} type="button" aria-label={item.label} title={sidebarCollapsed ? item.label : undefined} aria-current={view === item.key ? 'page' : undefined} onClick={() => openView(item.key)}>
               <Icon name={item.icon} /><span>{item.label}</span>
               {view === item.key && <span className="study-nav-dot" />}
             </button>
           ))}
+          <a className="study-nav-link" href={`${baseHref}learn.html`} title={sidebarCollapsed ? 'AI Guides' : undefined}>
+            <Icon name="book" /><span>AI Guides</span>
+          </a>
         </nav>
         <div className="study-sidebar-spacer" />
         <div className={`study-connectivity ${online ? 'is-online' : 'is-offline'}`} role="status">
@@ -364,11 +422,61 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
           <span><strong>{user?.username || 'Your account'}</strong><small>{user?.email || (user ? 'Profile settings' : 'Sign in to sync')}</small></span>
           <span className="study-account-arrow">→</span>
         </button>
+        <div
+          className="study-sidebar-resize"
+          role="separator"
+          aria-label="Resize study navigation"
+          aria-orientation="vertical"
+          aria-controls="study-navigation"
+          aria-valuemin={76}
+          aria-valuemax={360}
+          aria-valuenow={sidebarCollapsed ? 76 : Math.round(sidebarWidth ?? 258)}
+          tabIndex={0}
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            resizeSidebar(event.clientX);
+          }}
+          onPointerMove={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) resizeSidebar(event.clientX);
+          }}
+          onPointerUp={finishSidebarResize}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+              event.preventDefault();
+              const currentWidth = sidebarWidth ?? 258;
+              const next = event.key === 'ArrowRight'
+                ? (sidebarCollapsed ? 190 : Math.min(360, currentWidth + 16))
+                : (currentWidth <= 206 ? 76 : Math.max(190, currentWidth - 16));
+              setSidebarWidth(next);
+              setSidebarCollapsed(next === 76);
+            } else if (event.key === 'Home') {
+              event.preventDefault();
+              setSidebarWidth(76);
+              setSidebarCollapsed(true);
+            } else if (event.key === 'End') {
+              event.preventDefault();
+              setSidebarWidth(360);
+              setSidebarCollapsed(false);
+            }
+          }}
+        />
       </aside>
 
       <main className="study-main">
         <header className="study-topbar">
-          <button className="study-menu-button" type="button" aria-label="Open navigation" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(true)}>
+          <button
+            ref={menuButtonRef}
+            className="study-menu-button"
+            type="button"
+            aria-label="Toggle navigation"
+            aria-controls="study-navigation"
+            aria-expanded={mobileNavOpen || !sidebarCollapsed}
+            onClick={() => {
+              if (window.matchMedia('(max-width: 680px)').matches) setMobileNavOpen((open) => !open);
+              else toggleDesktopSidebar();
+            }}
+          >
             <Icon name="menu" />
           </button>
           <div className="study-breadcrumb"><span>Study Hub</span><b>/</b><strong>{viewTitle}</strong></div>
@@ -486,17 +594,19 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
         {view === 'tutor' && (
           <section className="study-embedded-view" aria-label="AI Tutor">
             {user?.learnerType === 'student' && (
-              <StudyPlanWorkspace
-                compact
-                apiBase={apiBase()}
-                resourceCatalogUrl={`${baseHref}study-hub-resources-1-catalog.json`}
-                freshTeacherCatalogUrl={`${baseHref}fresh-teacher-catalog.json`}
-                readerBase={`${baseHref}full_page_flipbook_viewer/index.html`}
-                classLevel={user.classLevel || ''}
-                subjects={subjects}
-                supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL || ''}
-                anonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY || ''}
-              />
+              <div className="study-plan-pane" aria-label="Study plan">
+                <StudyPlanWorkspace
+                  compact
+                  apiBase={apiBase()}
+                  resourceCatalogUrl={`${baseHref}study-hub-resources-1-catalog.json`}
+                  freshTeacherCatalogUrl={`${baseHref}fresh-teacher-catalog.json`}
+                  readerBase={`${baseHref}full_page_flipbook_viewer/index.html`}
+                  classLevel={user.classLevel || ''}
+                  subjects={subjects}
+                  supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL || ''}
+                  anonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY || ''}
+                />
+              </div>
             )}
             <StudyWorkspace
               homeHref={baseHref}

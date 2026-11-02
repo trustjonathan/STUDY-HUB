@@ -28,7 +28,7 @@ function readGroup(source: string, start: number): { content: string; end: numbe
   return { content: source.slice(start + 1, cursor - 1), end: cursor };
 }
 
-function renderMath(tex: string, keyPrefix: string): ReactNode[] {
+function renderMath(tex: string, keyPrefix: string, display = false): ReactNode[] {
   let key = 0;
   const renderSequence = (source: string): ReactNode[] => {
     const nodes: ReactNode[] = [];
@@ -46,6 +46,31 @@ function renderMath(tex: string, keyPrefix: string): ReactNode[] {
         const commandStart = cursor;
         while (/[A-Za-z]/.test(source[cursor] || '')) cursor += 1;
         const command = source.slice(commandStart, cursor) || source[cursor++];
+
+        if (command === 'begin') {
+          const environment = readGroup(source, cursor);
+          cursor = environment.end;
+          if (environment.content === 'aligned') {
+            const endToken = '\\end{aligned}';
+            const endIndex = source.indexOf(endToken, cursor);
+            const alignedContent = source.slice(cursor, endIndex === -1 ? source.length : endIndex);
+            cursor = endIndex === -1 ? source.length : endIndex + endToken.length;
+            return (
+              <span className="ws-math-aligned" key={`${keyPrefix}-aligned${key++}`}>
+                {alignedContent.split(/\\\\(?:\s*\[[^\]]+\])?/).map((row, rowIndex) => {
+                  const columns = row.split('&');
+                  return (
+                    <span className="ws-math-aligned-row" key={`${keyPrefix}-aligned-row${rowIndex}`}>
+                      <span>{renderSequence(columns[0] || '')}</span>
+                      <span>{renderSequence(columns.slice(1).join('&'))}</span>
+                    </span>
+                  );
+                })}
+              </span>
+            );
+          }
+          return `\\begin{${environment.content}}`;
+        }
 
         if (command === 'frac' || command === 'dfrac' || command === 'tfrac') {
           while (source[cursor] === ' ') cursor += 1;
@@ -118,8 +143,9 @@ function renderMath(tex: string, keyPrefix: string): ReactNode[] {
 
     while (cursor < source.length) {
       if (/\s/.test(source[cursor])) {
+        const lineBreak = source[cursor] === '\n';
         cursor += 1;
-        nodes.push(' ');
+        nodes.push(display && lineBreak ? <br key={`${keyPrefix}-br${key++}`} /> : ' ');
         continue;
       }
       if (source[cursor] === '}' || source[cursor] === ']') {
@@ -232,13 +258,31 @@ export function renderMarkdown(markdown: string): ReactNode[] {
       flushNumbered();
       continue;
     }
+    if (trimmed === '$$') {
+      flushBullets();
+      flushNumbered();
+      const equationLines: string[] = [];
+      let closingLine = lineIndex + 1;
+      while (closingLine < lines.length && lines[closingLine].trim() !== '$$') {
+        equationLines.push(lines[closingLine]);
+        closingLine += 1;
+      }
+      if (closingLine < lines.length) lineIndex = closingLine;
+      const equation = equationLines.join('\n').trim();
+      blocks.push(
+        <div className="ws-equation" key={`equation-${key++}`}>
+          {renderMath(equation, `equation-${key}`, true)}
+        </div>
+      );
+      continue;
+    }
     if (trimmed.startsWith('$$') && trimmed.endsWith('$$') && trimmed.length > 4) {
       flushBullets();
       flushNumbered();
       const equation = trimmed.slice(2, -2).trim();
       blocks.push(
         <div className="ws-equation" key={`equation-${key++}`}>
-          {renderMath(equation, `equation-${key}`)}
+          {renderMath(equation, `equation-${key}`, true)}
         </div>
       );
       continue;

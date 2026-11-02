@@ -8,7 +8,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 
 // New topics arrive as /learn?topic=glycolysis and are generated on demand.
 const requestedTopic = Astro.url.searchParams.get('topic')?.trim() || '';
-const subjects = [...new Set(lessonTopics.map((topic) => topic.subject))];
+const subjects = [...new Set(lessonTopics.map((topic) => topic.subject))].sort();
 ---
 
 <SiteLayout title="AI Study Guides – Study Hub" description="Open any topic to instantly generate an AI study guide with clear explanations and exam-focused notes.">
@@ -51,12 +51,18 @@ const subjects = [...new Set(lessonTopics.map((topic) => topic.subject))];
           <button type="submit">Generate guide</button>
         </form>
 
+        <div class="learn-catalogue-search" role="search">
+          <label for="learn-catalogue-search">Search all subjects and topics</label>
+          <input id="learn-catalogue-search" type="search" placeholder="Search Biology, quadratic equations, map reading…" autocomplete="off" />
+          <p id="learn-search-status" role="status" aria-live="polite">{lessonTopics.length} topics across {subjects.length} subjects</p>
+        </div>
+
         {subjects.map((subject) => (
-          <section class="learn-subject">
+          <section class="learn-subject" data-learn-subject={subject.toLowerCase()}>
             <h2>{subject}</h2>
             <div class="learn-topic-grid">
               {lessonTopics.filter((topic) => topic.subject === subject).map((topic) => (
-                <a class="learn-topic-card" href={`${base}learn/${topic.slug}.html`}>
+                <a class="learn-topic-card" href={`${base}learn/${topic.slug}.html`} data-learn-topic={`${topic.title} ${topic.subject}`.toLowerCase()}>
                   <h3>{topic.title}</h3>
                   <span>Instant AI guide &amp; study notes →</span>
                 </a>
@@ -68,6 +74,38 @@ const subjects = [...new Set(lessonTopics.map((topic) => topic.subject))];
     )}
   </main>
 </SiteLayout>
+
+<script>
+  const search = document.querySelector<HTMLInputElement>('#learn-catalogue-search');
+  const status = document.querySelector<HTMLElement>('#learn-search-status');
+  const sections = [...document.querySelectorAll<HTMLElement>('.learn-subject')];
+  const topics = [...document.querySelectorAll<HTMLElement>('.learn-topic-card')];
+
+  search?.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    let matches = 0;
+    let visibleSubjects = 0;
+
+    for (const section of sections) {
+      let sectionMatches = 0;
+      for (const card of section.querySelectorAll<HTMLElement>('.learn-topic-card')) {
+        const match = !query || (card.dataset.learnTopic || '').includes(query);
+        card.hidden = !match;
+        if (match) sectionMatches += 1;
+      }
+      section.hidden = sectionMatches === 0;
+      if (sectionMatches) visibleSubjects += 1;
+      matches += sectionMatches;
+    }
+
+    if (status) {
+      status.textContent = query
+        ? matches ? `${matches} topic${matches === 1 ? '' : 's'} in ${visibleSubjects} subject${visibleSubjects === 1 ? '' : 's'}`
+          : 'No topics match your search.'
+        : `${topics.length} topics across ${sections.length} subjects`;
+    }
+  });
+</script>
 
 <style>
   /* Page-specific styles live in ../styles/learn.css (imported in frontmatter). */

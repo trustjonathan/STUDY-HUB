@@ -28,6 +28,7 @@ export default function DynamicLessonViewer({ topic }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [handoffError, setHandoffError] = useState('');
   const startedRef = useRef(false);
 
   useEffect(() => {
@@ -94,10 +95,29 @@ export default function DynamicLessonViewer({ topic }: Props) {
     );
   }
 
+  function continueInChat() {
+    try {
+      localStorage.setItem('study-hub-ai-guide-handoff', JSON.stringify({
+        topic,
+        markdown,
+        createdAt: Date.now(),
+      }));
+      const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+      window.location.assign(`${base}study.html?view=tutor&continue=1`);
+    } catch {
+      setHandoffError('This browser could not pass the guide to AI Study. Check your storage settings and try again.');
+    }
+  }
+
   return (
     <article className="lesson-content">
       <span className="lesson-badge">AI Generated Resource</span>
       <div className="lesson-prose">{renderMarkdown(markdown)}</div>
+      <div className="lesson-continue">
+        <p>Want to ask a follow-up or explore this topic further?</p>
+        <button type="button" onClick={continueInChat}>Continue with this chat <span aria-hidden="true">→</span></button>
+        {handoffError && <p className="lesson-handoff-error" role="alert">{handoffError}</p>}
+      </div>
     </article>
   );
 }

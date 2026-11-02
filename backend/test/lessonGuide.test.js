@@ -78,10 +78,14 @@ test("answers a study question through the server-side Gemini model", async () =
   assert.equal(res.body.markdown, "Photosynthesis converts light energy into chemical energy.");
   assert.equal(res.body.source, "generated-unsaved");
   assert.equal(requests.length, 3);
-  assert.ok(requests.every(({ url }) =>
-    url.pathname === `/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent`
-  ));
+  assert.equal(requests[0].url.pathname, `/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent`);
+  assert.equal(requests[1].url.pathname, "/v1beta/models/gemini-3.5-flash-lite:generateContent");
+  assert.equal(requests[2].url.pathname, `/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent`);
   assert.equal(requests[0].body.systemInstruction.parts.length, 1);
+  const tutorPrompt = requests[2].body.systemInstruction.parts[0].text;
+  assert.match(tutorPrompt, /Start with the answer/);
+  assert.match(tutorPrompt, /multiline \$\$ blocks/);
+  assert.equal(requests[2].body.generationConfig.maxOutputTokens, 1400);
   assert.equal(
     requests[2].body.contents[0].parts[0].text,
     "Explain photosynthesis in simple steps"
@@ -160,6 +164,64 @@ test("rejects overlong study questions without calling Gemini", async () => {
   assert.equal(called, false);
 });
 
+test("continues a tutor reply using a validated earlier Study Hub guide", async () => {
+  process.env.GEMINI_API_KEY = "test-key";
+  for (const key of envKeys.slice(2)) delete process.env[key];
+  const requests = [];
+  global.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    requests.push(body);
+    const isTopicCheck = body.systemInstruction.parts[0].text.includes("strict subject classifier");
+    const text = isTopicCheck ? "YES" : "A follow-up that builds on the earlier guide.";
+    return {
+      ok: true,
+      json: async () => ({ candidates: [{ content: { parts: [{ text }] } }] })
+    };
+  };
+  const res = responseMock();
+
+  await handler({
+    body: {
+      topic: "Why does that happen?",
+      previousGuide: {
+        topic: "Photosynthesis",
+        markdown: "Plants use light energy to make glucose."
+      }
+    }
+  }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.markdown, "A follow-up that builds on the earlier guide.");
+  const tutorRequest = requests.find((request) =>
+    request.systemInstruction.parts[0].text.includes("Study Hub's academic tutor")
+  );
+  assert.ok(tutorRequest);
+  assert.match(tutorRequest.contents[0].parts[0].text, /Earlier guide topic: Photosynthesis/);
+  assert.match(tutorRequest.contents[0].parts[0].text, /Plants use light energy to make glucose/);
+  assert.match(tutorRequest.contents[0].parts[0].text, /Learner follow-up: Why does that happen\?/);
+});
+
+test("rejects an oversized previous guide before calling Gemini", async () => {
+  process.env.GEMINI_API_KEY = "test-key";
+  let called = false;
+  global.fetch = async () => {
+    called = true;
+    throw new Error("Gemini should not be called for invalid continuation context");
+  };
+  const res = responseMock();
+
+  await handler({
+    body: {
+      topic: "Explain the next step",
+      previousGuide: { topic: "Biology", markdown: "x".repeat(20_001) }
+    }
+  }, res);
+
+  assert.equal(res.statusCode, 400);
+  assert.match(res.body.error, /previous study guide is invalid or too long/);
+  assert.equal(called, false);
+});
+
 test("keeps an academic question when the topic check returns no clear decision", async () => {
   process.env.GEMINI_API_KEY = "test-key";
   delete process.env.GEMINI_MODEL;
@@ -225,8 +287,48 @@ test("uses the fallback Gemini model when the primary model stays unavailable", 
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.markdown, "Photosynthesis converts light energy into chemical energy.");
-  assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash").length, 6);
+  assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash").length, 2);
   assert.equal(requestedModels.filter((name) => name === "gemini-3.5-flash-lite").length, 2);
+});
+
+test("returns a generated guide before the optional GitHub publication completes", async () => {
+  process.env.GEMINI_API_KEY = "test-key";
+  process.env.GITHUB_TOKEN = "test-token";
+  process.env.GITHUB_OWNER = "study-hub";
+  process.env.GITHUB_REPO = "notes";
+  for (const key of ["GEMINI_MODEL", "GEMINI_FALLBACK_MODEL"]) delete process.env[key];
+  for (const key of envKeys.slice(4)) {
+    if (!["GITHUB_TOKEN", "GITHUB_OWNER", "GITHUB_REPO"].includes(key)) delete process.env[key];
+  }
+
+  let releasePublication;
+  let publicationStarted = false;
+  global.fetch = async (url, options = {}) => {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname === "api.github.com" && options.method === "PUT") {
+      publicationStarted = true;
+      return new Promise((resolve) => {
+        releasePublication = resolve;
+      });
+    }
+    if (parsedUrl.hostname === "api.github.com") return { status: 404 };
+    const body = JSON.parse(options.body);
+    const isTopicCheck = body.systemInstruction.parts[0].text.includes("strict subject classifier");
+    const text = isTopicCheck ? "YES" : "A freshly generated study guide.";
+    return {
+      ok: true,
+      json: async () => ({ candidates: [{ content: { parts: [{ text }] } }] })
+    };
+  };
+  const res = responseMock();
+
+  await handler({ body: { topic: "Explain cell structure" } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.markdown, "A freshly generated study guide.");
+  assert.equal(res.body.source, "generated-pending");
+  assert.equal(publicationStarted, true);
+  releasePublication({ ok: true });
 });
 
 test("uses and stores only the signed-in learner's relevant study topics", async () => {

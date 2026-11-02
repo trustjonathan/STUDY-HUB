@@ -36,6 +36,12 @@
 }
 .learn-search button:hover { background: #1b5a3b; }
 .learn-search button:focus-visible { outline: 3px solid #173e2e; outline-offset: 2px; }
+.learn-catalogue-search { max-width: 640px; margin: -18px 0 30px; }
+.learn-catalogue-search label { display: block; margin-bottom: 8px; color: #35463d; font-size: .82rem; font-weight: 700; }
+.learn-catalogue-search input { width: 100%; min-height: 44px; padding: 0 13px; border: 1px solid #dfe4db; border-radius: 9px; background: #fffefa; color: #24312c; font: 14px/1 'DM Sans', Arial, sans-serif; }
+.learn-catalogue-search input:focus-visible { outline: 3px solid #246b49; outline-offset: 2px; }
+.learn-catalogue-search p { min-height: 1.2em; margin: 8px 0 0; color: #718078; font-size: .76rem; }
+.learn-subject[hidden], .learn-topic-card[hidden] { display: none; }
 
 /* ---- Index page ---- */
 .learn-index { max-width: 1080px; margin: 0 auto; padding: 48px 28px 64px; }
@@ -50,6 +56,12 @@
 .learn-topic-card:focus-visible { outline: 3px solid #173e2e; outline-offset: 3px; }
 .learn-topic-card h3 { margin: 0 0 8px; color: #24312c; font: 700 1.05rem/1.3 Manrope, sans-serif; }
 .learn-topic-card span { color: #246b49; font-size: 0.8rem; font-weight: 700; }
+.lesson-continue { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; padding: 15px 18px; border: 1px solid #dfe4db; border-radius: 12px; background: #f7faf6; }
+.lesson-continue p { margin: 0; color: #617068; font-size: .86rem; line-height: 1.5; }
+.lesson-continue button { flex: 0 0 auto; min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; background: #246b49; color: #fffefa; cursor: pointer; font: 700 .82rem 'DM Sans', Arial, sans-serif; }
+.lesson-continue button:hover { background: #1b5a3b; }
+.lesson-continue button:focus-visible { outline: 3px solid #173e2e; outline-offset: 2px; }
+.lesson-handoff-error { flex-basis: 100%; color: #8a3b2e !important; }
 
 /* ---- Lesson page ---- */
 .lesson-page { max-width: 760px; margin: 0 auto; padding: 40px 24px 64px; }
@@ -89,6 +101,7 @@
   .learn-index, .lesson-page { padding: 32px 16px 48px; }
   .learn-index-header h1, .lesson-header h1 { font-size: 1.6rem; }
   .lesson-prose { padding: 20px 18px; }
+  .lesson-continue { align-items: stretch; flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

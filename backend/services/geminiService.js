@@ -60,6 +60,28 @@ async function generateContent(apiKey, payload, timeoutMs = 15_000) {
   return requestModel(apiKey, fallbackModel, payload, 3, timeoutMs);
 }
 
+async function generateContentFast(apiKey, payload, timeoutMs = 10_000) {
+  const primaryModel = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL?.trim() || DEFAULT_FALLBACK_MODEL;
+  let response;
+  try {
+    response = await requestModel(apiKey, primaryModel, payload, 1, timeoutMs);
+  } catch (error) {
+    if (fallbackModel === primaryModel) throw error;
+    console.warn(`Gemini model ${primaryModel} failed; trying the configured fallback model.`);
+    return requestModel(apiKey, fallbackModel, payload, 1, timeoutMs);
+  }
+
+  if (![429, 503].includes(response.status) || fallbackModel === primaryModel) {
+    return response;
+  }
+
+  console.warn(
+    `Gemini model ${primaryModel} returned HTTP ${response.status}; trying the configured fallback model.`
+  );
+  return requestModel(apiKey, fallbackModel, payload, 1, timeoutMs);
+}
+
 async function generateContentWithModel(apiKey, payload, model) {
   if (typeof model !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(model)) {
     throw new TypeError('A valid Gemini model name is required.');
@@ -67,4 +89,4 @@ async function generateContentWithModel(apiKey, payload, model) {
   return requestModel(apiKey, model, payload);
 }
 
-module.exports = { generateContent, generateContentWithModel };
+module.exports = { generateContent, generateContentFast, generateContentWithModel };
