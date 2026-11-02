@@ -6,6 +6,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { dedupeCatalogItemsByUrl } from './catalog-dedupe.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT = path.resolve(__dirname, '..', 'public', 'fresh-teacher-catalog.json');
@@ -192,17 +193,21 @@ async function main() {
     return;
   }
 
+  const beforeDedupe = items.length;
+  const deduplicatedItems = dedupeCatalogItemsByUrl(items);
+  console.log(`[fresh-teacher] Catalog entries before dedupe: ${beforeDedupe}; after dedupe: ${deduplicatedItems.length}.`);
+
   const catalog = {
     generatedAt: new Date().toISOString(),
     source: `https://github.com/${OWNER}/${REPO}`,
-    count: items.length,
-    items,
+    count: deduplicatedItems.length,
+    items: deduplicatedItems,
   };
 
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });
   await fs.writeFile(OUTPUT, JSON.stringify(catalog), 'utf8');
   const kb = (Buffer.byteLength(JSON.stringify(catalog)) / 1024).toFixed(0);
-  console.log(`[fresh-teacher] Wrote ${items.length} items from ${filesOk} files (${filesFailed} failed) -> ${path.relative(process.cwd(), OUTPUT)} (${kb} KB)`);
+  console.log(`[fresh-teacher] Wrote ${deduplicatedItems.length} items from ${filesOk} files (${filesFailed} failed) -> ${path.relative(process.cwd(), OUTPUT)} (${kb} KB)`);
 }
 
 main().catch((err) => {

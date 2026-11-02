@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { dedupeCatalogItemsByUrl } from './catalog-dedupe.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(__dirname, '..');
@@ -121,7 +122,7 @@ async function fetchTree() {
 
 async function main() {
   const tree = await fetchTree();
-  const items = tree
+  const sourceItems = tree
     .filter((entry) => {
       if (entry.type !== 'blob' || !entry.path.startsWith('Resources/')) return false;
       return RESOURCE_EXTENSIONS.has(path.posix.extname(entry.path).toLowerCase());
@@ -130,6 +131,7 @@ async function main() {
       const parts = entry.path.split('/');
       const title = titleFromPath(entry.path);
       const classKey = classForPath(parts);
+      const subject = subjectForPath(parts, title);
       const encodedPath = entry.path.split('/').map(encodeURIComponent).join('/');
       return {
         path: entry.path,
@@ -138,14 +140,16 @@ async function main() {
         classKey,
         classKeys: [classKey],
         className: CLASS_LABELS[classKey] || 'Unsorted',
-        subject: subjectForPath(parts, title),
+        subject,
         type: typeForResource(title, entry.path),
         url: `${RAW_BASE}/${encodedPath}`,
       };
     })
     .sort((left, right) => left.path.localeCompare(right.path));
 
-  if (!items.length) throw new Error('The resource repository contains no supported files under Resources/.');
+  if (!sourceItems.length) throw new Error('The resource repository contains no supported files under Resources/.');
+  const items = dedupeCatalogItemsByUrl(sourceItems);
+  console.log(`[resource-repository] Catalog entries before dedupe: ${sourceItems.length}; after dedupe: ${items.length}.`);
 
   const catalog = {
     generatedAt: new Date().toISOString(),

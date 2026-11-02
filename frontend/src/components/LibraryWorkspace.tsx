@@ -18,6 +18,8 @@ type LibraryIconName = 'menu' | 'panel-left' | 'panel-left-open' | 'panel-right'
 interface Resource {
   id: string;
   subject: string;
+  subjects?: string[];
+  classSubjects?: Array<{ classKey: string; subject: string }>;
   type: string;
   source: Source;
   title: string;
@@ -123,6 +125,17 @@ function premiumResourceCategories(resources: Resource[]): string[] {
     .sort((left, right) => left.localeCompare(right));
 }
 
+function subjectsForResource(resource: Resource): string[] {
+  return resource.subjects?.length ? resource.subjects : [resource.subject];
+}
+
+function subjectsForClassSelection(resource: Resource, classKeys?: string[]): string[] {
+  const subjects = resource.classSubjects?.filter((association) =>
+    !classKeys || classKeys.includes(association.classKey)
+  ).map((association) => association.subject);
+  return subjects?.length ? [...new Set(subjects)] : subjectsForResource(resource);
+}
+
 // Normalise Supabase category/resource_type into the shared type vocabulary.
 function supaType(category: string, resourceType: string): string {
   if (category === 'papers') return 'Past Papers';
@@ -152,12 +165,17 @@ interface ResourceRepositoryCatalogItem {
   classKeys: string[];
   classKey?: string;
   subject?: string;
+  subjects?: string[];
+  classSubjects?: Array<{ classKey: string; subject: string }>;
   type?: string;
 }
 
 interface FreshTeacherCatalogItem {
-  classKey: string;
+  classKey: string | null;
+  classKeys?: string[];
   subject: string;
+  subjects?: string[];
+  classSubjects?: Array<{ classKey: string; subject: string }>;
   type: string;
   title: string;
   url: string;
@@ -179,23 +197,52 @@ const LIBRARY_CATALOG_CACHE_TTL = 6 * 60 * 60 * 1000;
 const PREMIUM_CATALOG_CACHE_TTL = 60 * 1000;
 const LIBRARY_CLASS_KEY_PATTERN = /^(?:baby|top|middle|p[1-7]|s[1-6]|unsorted)$/;
 
+function isValidClassSubjects(value: unknown): value is Array<{ classKey: string; subject: string }> {
+  return value === undefined || (Array.isArray(value) && value.every((association) => {
+    if (!association || typeof association !== 'object') return false;
+    const item = association as Record<string, unknown>;
+    return typeof item.classKey === 'string'
+      && LIBRARY_CLASS_KEY_PATTERN.test(item.classKey)
+      && typeof item.subject === 'string';
+  }));
+}
+
 function isResourceRepositoryCatalogItem(value: unknown): value is ResourceRepositoryCatalogItem {
   if (!value || typeof value !== 'object') return false;
   const item = value as Record<string, unknown>;
   const validClassKeys = Array.isArray(item.classKeys)
     && item.classKeys.every((key) => typeof key === 'string' && LIBRARY_CLASS_KEY_PATTERN.test(key));
+  const validSubjects = item.subjects === undefined
+    || (Array.isArray(item.subjects) && item.subjects.every((subject) => typeof subject === 'string'));
   return typeof item.path === 'string'
     && item.path.startsWith('Resources/')
     && item.path.split('/').every((part) => part !== '' && part !== '.' && part !== '..' && !part.includes('\\'))
     && typeof item.title === 'string'
     && typeof item.year === 'string'
-    && validClassKeys;
+    && validClassKeys
+    && validSubjects
+    && isValidClassSubjects(item.classSubjects)
+    && (item.subject === undefined || typeof item.subject === 'string');
 }
 
 function isFreshTeacherCatalogItem(value: unknown): value is FreshTeacherCatalogItem {
   if (!value || typeof value !== 'object') return false;
   const item = value as Record<string, unknown>;
-  if (typeof item.url !== 'string' || typeof item.classKey !== 'string' || !LIBRARY_CLASS_KEY_PATTERN.test(item.classKey)) {
+  const classKeys = Array.isArray(item.classKeys)
+    ? item.classKeys
+    : typeof item.classKey === 'string' ? [item.classKey] : [];
+  const validClassKeys = classKeys.every((key) =>
+    typeof key === 'string' && LIBRARY_CLASS_KEY_PATTERN.test(key)
+  );
+  const validSubjects = item.subjects === undefined
+    || (Array.isArray(item.subjects) && item.subjects.every((subject) => typeof subject === 'string'));
+  if (
+    typeof item.url !== 'string'
+    || !(item.classKey === null || (typeof item.classKey === 'string' && LIBRARY_CLASS_KEY_PATTERN.test(item.classKey)))
+    || !validClassKeys
+    || !validSubjects
+    || !isValidClassSubjects(item.classSubjects)
+  ) {
     return false;
   }
   try {
@@ -282,9 +329,16 @@ async function loadResourceRepository(catalogUrl: string): Promise<CatalogLoad> 
       const url = `${RESOURCE_REPOSITORY_BASE_URL}/${encodedPath}`;
       const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
+      const subjects = [...new Set([...(item.subjects || []), item.subject || 'General'].map(titleCase))];
+      const classSubjects = item.classSubjects?.map((association) => ({
+        classKey: association.classKey,
+        subject: titleCase(association.subject),
+      }));
       return {
         id: `ft:${url}`,
-        subject: titleCase(item.subject || 'General'),
+        subject: subjects[0] || 'General',
+        subjects,
+        ...(classSubjects?.length ? { classSubjects } : {}),
         type: item.type || 'Study Resources',
         source: 'resource-repository' as Source,
         title: item.title.trim() || 'Untitled resource',
@@ -302,15 +356,29 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
   if (!Array.isArray(data?.items)) throw new Error('Fresh Teacher catalog returned an invalid list.');
   const resources = (data.items as unknown[])
     .filter(isFreshTeacherCatalogItem)
-    .map((item) => ({
-      id: `ft:${item.url}`,
-      subject: titleCase(item.subject === 'All Subjects' ? 'General' : item.subject),
-      type: item.type,
-      source: 'fresh-teacher' as Source,
-      title: item.title.trim() || 'Untitled resource',
-      url: item.url,
-      keys: item.year === '2026' ? [item.classKey, ...TRENDING_2026_CLASS.keys] : [item.classKey],
-    }));
+    .map((item) => {
+      const classKeys = [...new Set([...(item.classKeys || []), item.classKey]
+        .filter((key): key is string => typeof key === 'string' && LIBRARY_CLASS_KEY_PATTERN.test(key)))];
+      const subjects = [...new Set([...(item.subjects || []), item.subject]
+        .map((subject) => titleCase(subject === 'All Subjects' ? 'General' : subject)))];
+      const classSubjects = item.classSubjects?.map((association) => ({
+        classKey: association.classKey,
+        subject: titleCase(association.subject === 'All Subjects' ? 'General' : association.subject),
+      }));
+      const keys = classKeys.length ? classKeys : [...UNSORTED_CLASS.keys];
+      if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
+      return {
+        id: `ft:${item.url}`,
+        subject: subjects[0] || 'General',
+        subjects,
+        ...(classSubjects?.length ? { classSubjects } : {}),
+        type: item.type,
+        source: 'fresh-teacher' as Source,
+        title: item.title.trim() || 'Untitled resource',
+        url: item.url,
+        keys,
+      };
+    });
   return { resources };
 }
 
@@ -505,31 +573,48 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       }
       sources.push({ label: 'Fresh Teacher library', load: () => loadFreshTeacher(freshTeacherCatalogUrl) });
 
-      const merged = new Map<string, Resource>();
-      const failures: string[] = [];
-      for (const source of sources) {
-        if (!active) return;
-        setLoadingMessage(`Loading ${source.label}…`);
-        try {
-          const result = await source.load();
-          for (const resource of result.resources) {
+      setLoadingMessage(`Loading ${sources.length} catalogs in parallel…`);
+      const loadedCatalogs = new Map<number, Resource[]>();
+      const publishAvailableResources = () => {
+        const merged = new Map<string, Resource>();
+        for (let index = 0; index < sources.length; index += 1) {
+          for (const resource of loadedCatalogs.get(index) || []) {
             const existing = merged.get(resource.id);
             if (existing) {
               existing.keys = [...new Set([...existing.keys, ...resource.keys])];
+              existing.subjects = [...new Set([
+                ...(existing.subjects || [existing.subject]),
+                ...(resource.subjects || [resource.subject]),
+              ])];
+              const classSubjects = new Map<string, { classKey: string; subject: string }>();
+              for (const association of [...(existing.classSubjects || []), ...(resource.classSubjects || [])]) {
+                classSubjects.set(`${association.classKey}\0${association.subject}`, association);
+              }
+              if (classSubjects.size) existing.classSubjects = [...classSubjects.values()];
             } else {
               merged.set(resource.id, resource);
             }
           }
-          const availableResources = [...merged.values()];
-          setResources(availableResources);
-          setTotalResourceCount(availableResources.length);
-        } catch (sourceError) {
-          console.error(`${source.label} catalog could not be loaded.`, sourceError);
-          failures.push(source.label);
         }
-      }
+        const availableResources = [...merged.values()];
+        setResources(availableResources);
+        setTotalResourceCount(availableResources.length);
+      };
+      const results = await Promise.allSettled(sources.map(async (source, index) => {
+        const result = await source.load();
+        if (!active) return;
+        loadedCatalogs.set(index, result.resources);
+        publishAvailableResources();
+      }));
       if (!active) return;
-      const resources = [...merged.values()];
+      const failures = results.flatMap((result, index) => {
+        if (result.status !== 'rejected') return [];
+        const reason: unknown = result.reason;
+        const detail = reason instanceof Error ? reason.message : String(reason);
+        console.error(`${sources[index].label} catalog could not be loaded.`, reason);
+        return [`${sources[index].label}: ${detail}`];
+      });
+      const resources = [...loadedCatalogs.values()].flat();
       const requestedCategory = new URLSearchParams(window.location.search).get('category');
       const matchingCategory = requestedCategory
         ? resources.find((resource) => resource.category === requestedCategory)?.category
@@ -537,9 +622,9 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       if (matchingCategory) setSelected({ label: matchingCategory, keys: [], category: matchingCategory });
       setLoading(false);
       setLoadingMessage('');
-      if (!resources.length) setError('No resources could be loaded. Please try again shortly.');
+      if (!resources.length) setError(`No resources could be loaded.${failures.length ? ` Failed catalogs: ${failures.join('; ')}` : ' Please try again shortly.'}`);
       else if (failures.length > 0) {
-        setError(`Some catalogs could not be loaded (${failures.join(', ')}); showing available resources.`);
+        setError(`Some catalogs failed; showing available resources. ${failures.join('; ')}`);
       }
     }
     void load();
@@ -1241,20 +1326,25 @@ function ClassDashboard(props: DashboardProps) {
   );
 
   const subjects = useMemo(
-    () => Array.from(new Set(classResources.map((r) => r.subject))).sort((a, b) => a.localeCompare(b)),
-    [classResources]
+    () => Array.from(new Set(classResources.flatMap((resource) =>
+      subjectsForClassSelection(resource, selected.category ? undefined : selected.keys)
+    ))).sort((a, b) => a.localeCompare(b)),
+    [classResources, selected.category, selected.keys]
   );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const searchAcrossSite = Boolean(q);
     const searchSource = searchAcrossSite || savedOnly ? resources : classResources;
+    const subjectClassKeys = searchAcrossSite || savedOnly || selected.category ? undefined : selected.keys;
     return searchSource.filter((r) => {
-      if (!searchAcrossSite && !savedOnly && !showAllSubjects && preferredSubjects.length && !preferredSubjects.includes(r.subject)) return false;
+      const resourceSubjects = subjectsForClassSelection(r, subjectClassKeys);
+      if (!searchAcrossSite && !savedOnly && !showAllSubjects && preferredSubjects.length
+        && !resourceSubjects.some((subject) => preferredSubjects.includes(subject))) return false;
       if (savedOnly && !props.bookmarks.includes(r.id)) return false;
-      if (!savedOnly && subjectFilter !== 'all' && r.subject !== subjectFilter) return false;
+      if (!savedOnly && subjectFilter !== 'all' && !resourceSubjects.includes(subjectFilter)) return false;
       if (!savedOnly && typeFilter !== 'all' && r.type !== typeFilter) return false;
-      if (q && !(`${r.subject} ${r.title} ${r.type}`.toLowerCase().includes(q))) return false;
+      if (q && !(`${resourceSubjects.join(' ')} ${r.title} ${r.type}`.toLowerCase().includes(q))) return false;
       return true;
     }).sort((left, right) => {
       const leftStats = props.resourceStats[left.id];
@@ -1269,7 +1359,7 @@ function ClassDashboard(props: DashboardProps) {
         || rightPercent - leftPercent
         || left.title.localeCompare(right.title);
     });
-  }, [classResources, resources, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, savedOnly, props.bookmarks, props.resourceStats]);
+  }, [classResources, resources, selected.category, selected.keys, subjectFilter, typeFilter, search, preferredSubjects, showAllSubjects, savedOnly, props.bookmarks, props.resourceStats]);
 
   useEffect(() => {
     setVisible(PAGE_SIZE);
@@ -1477,7 +1567,9 @@ function ClassDashboard(props: DashboardProps) {
               >
                 {subject}
                 <span className="lib-cat-count">
-                  {classResources.filter((resource) => resource.subject === subject).length.toLocaleString()}
+                  {classResources.filter((resource) =>
+                    subjectsForClassSelection(resource, selected.category ? undefined : selected.keys).includes(subject)
+                  ).length.toLocaleString()}
                 </span>
               </button>
             ))}
@@ -1541,7 +1633,9 @@ function ClassDashboard(props: DashboardProps) {
               <p>Pick up where curiosity leads — your class resources are all gathered here.</p>
               <div className="lib-resource-stats">
                 <span><strong>{classResources.length.toLocaleString()}</strong> resources</span>
-                <span><strong>{new Set(classResources.map((resource) => resource.subject)).size}</strong> subjects</span>
+                <span><strong>{new Set(classResources.flatMap((resource) =>
+                  subjectsForClassSelection(resource, selected.category ? undefined : selected.keys)
+                )).size}</strong> subjects</span>
               </div>
             </div>
             <a className="lib-resource-cta" href="#library-resources" aria-label="Browse class resources">↓</a>
