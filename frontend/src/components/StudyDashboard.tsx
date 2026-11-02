@@ -73,6 +73,7 @@ function Icon({ name }: { name: 'spark' | 'book' | 'target' | 'calendar' | 'arro
 }
 
 export default function StudyDashboard({ baseHref, libraryHref, signInHref, initialView = 'home' }: Props) {
+  const landingHref = baseHref.replace(/\/+$/, '') || '/';
   const [user, setUser] = useState<StudyUser | null>(null);
   const [profileReady, setProfileReady] = useState(false);
   const [view, setView] = useState<'home' | 'tutor' | 'library' | 'plan' | 'preferences'>(initialView);
@@ -335,7 +336,7 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
     <div className="study-app">
       {mobileNavOpen && <button className="study-mobile-backdrop" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} />}
       <aside className={`study-sidebar${mobileNavOpen ? ' is-open' : ''}`}>
-        <a className="study-brand" href={baseHref} aria-label="Study Hub home">
+        <a className="study-brand" href={landingHref} aria-label="Study Hub home">
           <img src={`${baseHref}favicon.svg`} alt="" />
           <span><strong>Study Hub</strong><small>AI Study</small></span>
         </a>
