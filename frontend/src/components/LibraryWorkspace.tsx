@@ -955,7 +955,7 @@ export default function LibraryWorkspace({
           </section>
         </div>
       )}
-      {!embedded && <nav className="lib-crumbs" aria-label="Library breadcrumb">
+      {!embedded && !selected && <nav className="lib-crumbs" aria-label="Library breadcrumb">
         {path.map((item, idx) => {
           const isLast = idx === path.length - 1;
           return (
@@ -1426,10 +1426,9 @@ function ClassDashboard(props: DashboardProps) {
   const [savedOnly, setSavedOnly] = useState(false);
   const [savedSignInPrompt, setSavedSignInPrompt] = useState(false);
   const [classesOpen, setClassesOpen] = useState(false);
-  const [classesHovered, setClassesHovered] = useState(false);
   const [filtersHovered, setFiltersHovered] = useState(false);
   const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const classDrawerOpen = classesOpen || classesHovered;
+  const classDrawerOpen = classesOpen;
 
   function cancelHoverClose() {
     if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
@@ -1462,7 +1461,6 @@ function ClassDashboard(props: DashboardProps) {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setClassesOpen(false);
-        setClassesHovered(false);
         setFiltersHovered(false);
       }
     };
@@ -1530,7 +1528,7 @@ function ClassDashboard(props: DashboardProps) {
 
   return (
     <div className={`lib-dash ${props.embedded ? 'is-embedded' : ''} ${navigationCollapsed ? 'is-navigation-collapsed' : ''} ${filtersCollapsed && !filtersHovered ? 'is-filters-collapsed' : ''}`}>
-      <aside id="lib-quick-navigation" className="lib-rail" aria-label="Quick navigation">
+      <aside id="lib-quick-navigation" className="lib-rail" aria-label="Library controls">
         <button
           type="button"
           className="lib-rail-toggle"
@@ -1539,55 +1537,25 @@ function ClassDashboard(props: DashboardProps) {
           aria-expanded={!navigationCollapsed}
           title={navigationCollapsed ? 'Expand quick navigation' : 'Collapse quick navigation'}
         ><LibraryIcon name="menu" /></button>
-        <a className="lib-rail-btn" href={props.homeHref} title="Home" aria-label="Home"><LibraryIcon name="home" /></a>
-        <a className="lib-rail-btn" href={`${base}assistant.html`} title="AI Study" aria-label="AI Study"><LibraryIcon name="assistant" /></a>
         <button type="button" className="lib-rail-btn is-active" title="Class Shelf" aria-label="Back to class shelf" onClick={props.onBackToShelf}><LibraryIcon name="bookshelf" /></button>
-        <button
-          type="button"
-          className={`lib-rail-btn lib-classes-trigger ${classesOpen ? 'is-open' : ''}`}
-          title="Browse classes"
-          aria-label="Browse classes"
-          aria-expanded={classDrawerOpen}
-          aria-controls="lib-class-drawer"
-          onClick={() => {
-            setClassesOpen((open) => !open);
-            setClassesHovered(false);
-          }}
-          onPointerEnter={(event) => {
-            if (event.pointerType !== 'mouse') return;
-            cancelHoverClose();
-            setClassesHovered(true);
-          }}
-          onPointerLeave={(event) => {
-            if (event.pointerType === 'mouse') scheduleHoverClose(() => setClassesHovered(false));
-          }}
-        ><LibraryIcon name="classes" /></button>
       </aside>
 
       {classDrawerOpen && (
         <>
           {classesOpen && (
-            <button type="button" className="lib-class-drawer-backdrop" aria-label="Close class navigation" onClick={() => { setClassesOpen(false); setClassesHovered(false); }} />
+            <button type="button" className="lib-class-drawer-backdrop" aria-label="Close class navigation" onClick={() => setClassesOpen(false)} />
           )}
           <aside
             id="lib-class-drawer"
             className="lib-class-drawer"
             aria-label="Browse classes and resource categories"
-            onPointerEnter={(event) => {
-              if (event.pointerType !== 'mouse') return;
-              cancelHoverClose();
-              setClassesHovered(true);
-            }}
-            onPointerLeave={(event) => {
-              if (event.pointerType === 'mouse') scheduleHoverClose(() => setClassesHovered(false));
-            }}
           >
             <div className="lib-class-drawer-head">
               <div>
                 <span className="lib-side-kicker">Study Hub Library</span>
                 <h2>Browse library</h2>
               </div>
-              <button type="button" className="lib-class-drawer-close" aria-label="Close class navigation" onClick={() => { setClassesOpen(false); setClassesHovered(false); }}>
+              <button type="button" className="lib-class-drawer-close" aria-label="Close class navigation" onClick={() => setClassesOpen(false)}>
                 <LibraryIcon name="close" />
               </button>
             </div>
@@ -1607,7 +1575,6 @@ function ClassDashboard(props: DashboardProps) {
                         onClick={() => {
                           props.onSelectClass({ label: item.label, keys: item.keys });
                           setClassesOpen(false);
-                          setClassesHovered(false);
                         }}
                       >
                         <span>{item.label}</span>
@@ -1632,7 +1599,6 @@ function ClassDashboard(props: DashboardProps) {
                         onClick={() => {
                           props.onSelectClass({ label: category, keys: [], category });
                           setClassesOpen(false);
-                          setClassesHovered(false);
                         }}
                       >
                         <span>{category}</span>
@@ -1651,7 +1617,6 @@ function ClassDashboard(props: DashboardProps) {
                   onClick={() => {
                     props.onSelectClass(TRENDING_2026_CLASS);
                     setClassesOpen(false);
-                    setClassesHovered(false);
                   }}
                 >
                   <span>2026 trending</span>
@@ -1669,7 +1634,6 @@ function ClassDashboard(props: DashboardProps) {
                   onClick={() => {
                     props.onSelectClass(UNSORTED_CLASS);
                     setClassesOpen(false);
-                    setClassesHovered(false);
                   }}
                 >
                   <span>Unsorted files</span>
@@ -1750,7 +1714,17 @@ function ClassDashboard(props: DashboardProps) {
           <div className="lib-main-crumb-path">
             {props.embedded ? <span className="is-active">{selected.label}</span> : <>Home / Library / <span className="is-active">{selected.label}</span></>}
           </div>
-          <div className="lib-panel-actions" aria-label="Library panels">
+          <div className="lib-panel-actions" aria-label="Library toolbar">
+            <button
+              type="button"
+              className="lib-panel-toggle"
+              onClick={() => setClassesOpen((open) => !open)}
+              aria-expanded={classesOpen}
+              aria-controls="lib-class-drawer"
+            >
+              <LibraryIcon name="classes" />
+              <span>Classes</span>
+            </button>
             <button
               type="button"
               className="lib-panel-toggle"

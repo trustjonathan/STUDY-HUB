@@ -1,0 +1,166 @@
+---
+interface Props {
+  base: string;
+  home: string;
+  routeKey: string;
+}
+
+const { base, home, routeKey } = Astro.props;
+const isSubjectPage = routeKey.startsWith('frontend/src/html/');
+const isStudyPage = routeKey === 'study' || routeKey === 'assistant';
+---
+
+<header class="site-header clean-site-header site-header-refresh" id="top">
+  <div class="header-main">
+    <a class="brand" href={home} aria-label="Study Hub home">
+      <img src={`${base}favicon.svg`} width="40" height="40" alt="" />
+      <span>Study Hub</span>
+    </a>
+    <nav class="site-nav site-nav-desktop" aria-label="Main navigation">
+      <a href={home} aria-current={routeKey === '' ? 'page' : undefined}>Home</a>
+      <a href={`${home}/subjects.html`} aria-current={routeKey === 'subjects' || isSubjectPage ? 'page' : undefined}>Subjects</a>
+      <a href={`${home}/blog.html`} aria-current={routeKey === 'blog' ? 'page' : undefined}>Blog</a>
+      <a href={`${home}/library.html`} aria-current={routeKey === 'library' ? 'page' : undefined}>Library</a>
+      <a href={`${home}/study.html`} aria-current={isStudyPage ? 'page' : undefined}>AI Study</a>
+      <a href={`${home}/frontend/src/html/about.html`} aria-current={routeKey === 'frontend/src/html/about' ? 'page' : undefined}>About</a>
+      <a href={`${home}/admin/payments.html`} data-admin-payments-link hidden>Admin dashboard</a>
+    </nav>
+    <div class="header-actions">
+      <a class="header-sign-in" data-header-sign-in href={`${home}/sign-in.html`}>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 21h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4M10 17l5-5-5-5m5 5H3" /></svg>
+        <span>Sign in</span>
+      </a>
+      <div class="header-account" data-header-account hidden>
+        <details class="header-account-menu">
+          <summary aria-label="Open account menu">
+            <span class="header-account-avatar" data-account-avatar aria-hidden="true">A</span>
+          </summary>
+          <div class="header-account-dropdown">
+            <strong data-account-name>Account</strong>
+            <span data-account-email></span>
+            <a href={`${home}/account.html`}>Profile &amp; settings</a>
+            <button type="button" data-account-sign-out>Sign out</button>
+          </div>
+        </details>
+      </div>
+      <button
+        class="site-menu-trigger"
+        type="button"
+        aria-label="Open site menu"
+        aria-haspopup="dialog"
+        aria-controls="site-menu-drawer"
+        aria-expanded="false"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        <span>Menu</span>
+      </button>
+    </div>
+  </div>
+  <dialog class="site-menu-drawer" id="site-menu-drawer" aria-labelledby="site-menu-heading">
+    <div class="site-menu-drawer-head">
+      <h2 id="site-menu-heading">Study Hub menu</h2>
+      <button class="site-menu-close" type="button" aria-label="Close site menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
+    <nav class="site-menu-links" aria-label="Mobile navigation">
+      <a href={home} aria-current={routeKey === '' ? 'page' : undefined}>Home</a>
+      <a href={`${home}/subjects.html`} aria-current={routeKey === 'subjects' || isSubjectPage ? 'page' : undefined}>Subjects</a>
+      <a href={`${home}/blog.html`} aria-current={routeKey === 'blog' ? 'page' : undefined}>Blog</a>
+      <a href={`${home}/library.html`} aria-current={routeKey === 'library' ? 'page' : undefined}>Library</a>
+      <a href={`${home}/study.html`} aria-current={isStudyPage ? 'page' : undefined}>AI Study</a>
+      <a href={`${home}/frontend/src/html/about.html`} aria-current={routeKey === 'frontend/src/html/about' ? 'page' : undefined}>About</a>
+      <a href={`${home}/admin/payments.html`} data-admin-payments-link hidden>Admin dashboard</a>
+    </nav>
+  </dialog>
+</header>
+
+<script>
+  import { clearAuthSession, readAuthSession } from '../utils/authSession';
+
+  interface HeaderAccount {
+    username?: string;
+    email?: string;
+    role?: string;
+  }
+
+  const signInLink = document.querySelector<HTMLElement>('[data-header-sign-in]');
+  const accountMenu = document.querySelector<HTMLElement>('[data-header-account]');
+  const adminPaymentsLinks = document.querySelectorAll<HTMLAnchorElement>('[data-admin-payments-link]');
+  const accountAvatar = document.querySelector<HTMLElement>('[data-account-avatar]');
+  const accountName = document.querySelector<HTMLElement>('[data-account-name]');
+  const accountEmail = document.querySelector<HTMLElement>('[data-account-email]');
+  const signOutButton = document.querySelector<HTMLButtonElement>('[data-account-sign-out]');
+  const menuButton = document.querySelector<HTMLButtonElement>('.site-menu-trigger');
+  const menuDialog = document.querySelector<HTMLDialogElement>('#site-menu-drawer');
+  const menuCloseButton = menuDialog?.querySelector<HTMLButtonElement>('.site-menu-close');
+
+  function updateHeaderAccount() {
+    try {
+      const session = readAuthSession<HeaderAccount>();
+      const user = session?.user;
+      if (!user || typeof user.email !== 'string') {
+        if (signInLink) signInLink.hidden = false;
+        if (accountMenu) accountMenu.hidden = true;
+        adminPaymentsLinks.forEach((link) => { link.hidden = true; });
+        return;
+      }
+
+      const displayName = user.username?.trim() || user.email;
+      const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('');
+      if (accountAvatar) accountAvatar.textContent = initials.toUpperCase();
+      if (accountName) accountName.textContent = displayName;
+      if (accountEmail) accountEmail.textContent = user.email;
+      if (signInLink) signInLink.hidden = true;
+      if (accountMenu) accountMenu.hidden = false;
+      adminPaymentsLinks.forEach((link) => { link.hidden = user.role !== 'admin'; });
+    } catch {
+      if (signInLink) signInLink.hidden = false;
+      if (accountMenu) accountMenu.hidden = true;
+      adminPaymentsLinks.forEach((link) => { link.hidden = true; });
+    }
+  }
+
+  function closeMenu() {
+    if (menuDialog?.open) menuDialog.close();
+  }
+
+  menuButton?.addEventListener('click', () => {
+    menuDialog?.showModal();
+    menuButton.setAttribute('aria-expanded', 'true');
+    menuCloseButton?.focus();
+  });
+  menuCloseButton?.addEventListener('click', closeMenu);
+  menuDialog?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMenu();
+    }
+  });
+  menuDialog?.addEventListener('close', () => {
+    menuButton?.setAttribute('aria-expanded', 'false');
+    menuButton?.focus();
+  });
+  menuDialog?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+
+  updateHeaderAccount();
+  window.addEventListener('study-hub-auth-change', updateHeaderAccount);
+  signOutButton?.addEventListener('click', () => {
+    clearAuthSession();
+    const details = signOutButton.closest('details');
+    if (details) details.open = false;
+  });
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target instanceof Node && !accountMenu?.contains(target)) {
+      const details = accountMenu?.querySelector('details');
+      if (details) details.open = false;
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      const details = accountMenu?.querySelector('details');
+      if (details) details.open = false;
+    }
+  });
+</script>
