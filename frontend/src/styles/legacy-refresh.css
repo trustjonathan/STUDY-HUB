@@ -1,11 +1,11 @@
 :root {
-  --legacy-ink: #24312c;
-  --legacy-muted: #617068;
-  --legacy-line: #dfe4db;
-  --legacy-paper: #fffefa;
-  --legacy-green: #246b49;
-  --legacy-green-dark: #29483a;
-  --legacy-ochre: #b97832;
+  --legacy-ink: var(--color-ink);
+  --legacy-muted: var(--color-muted);
+  --legacy-line: var(--color-line);
+  --legacy-paper: var(--color-surface);
+  --legacy-green: var(--color-primary);
+  --legacy-green-dark: var(--color-primary-hover);
+  --legacy-ochre: var(--color-accent);
 }
 
 body[data-page] {
@@ -14,10 +14,10 @@ body[data-page] {
   background:
     linear-gradient(90deg, rgba(36, 49, 44, 0.025) 1px, transparent 1px),
     linear-gradient(rgba(36, 49, 44, 0.025) 1px, transparent 1px),
-    #f4f5ef;
+    var(--color-canvas);
   background-size: 36px 36px;
   color: var(--legacy-ink);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: 0;
 }
 
@@ -120,7 +120,7 @@ body[data-page] .subject-badge {
 body[data-page] .subject-copy h1 {
   max-width: 680px;
   margin: 0;
-  color: #263a30;
+  color: var(--color-ink);
   font-size: clamp(2.7rem, 5vw, 4.3rem);
   line-height: 1.08;
 }
@@ -215,7 +215,7 @@ body[data-page] .resource-card,
 body[data-page] .resource-content,
 body[data-page] .math-uneb-card {
   min-width: 0;
-  border: 1px solid #d8ded5;
+  border: 1px solid var(--color-line);
   border-radius: 6px;
   background: var(--legacy-paper);
   box-shadow: 0 5px 16px rgba(36, 49, 44, 0.05);
@@ -333,7 +333,7 @@ body[data-page="about"] .about-hero {
 body[data-page="about"] .about-hero-copy h1 {
   max-width: 700px;
   margin: 0;
-  color: #263a30;
+  color: var(--color-ink);
   font-size: clamp(2.5rem, 4.4vw, 4rem);
   line-height: 1.1;
 }
@@ -367,7 +367,7 @@ body[data-page="about"] .about-founder figcaption {
 
 body[data-page] .box1 h3 {
   margin: 0;
-  color: #263a30;
+  color: var(--color-ink);
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.12;
   text-shadow: none;
@@ -412,7 +412,7 @@ body[data-page] .about-content .highlight { color: var(--legacy-green); }
 body[data-page] .quote {
   border-left: 3px solid var(--legacy-ochre);
   border-radius: 0;
-  background: #f4f5ef;
+  background: var(--color-canvas);
   color: #53635a;
   text-shadow: none;
 }
@@ -910,7 +910,7 @@ body[data-page] .site-header .mega-nav a { font-size: 0.78rem; }
 }
 
 body[data-page] .site-header.clean-site-header :is(a, button, summary):focus-visible {
-  outline: 3px solid #b97832;
+  outline: 3px solid var(--color-accent);
   outline-offset: 3px;
   border-radius: 4px;
 }

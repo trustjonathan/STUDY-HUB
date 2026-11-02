@@ -1,5 +1,6 @@
 ---
 import sharedStyles from '../styles/astro-site.css?url';
+import tokenStyles from '../styles/design-tokens.css?url';
 import legacyStyles from '../styles/legacy-refresh.css?url';
 import ResumeProgress from '../components/ResumeProgress.astro';
 import SubjectFooterCarousel from '../components/SubjectFooterCarousel.astro';
@@ -75,6 +76,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-touch-icon.png`} />
     <link rel="manifest" href={`${base}site.webmanifest`} />
     <link rel="stylesheet" href={sharedStyles} />
+    <link rel="stylesheet" href={tokenStyles} />
     <link rel="stylesheet" href={legacyStyles} />
   </head>
   <body data-page={dataPage} class={bodyClass}>
