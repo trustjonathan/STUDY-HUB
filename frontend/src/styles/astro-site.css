@@ -363,6 +363,33 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
 .mega-nav-subject-panel { width: min(760px, calc(100vw - 64px)); grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 18px; }
 .site-header .mega-nav a { font-size: 0.78rem; }
 
+@media (min-width: 761px) and (max-width: 900px) {
+  .site-header.clean-site-header .header-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "identity signin" "navigation navigation";
+    gap: 4px 12px;
+    padding: 8px 20px;
+  }
+  .site-header.clean-site-header .brand-group { grid-area: identity; }
+  .site-header.clean-site-header .site-nav {
+    grid-area: navigation;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 14px;
+    overflow-x: visible;
+  }
+  .site-header.clean-site-header .header-sign-in { grid-area: signin; }
+  .site-header.clean-site-header .header-account { grid-area: signin; justify-self: end; }
+}
+
+.site-header.clean-site-header :is(a, button, summary):focus-visible {
+  outline: 3px solid #b97832;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 @media (max-width: 980px) {
   .mega-nav { gap: 14px; }
 }
@@ -728,7 +755,15 @@ h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; }
     padding: 5px 14px 7px;
   }
   .site-header.clean-site-header .brand-group { grid-area: identity; gap: 10px; }
-  .site-header.clean-site-header .site-nav { grid-area: navigation; width: 100%; justify-content: space-between; gap: 0 14px; }
+  .site-header.clean-site-header .site-nav {
+    grid-area: navigation;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 8px;
+    overflow-x: visible;
+  }
   .site-header.clean-site-header .header-sign-in { grid-area: signin; }
   .site-header.clean-site-header .header-account { grid-area: signin; justify-self: end; }
   .site-header.clean-site-header .site-nav a { font-size: .78rem; }
