@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { libraryClassGroups, libraryClasses } from '../data/libraryClasses';
 import { availableSubjects } from '../data/availableSubjects';
+import { CATALOG_SOURCES, ENABLE_SUPABASE_CATALOG } from '../config/catalogSources';
 import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
 import { clearAuthSession, readAuthSession, updateAuthSessionUser } from '../utils/authSession';
 
@@ -12,7 +13,7 @@ interface Props {
   embedded?: boolean;
 }
 
-type Source = 'study-hub' | 'resource-repository' | 'fresh-teacher' | 'premium-resources';
+type Source = 'study-hub' | 'resource-repository' | 'fresh-teacher' | 'premium-resources' | 'static-manifest';
 type LibraryIconName = 'menu' | 'panel-left' | 'panel-left-open' | 'panel-right' | 'panel-right-open' | 'home' | 'bookshelf' | 'classes' | 'assistant' | 'close' | 'document' | 'shield' | 'scale';
 
 interface Resource {
@@ -44,16 +45,11 @@ interface ResourceStats {
 
 const TRENDING_2026_CLASS = { label: '2026 trending', keys: ['trending2026'] };
 const UNSORTED_CLASS = { label: 'Unsorted files', keys: ['unsorted'] };
-const RESOURCE_REPOSITORY_CATALOG = 'study-hub-resources-1-catalog.json';
-const RESOURCE_REPOSITORY_BASE_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main';
-const FRESH_TEACHER_CATALOG = 'fresh-teacher-catalog.json';
 const FRESH_TEACHER_ORIGINS = new Set([
   'https://fresh-teacher.github.io',
   'https://s6-fresh-teacher.vercel.app',
   'https://freshteachers.vercel.app',
 ]);
-const PREMIUM_CATALOG_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/resource-catalog.json';
-const PREMIUM_RESOURCE_BASE_URL = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main';
 
 function findLibraryClass(label: string | null | undefined) {
   if (label === TRENDING_2026_CLASS.label) return TRENDING_2026_CLASS;
@@ -156,6 +152,7 @@ function previewFormat(url: string): string {
 
 interface CatalogLoad {
   resources: Resource[];
+  generatedAt?: string;
 }
 
 interface ResourceRepositoryCatalogItem {
@@ -273,6 +270,12 @@ function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResour
     && validClassKeys;
 }
 
+function catalogUrlFor(url: string, base: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return new URL(url, window.location.origin).href;
+  return new URL(url, base).href;
+}
+
 async function fetchCachedCatalog(catalogUrl: string, cacheTtl = LIBRARY_CATALOG_CACHE_TTL): Promise<Response> {
   let cache: Cache | undefined;
   let staleResponse: Response | undefined;
@@ -316,7 +319,7 @@ async function fetchCachedCatalog(catalogUrl: string, cacheTtl = LIBRARY_CATALOG
   return response;
 }
 
-async function loadResourceRepository(catalogUrl: string): Promise<CatalogLoad> {
+async function loadResourceRepository(catalogUrl: string, fileBaseUrl: string): Promise<CatalogLoad> {
   const response = await fetchCachedCatalog(catalogUrl);
   if (!response.ok) throw new Error(`Study Hub resource repository catalog request failed (HTTP ${response.status}).`);
   const data = await response.json();
@@ -326,7 +329,7 @@ async function loadResourceRepository(catalogUrl: string): Promise<CatalogLoad> 
     .filter(isResourceRepositoryCatalogItem)
     .map((item) => {
       const encodedPath = item.path.split('/').map(encodeURIComponent).join('/');
-      const url = `${RESOURCE_REPOSITORY_BASE_URL}/${encodedPath}`;
+      const url = `${fileBaseUrl}/${encodedPath}`;
       const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       const subjects = [...new Set([...(item.subjects || []), item.subject || 'General'].map(titleCase))];
@@ -346,7 +349,7 @@ async function loadResourceRepository(catalogUrl: string): Promise<CatalogLoad> 
         keys,
       };
     });
-  return { resources };
+  return { resources, generatedAt: typeof data.generatedAt === 'string' ? data.generatedAt : undefined };
 }
 
 async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
@@ -379,18 +382,19 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
         keys,
       };
     });
-  return { resources };
+  return { resources, generatedAt: typeof data.generatedAt === 'string' ? data.generatedAt : undefined };
 }
 
-async function loadPremiumResources(): Promise<CatalogLoad> {
-  const response = await fetchCachedCatalog(PREMIUM_CATALOG_URL, PREMIUM_CATALOG_CACHE_TTL);
+async function loadPremiumResources(catalogUrl: string, fileBaseUrl: string): Promise<CatalogLoad> {
+  const response = await fetchCachedCatalog(catalogUrl, PREMIUM_CATALOG_CACHE_TTL);
   if (!response.ok) throw new Error(`Premium resource catalog request failed (HTTP ${response.status}).`);
   const payload: unknown = await response.json();
   if (!payload || typeof payload !== 'object' || !('resources' in payload) || !Array.isArray(payload.resources)) {
     throw new Error('Premium resource catalog has an invalid format.');
   }
 
-  const resources = payload.resources
+  const catalog = payload as Record<string, unknown>;
+  const resources = (catalog.resources as unknown[])
     .filter(isPremiumCatalogResource)
     .map((item) => {
       const resourcePath = item.path;
@@ -398,17 +402,65 @@ async function loadPremiumResources(): Promise<CatalogLoad> {
       const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
-        id: `ft:${PREMIUM_RESOURCE_BASE_URL}/${encodedPath}`,
+        id: `ft:${fileBaseUrl}/${encodedPath}`,
         subject: typeof item.subject === 'string' ? item.subject : 'General',
         type: typeof item.type === 'string' ? item.type : 'Study Resources',
         source: 'premium-resources' as Source,
         title: item.title,
-        url: `${PREMIUM_RESOURCE_BASE_URL}/${encodedPath}`,
+        url: `${fileBaseUrl}/${encodedPath}`,
         keys,
         category: typeof item.category === 'string' ? item.category : '',
       };
     });
-  return { resources };
+  return {
+    resources,
+    generatedAt: typeof catalog.generatedAt === 'string' ? catalog.generatedAt : undefined,
+  };
+}
+
+interface StaticManifestItem {
+  storageBucket: string;
+  storagePath: string;
+  title: string;
+  originalFilename?: string;
+  subject: string;
+  category?: string | null;
+  level?: string;
+  year?: string | number;
+  resourceType?: string;
+  sizeBytes?: number;
+  updatedAt?: string;
+  publicUrl: string;
+}
+
+function isStaticManifestItem(value: unknown): value is StaticManifestItem {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.storageBucket === 'string'
+    && typeof item.storagePath === 'string'
+    && typeof item.title === 'string'
+    && typeof item.subject === 'string'
+    && typeof item.publicUrl === 'string';
+}
+
+async function loadStaticManifest(catalogUrl: string): Promise<CatalogLoad> {
+  const response = await fetchCachedCatalog(catalogUrl);
+  if (!response.ok) throw new Error(`Checked-in resource manifest request failed (HTTP ${response.status}).`);
+  const data = await response.json();
+  if (!Array.isArray(data?.items)) throw new Error('Checked-in resource manifest returned an invalid list.');
+  const resources = (data.items as unknown[])
+    .filter(isStaticManifestItem)
+    .filter((item) => item.storagePath && item.publicUrl && (!item.sizeBytes || item.sizeBytes > 0))
+    .map((item) => ({
+      id: `sh:${item.storageBucket}:${item.storagePath}`,
+      subject: titleCase(item.subject),
+      type: supaType(item.category || '', item.resourceType || ''),
+      source: 'static-manifest' as Source,
+      title: item.title || item.originalFilename || 'Untitled resource',
+      url: item.publicUrl,
+      keys: SUPA_LEVEL_KEYS[item.level || ''] || [],
+    }));
+  return { resources, generatedAt: typeof data.generatedAt === 'string' ? data.generatedAt : undefined };
 }
 
 async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> {
@@ -454,7 +506,7 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
       keys: SUPA_LEVEL_KEYS[level] || [],
     };
   }).filter((r) => r.url);
-  return { resources };
+  return { resources, generatedAt: new Date().toISOString() };
 }
 
 export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUrl, embedded = false }: Props) {
@@ -483,8 +535,6 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   const [engagementRefreshing, setEngagementRefreshing] = useState(false);
 
   const base = homeHref.endsWith('/') ? homeHref : `${homeHref}/`;
-  const catalogUrl = `${base}${RESOURCE_REPOSITORY_CATALOG}`;
-  const freshTeacherCatalogUrl = `${base}${FRESH_TEACHER_CATALOG}`;
   const readerBase = `${base}full_page_flipbook_viewer/index.html`;
   const apiBase = apiUrl.replace(/\/+$/, '');
 
@@ -564,14 +614,26 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       setLoading(true);
       setLoadingMessage('Loading library catalogs…');
       setError('');
-      const sources: Array<{ label: string; load: () => Promise<CatalogLoad> }> = [
-        { label: 'Study Hub Resources', load: () => loadResourceRepository(catalogUrl) },
-        { label: '2026 archive', load: loadPremiumResources },
-      ];
-      if (supabaseUrl && anonKey) {
-        sources.push({ label: 'Supabase library', load: () => loadSupabase(supabaseUrl, anonKey) });
+      const sources: Array<{ id: string; label: string; load: () => Promise<CatalogLoad> }> = CATALOG_SOURCES.map((source) => ({
+        id: source.id,
+        label: source.label,
+        load: () => {
+          const url = catalogUrlFor(source.url, base);
+          switch (source.id) {
+            case 'github-resources-1':
+              return loadResourceRepository(url, source.fileBaseUrl);
+            case 'github-2026':
+              return loadPremiumResources(url, source.fileBaseUrl);
+            case 'fresh-teacher':
+              return loadFreshTeacher(url);
+            case 'static-manifest':
+              return loadStaticManifest(url);
+          }
+        },
+      }));
+      if (ENABLE_SUPABASE_CATALOG && supabaseUrl && anonKey) {
+        sources.push({ id: 'supabase-catalog', label: 'Supabase catalogue', load: () => loadSupabase(supabaseUrl, anonKey) });
       }
-      sources.push({ label: 'Fresh Teacher library', load: () => loadFreshTeacher(freshTeacherCatalogUrl) });
 
       setLoadingMessage(`Loading ${sources.length} catalogs in parallel…`);
       const loadedCatalogs = new Map<number, Resource[]>();
@@ -630,7 +692,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     void load();
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catalogUrl, freshTeacherCatalogUrl, supabaseUrl, anonKey]);
+  }, [base, supabaseUrl, anonKey]);
 
   useEffect(() => {
     const header = document.querySelector('.site-header');
