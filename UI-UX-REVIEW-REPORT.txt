@@ -1,0 +1,530 @@
+STUDY HUB — UI/UX REVIEW
+========================
+
+EXECUTIVE SUMMARY
+-----------------
+Study Hub has a recognizable visual direction: warm off-white backgrounds,
+deep green accents, restrained copper highlights, and clear card components.
+The subject cards and the landing-page illustrations show care and are a
+useful foundation for a redesign.
+
+The main weakness is not a lack of styling; it is hierarchy and excess. The
+landing page places a very tall rotating billboard before its actual H1,
+then repeats the same learning journey in several sections. The Library has
+a second navigation system that crowds the mobile page. The footer gives all
+28 subject links one very tall column. Some subject pages also retain older
+page-level navigation/footer markup alongside the newer shared layout.
+
+Recommended order:
+1. Put the landing-page value proposition and primary action in the first
+   screen; reduce or move the billboard.
+2. Remove duplicate navigation and fix the Library's mobile layout.
+3. Shorten and rebalance the footer.
+4. Consolidate repeated landing-page content and make interface mockups
+   visibly illustrative or replace them with current screenshots.
+5. Normalize subject-page shells and loading/empty states.
+
+REVIEW SCOPE AND LIMITATIONS
+----------------------------
+- Reviewed the local built site, source markup/styles, and rendered
+  screenshots, including the landing-page body, Library, and footer.
+- Responsive checks included 320, 375, 430, 720, 740, 768, and 1024 px.
+  The landing page did not show page-level horizontal overflow at those
+  widths. The Library does have a separate, measurable horizontal overflow
+  in its own navigation.
+- The local build used Node 22.12.0. The regular system Node was 20.11.0.
+- Public-site navigation was unreliable during this review, so most visual
+  findings below describe the local build, not a fully verified production
+  release. The deployed Biology page did show a catalogue HTTP 402 error.
+  The GitHub-first subject/Library changes are on a feature branch and were
+  not yet merged into main when this review was performed.
+- This is a visual and interaction review, not a complete screen-reader,
+  color-contrast, device-lab, analytics, or advertising-policy audit.
+
+PRIORITIZED FINDINGS
+--------------------
+
+P1 — The landing-page billboard hides the actual value proposition
+Evidence: Rendered local homepage and source order.
+The rotating spotlight is placed before the landing hero. It occupies about
+846 px vertically in the captured desktop build, while the actual H1 begins
+around y=1,010. At a typical 900 px-tall desktop viewport, the visitor sees
+the billboard before the main headline and primary Library/AI Study actions.
+The billboard's H2 also precedes the page's H1 in document order.
+
+Why it matters: The first screen spends substantial space on changing
+highlights before explaining what Study Hub is or giving the visitor a clear
+next step. A visitor can scroll past the most important introduction without
+seeing it.
+
+Recommendation: Make the value proposition the first, static hero, with one
+prominent action (Explore the Library) and one secondary action. Reduce the
+spotlight to a compact announcement strip, or move it below the hero. Keep
+any rotating content pauseable and ensure the H1 is the first page heading.
+
+P1 — Library navigation is duplicated and overflows on mobile
+Evidence: 375 px Library screenshot and measured layout.
+The global site header is followed by a second, dark Library navigation.
+The Library navigation had a scroll width of about 778 px inside a viewport
+with about 359 px of usable width. Its navigation/sidebar region measured
+about 319 px high, taking a large vertical block before the main workspace.
+The screenshot visibly shows a horizontal scrollbar under the second nav.
+
+Why it matters: Visitors must parse two sets of Home/Subjects/Library/AI
+Study links, and the most important Library controls are pushed down. Some
+secondary links are reachable only by horizontally scrolling a crowded
+navigation strip.
+
+Recommendation: Use one navigation system. Keep global navigation and
+replace the second row with compact Library controls (for example, class
+selection and breadcrumbs), or hide the global header on the Library and
+make the Library shell provide a complete, accessible replacement. On
+mobile, use a wrapping toolbar or a deliberate menu/drawer, not a wide
+scrolling list of site links. Remove the unexplained vertical space.
+
+P1 — The footer is much too tall and visually unbalanced
+Evidence: Full-page desktop and mobile footer screenshots.
+The footer measured about 1,880 px on desktop and 2,309 px at a 375 px
+viewport. Its “Learning solutions” column contains all 28 subject links and
+measured roughly 1,629 px on desktop / 1,750 px on mobile. Other columns are
+only about 237–333 px tall. The result is a long, narrow subject list beside
+large unused areas.
+
+Why it matters: The footer adds several screens of scrolling, especially on
+mobile, and makes genuinely useful footer actions harder to find.
+
+Recommendation: Show a small curated set of subjects (for example, 4–6),
+then link to the complete subject directory. Alternatively group subjects
+by school level and make those groups collapsible on mobile. Align the
+remaining columns to a balanced grid and keep legal/contact links compact.
+Do not make the complete catalogue compete with the main directory page.
+
+P1 — Subject pages have stale legacy markup and duplicated lower-page
+navigation
+Evidence: Biology source and production page inspection.
+Some legacy subject markup still contains a fixed bottom navigation and a
+BioGPT panel, but both were hidden by CSS in the production Biology page;
+they were not visibly overlapping content in the captured state. The visible
+page does add a moving subject carousel before a separate site footer. The
+carousel repeats the four science subjects twice to create its loop, which
+can look like duplicate links even though the second set is hidden from
+assistive technology.
+
+Why it matters: CSS-hidden markup remains harder to maintain and can become
+visible if styles fail or page templates diverge. The visible carousel adds
+another navigation section after an already long page, while the duplicate
+loop can confuse visual scanning.
+
+Recommendation: Keep one shared page shell and one clear cross-subject
+navigation area. Remove obsolete hidden bottom-nav/tutor markup after
+checking for any needed functionality. Consider a static, shorter subject
+link row instead of an automatically moving carousel. Do not remove
+subject-specific guidance.
+
+P2 — The homepage repeats the same learning journey and runs long
+Evidence: Homepage screenshot and section order.
+The page has eight major sections, about 5,215 px of main content, and
+roughly 7,318 px total body height including the footer. The path card
+explains finding a class, opening a resource, asking AI, and returning; the
+three-part tour then explains much of the same journey again. The billboard
+also promotes destinations that are repeated by the main hero and lower
+sections. Subject cards, the full directory link, combinations, and
+partnership content add several more destinations.
+
+Why it matters: The page has attractive components but asks visitors to
+scroll through many repeated explanations before reaching the end. The
+visual rhythm becomes section-after-section rather than a concise path to
+using the service.
+
+Recommendation: Keep one short overview of the journey, then show the three
+most important product capabilities with concise copy. Remove either the
+journey card or the redundant explanatory steps. Put secondary material
+(combinations, partnerships, long-tail links) lower or on dedicated pages.
+Use section-level navigation only if the page remains this long.
+
+P2 — Landing-page product previews are small and can be mistaken for live data
+Evidence: Landing-page screenshot and the static preview markup.
+The Library and reader previews contain dense interface text that is very
+small at normal page scale. The Library mockup shows sample counts such as
+24 subjects and 38 resources; these are not a live view of the current
+catalogue and are not visibly labeled as sample data in the figure caption.
+
+Why it matters: The small text is difficult to read, and realistic-looking
+but illustrative counts can set expectations that do not match the live
+Library.
+
+Recommendation: Use a current, cropped screenshot at a readable scale, or
+simplify each preview to a few large, legible interface elements. Add a
+visible “Illustrative preview” label when the display is not live. Do not
+show sample counts that can be read as current availability.
+
+P2 — Library and marketing-site visual systems feel like separate products
+Evidence: Local screenshots of the public pages and Library.
+The public pages use a light cream/green visual language. The Library uses
+a near-black/navy workspace with dense controls and a different navigation
+shell. The contrast is readable and may be intentional for a focused work
+area, but the transition is abrupt, particularly when reached from a
+subject page that embeds the Library.
+
+Recommendation: Keep the focused dark workspace if users prefer it, but
+carry over shared brand tokens, typography, navigation behavior, spacing,
+and loading/error states. Make the transition into the dark workspace
+intentional rather than presenting it as a different site.
+
+P2 — Library loading can briefly resemble an empty catalogue
+Evidence: Local Library interaction during catalogue loading.
+The initial view briefly showed zero counts before the remote catalogue
+finished loading; after loading, resource rows and source/date status
+appeared. This is a transient state, not evidence that the final catalogue
+was empty.
+
+Why it matters: “0 resources” reads as a real result, especially when a
+source is slow or unavailable.
+
+Recommendation: Distinguish loading, loaded-empty, and source-error states.
+Use skeletons or “Loading catalogue…” until counts are known; never show
+zero as a confirmed count before the load completes. Preserve the active
+source and snapshot date so users can understand whether results are a
+snapshot.
+
+P2 — Subject directory repeats catalogue totals
+Evidence: Subject page source and current list of published subjects.
+The directory can display 28 published subjects and a total of 28 in the
+catalogue, with zero “being prepared.” Since all 28 are currently
+published, the first two figures communicate the same fact.
+
+Recommendation: Replace the redundant total with a useful distinction (for
+example, subjects by level or subjects with resources), or show one clear
+published-subject count. Avoid statistics that are derived from the same
+list and say the same thing twice.
+
+P3 — Header changes abruptly around tablet widths
+Evidence: Responsive measurements/screenshots.
+The global header uses a two-row layout around 720–740 px and a one-row
+layout at 768 px. The layout fits the tested widths without confirmed
+page-level horizontal overflow, but this breakpoint creates a noticeable
+height change. At narrow widths, the anniversary badge and sign-in control
+share the first row while six navigation destinations occupy the next.
+
+Recommendation: Test the transition at intermediate widths, not only
+standard device presets. Consider a compact menu at tablet widths, and
+preserve visible keyboard focus and clear active-page states. Keep the
+header from becoming a full extra screen on small phones.
+
+PAGE-BY-PAGE NOTES
+------------------
+
+Landing page
+- Strengths: clear brand palette, strong display typography, coherent
+  subject cards, visible calls to action once the main hero is reached.
+- Improve: show the H1 and primary action first; reduce section count;
+  clarify whether the product previews are live; avoid repeating the same
+  journey across the billboard, path card, and tour.
+- The partnership section is secondary to a learner's immediate task and
+  could move below the main product explanation or to a separate page.
+
+Subjects directory
+- The 28-subject catalogue makes the range of the service visible.
+- Keep the directory scannable with strong class/level grouping, short
+  descriptions, and predictable card heights. Avoid repeating aggregate
+  counts that all describe the same 28-page list.
+
+Subject pages
+- The newer layout has a clear subject hero, revision map, class guidance,
+  and a shared Library, which is a stronger structure than separate
+  catalogue implementations.
+- Preserve the subject-specific guidance, but audit legacy markup for
+  duplicated footer/navigation/tutor elements before considering the page
+  complete.
+- Embedded Library controls should remain compact enough not to overwhelm
+  the subject's own revision guidance.
+
+Library
+- The catalogue provenance is useful; make loading and failure states as
+  clear as the final source/date label.
+- Simplify the mobile navigation and reduce the distance from page entry
+  to the class/filter controls.
+- Give result rows a clear hierarchy (title first, then subject/class/year
+  and source) and avoid excessive filter density on narrow screens.
+
+AI Study workspace
+- Strengths: focused workspace structure, persistent navigation, and
+  distinct study tools. The mobile sidebar becomes a drawer, which is a
+  sensible pattern.
+- Improve first-use orientation: prioritize one obvious first action and
+  explain the relationship between the tutor, guides, reader, and progress
+  tools. The separate dark workspace is understandable, but its transition
+  from the public site should feel branded and deliberate.
+
+Blog
+- The three article cards have distinct summaries and the article copy is
+  practical and appropriately qualified.
+- The page is content-heavy relative to only three articles. Keep the cards
+  concise and make the transition from card to article easy to follow.
+  Avoid using article links as a substitute for a broader, more useful
+  subject/resource discovery path.
+
+Footer
+- Reduce the 28-link column and rebalance columns as described above.
+- Retain clear contact, about, privacy, terms, and copyright destinations.
+- On mobile, make the full subject directory a deliberate destination
+  rather than an extremely long footer list.
+
+PRODUCTION / FUNCTIONAL CONTEXT THAT AFFECTS UX
+-----------------------------------------------
+The deployed Biology page showed an HTTP 402 catalogue failure during the
+review. That is a user-facing availability problem, not a cosmetic issue:
+the page can appear broken when its catalogue source is unavailable. The
+GitHub-first catalogue changes had been pushed on a feature branch but were
+not yet merged into main during this review, so the local build and deployed
+site may not have the same behavior.
+
+The catalogue rows can load from GitHub snapshots, but a portion of legacy
+resource file URLs still point to Supabase Storage. A user may therefore
+see catalogue entries successfully and then encounter a failed file open.
+This should be kept separate from visual redesign and tracked as a
+resource-availability issue.
+
+REDESIGN BRIEF
+--------------
+1. First screen: a single, concise promise, short supporting sentence, one
+   primary Library action, and one secondary AI Study action.
+2. Navigation: one site-level navigation system; use compact page-specific
+   tools inside the Library rather than a second full site nav.
+3. Content: remove repeated explanations and prioritize the main learner
+   journey; keep secondary material lower in the page.
+4. Components: preserve the green/cream brand and subject-card strengths;
+   align Library and AI Study typography, spacing, focus states, and
+   transition cues with that brand.
+5. Mobile: treat 320–430 px as a first-class layout; avoid wide nav strips,
+   oversized footer lists, and long empty regions.
+6. Trust: label illustrative previews and catalogue snapshots accurately;
+   show loading/error states instead of temporary zero counts.
+7. Validation: re-check desktop and mobile screenshots, keyboard-only
+   navigation, 320/375/430/720/740/768/1024 px widths, and at least one
+   unavailable-catalogue scenario after changes.
+
+END OF INITIAL REVIEW
+
+
+SUBJECT PAGE REVIEW ADDENDUM — 2026-11-02
+=========================================
+
+WHAT WAS REVIEWED
+-----------------
+The deployed Biology page was reviewed from top to bottom at desktop
+1440x900 and mobile 375x812, using its rendered text, DOM measurements,
+screenshots, and browser error events. The subject-page source was also
+reviewed. The current workspace source uses a shared SubjectDashboard for
+the subject routes, with per-subject content in subjects.json and
+subjectGuides.json.
+
+Important version caveat: the live Biology page does not match the current
+workspace implementation. The production page has a stats block, a separate
+resource search, two resource carousels, and a notes/papers area. The current
+workspace SubjectDashboard instead embeds the shared Library after its
+revision guidance. Do not treat the live screenshots as screenshots of the
+unmerged workspace implementation. Other production subject URLs could not
+be reliably opened during this pass, so their live visual behavior is not
+claimed as verified. The common template and subject data provide the
+source-based review for the remaining pages.
+
+SUBJECT-PAGE BODY: OBSERVED STRUCTURE
+------------------------------------
+The deployed Biology page has a strong, readable subject hero and a useful
+sequence of subject-specific curriculum content followed by practical
+learning guidance. On desktop, the hero is about 355 px tall; at 375 px
+mobile width it grows to about 448 px. The page body is about 3,528 px tall
+at the measured desktop size and about 6,155 px on mobile. At mobile size,
+the hero, topic map, and learning guidance become tall stacked blocks, so a
+student needs several screens of scrolling before reaching the resource
+search and collections.
+
+The page's visible sequence is:
+1. Subject hero and primary resource action.
+2. Four headline statistics.
+3. Revision map, topic chips, curriculum track, subject code, and syllabus
+   caveat.
+4. Three study-method paragraphs, followed by separate O-Level and
+   A-Level focus/example cards.
+5. Search controls.
+6. Recently added resources carousel.
+7. Study notes and guides carousel.
+8. A notes/past-papers collection area, followed by subject navigation and
+   the site footer.
+
+SUBJECT-PAGE FINDINGS
+---------------------
+
+S1 — Resource failure leaves large, empty sections in the body
+Severity: Critical user-facing issue; production functional failure.
+Evidence: Production Biology page, HTTP 402 browser error, and rendered
+screenshots.
+The catalogue search displays “Resources could not be loaded right now. Try
+again.” The “Recently added” and “Study notes and guides” sections still
+render their headings and multiple left/right arrow buttons, but contain
+zero resource cards. The notes and past-papers targets exist in the DOM but
+are display:none. On desktop, each empty carousel section occupies about
+180 px; they create a conspicuous sequence of headings and orphaned arrows
+after the failed search.
+
+Recommendation: Show one explicit, compact catalogue error state with the
+retry/source status, and hide or replace dependent carousels when they have
+no data. Disable carousel controls unless there are cards to scroll. Do not
+leave hidden notes/papers targets as the apparent destination of visible
+calls to action. Confirm the GitHub-first source fallback is deployed before
+relying on a catalogue redesign.
+
+S2 — Several headline counts are hard to interpret and the total is repeated
+Severity: High trust/content clarity issue.
+Evidence: Production Biology screenshot and body text.
+The page shows “447 Resources” in the stats block and repeats “447
+resources” beside the search heading. It also shows “91 Notes & guides” and
+“238 Past papers”; these sum to 329, leaving 118 resources unexplained if
+those categories are intended to partition the total. “6 Study levels” is
+also ambiguous beside a revision map labeled O-Level and A-Level.
+
+Recommendation: Show the total once. Define whether note/paper counts are
+exclusive subsets, overlapping categories, or partial totals. Rename “Study
+levels” to the actual measured concept (for example, classes covered) and
+show its scope. If the counts cannot be verified or refreshed with the
+catalogue, omit them rather than presenting stale precision.
+
+S3 — Repeated all-subject study advice dilutes the unique subject guidance
+Severity: Medium content and page-length issue.
+Evidence: Shared SubjectDashboard source and subjectGuides.json.
+The same three general paragraphs on active reading, trying examples, and
+using past papers are rendered for each subject. The revision overview and
+the O-Level/A-Level focus and examples are subject-specific, but they come
+after the common prose. This means the part that differentiates a subject
+page is visually preceded by a substantial block shared across the full
+subject set.
+
+Recommendation: Reduce the common advice to a short reusable introduction,
+or move it to the Library Guide. Put the subject topic map and its level
+examples earlier. Keep each subject's own example and ensure it actually
+uses that subject's concepts rather than simply changing the subject name.
+
+S4 — The learning-guidance block is the longest text section on mobile
+Severity: Medium mobile usability issue.
+Evidence: 375 px mobile measurement.
+The learning-guidance section is about 1,351 px tall at this width, including
+three explanatory paragraphs, two level cards, and three links. The
+curriculum section is about 631 px tall. The content is readable and the
+examples are helpful, but these sections push the searchable catalogue well
+below the hero.
+
+Recommendation: Use a short “How to study this subject” summary with
+expandable details for the level examples, or move the long examples below
+the resource list. Keep a direct “Browse resources” anchor near the hero.
+Ensure disclosure controls are keyboard accessible and work without
+JavaScript where feasible.
+
+S5 — Per-subject color accents are only partially applied
+Severity: Medium visual consistency issue.
+Evidence: SubjectDashboard styles.
+The template defines alternate accent tokens for Chemistry, Mathematics,
+and Physics, but no matching overrides are evident for the other subjects.
+The hero itself remains the same blue gradient for every subject, and the
+subject icon is a Unicode glyph/emoji whose appearance varies by platform.
+The accent differences mostly affect topic chips and small labels.
+
+Recommendation: Decide whether subject color is part of the design system.
+If so, define a controlled, accessible palette for all subjects and apply
+it consistently to small accents, not large unrelated background areas.
+Use a stable icon source or accept platform emoji variation explicitly.
+Do not assign a unique color merely for decoration if it does not help
+orientation.
+
+S6 — Embedded Library creates a nested workspace inside a long subject page
+Severity: Medium interaction and mobile ergonomics issue in current source.
+Evidence: Current workspace SubjectDashboard source.
+The current source embeds the entire shared Library inside the subject
+page. Its container is fixed to a viewport-based height, with a 620 px
+minimum on small screens and overflow hidden; the embedded Library manages
+its own scrolling and navigation. This preserves subject context and avoids
+a second implementation, but it combines page scrolling with a second
+scrollable workspace and repeats the Library's dark navigation inside each
+subject route.
+
+Recommendation: Prefer a “View all [subject] resources” link that opens the
+full Library with class and subject query parameters, or show a small
+non-scrollable preview plus that link. If retaining the embed, make its
+height responsive to the available viewport, expose its boundary and
+scrolling behavior clearly, and make the class/filter controls usable
+without forcing nested horizontal navigation.
+
+S7 — Subject hero prioritizes the resource list but not both core routes
+Severity: Low-to-medium navigation issue.
+Evidence: Current workspace source and deployed Biology page.
+The current source offers a primary jump to resources and a secondary AI
+Study link; the deployed Biology screenshot shows only the primary resource
+action and a “free resources” note. The body provides several later links,
+but the initial actions are not consistent across the two versions.
+
+Recommendation: Keep consistent hero actions across every subject: one
+primary route into that subject's Library results and a clearly secondary
+AI Study action prefilled for the subject. If the production version omits
+the AI action intentionally, make sure it remains discoverable in a
+consistent place below the hero.
+
+S8 — Subject carousel increases page length and moves automatically
+Severity: Low-to-medium attention and navigation issue.
+Evidence: Production Biology DOM and subject-carousel source.
+The carousel repeats the four available science subject cards twice for
+continuous motion and adds about 185 px before the footer. Its pause control
+is a good accessibility affordance, but the carousel adds a moving,
+nonessential region after a long resource page.
+
+Recommendation: Prefer a short static “More subjects” row or link to the
+subject directory. If animation remains, make pause state obvious, honor
+reduced motion, and avoid moving the page's main subject navigation.
+
+S9 — Mobile global navigation is compressed and partly off-screen
+Severity: Medium navigation issue.
+Evidence: Production Biology screenshot at 375 px.
+The header fits the brand and sign-in control, but only the later navigation
+links (Library, AI Study, About) are visible in the screenshot. Earlier
+destinations such as Home, Subjects, and Blog are not visible in the initial
+header view. The navigation appears compressed into a narrow horizontal
+scroll area without an obvious menu affordance.
+
+Recommendation: At phone widths, switch the main navigation to a labeled
+menu button/drawer or another explicit compact pattern. Ensure every link
+is reachable by keyboard and touch, and visibly communicate any horizontal
+scrolling if that pattern is retained.
+
+POSITIVE SUBJECT-PAGE ELEMENTS TO PRESERVE
+-----------------------------------------
+- The Biology hero is visually strong: clear subject identity, concise
+  description, one obvious action, and good contrast.
+- The revision map is bounded carefully as practical guidance rather than
+  an official or complete syllabus. Keep this qualification.
+- The topic chips are scannable and the curriculum track/code add useful
+  local context when verified.
+- The level-specific “focus” and “Try this” cards are the most valuable
+  subject-specific content. Preserve these while reducing generic prose.
+- The tested mobile page had no measurable main-content horizontal
+  overflow. Its problem is vertical length and header compression, not the
+  subject body extending horizontally.
+- Production CSS hid the legacy fixed bottom navigation and BioGPT panel in
+  the inspected Biology state. They are stale source elements, but were not
+  visible or covering content in that screenshot.
+
+RECOMMENDED SUBJECT-PAGE REDESIGN ORDER
+--------------------------------------
+1. Fix and deploy catalogue fallback; show proper loading/error/empty
+   states. Suppress empty carousel sections and disabled controls.
+2. Use a single shared subject template: concise hero, distinctive topic
+   map, short level guidance, then the filtered Library.
+3. Remove repeated generic study prose or move it to a shared guide.
+4. Remove duplicate resource totals and clarify metric definitions.
+5. Decide between a Library link and a bounded preview instead of a tall
+   nested workspace; keep subject/class filters in the destination URL.
+6. Replace the moving subject carousel with a short static directory link
+   or compact row.
+7. Verify every generated subject route at desktop and mobile, including
+   resource loading failure, keyboard navigation, focus visibility, and
+   reduced-motion behavior.
+
+END OF SUBJECT PAGE ADDENDUM
