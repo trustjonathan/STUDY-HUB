@@ -1,0 +1,142 @@
+{
+  "biology": {
+    "title": "Trace a living process",
+    "steps": ["Name the structure or organism involved.", "Follow what changes from start to finish.", "Connect the process to survival, inheritance, or the environment."],
+    "checkpoint": "Can you explain the process as a linked sequence, rather than a list of terms?"
+  },
+  "chemistry": {
+    "title": "Move between three views",
+    "steps": ["Describe what you can observe.", "Represent the change with a balanced equation.", "Explain the equation using particles and quantities."],
+    "checkpoint": "Do the observations, symbols, and particle explanation describe the same change?"
+  },
+  "mathematics": {
+    "title": "Make every line earn its place",
+    "steps": ["Translate the question into a diagram, expression, or model.", "Choose a method and show each important step.", "Check the result against the question and its units."],
+    "checkpoint": "Could another learner follow your method and verify the answer?"
+  },
+  "physics": {
+    "title": "Model before calculating",
+    "steps": ["Sketch the situation and label the known quantities.", "Choose a physical relationship and state any assumptions.", "Calculate with units, then interpret what the result means."],
+    "checkpoint": "Does your answer make sense for the physical situation you drew?"
+  },
+  "english-language": {
+    "title": "Read for purpose, write for a reader",
+    "steps": ["Identify the audience, purpose, and key instruction.", "Select evidence or ideas and organise them in a clear sequence.", "Revise for meaning, tone, sentence control, and accuracy."],
+    "checkpoint": "Would the intended reader understand your point without guessing?"
+  },
+  "geography": {
+    "title": "Turn a pattern into an explanation",
+    "steps": ["Locate the pattern using a map, figure, or field observation.", "Describe it with precise place-based evidence.", "Explain the processes and people connected to that pattern."],
+    "checkpoint": "Have you supported the explanation with a location or piece of evidence?"
+  },
+  "history": {
+    "title": "Build an argument from evidence",
+    "steps": ["Place the event or source in its historical context.", "Separate what the evidence shows from what you infer.", "Weigh causes or interpretations before reaching a judgement."],
+    "checkpoint": "Can you support your judgement with evidence and explain its limits?"
+  },
+  "entrepreneurship": {
+    "title": "Test the idea against a real need",
+    "steps": ["Describe the need and the people affected.", "Match a product or service to the need and its resources.", "Test whether the costs, customers, and risks make the idea workable."],
+    "checkpoint": "What evidence would make you change or improve the idea?"
+  },
+  "agriculture": {
+    "title": "Follow a production cycle",
+    "steps": ["Identify the crop or livestock goal and starting conditions.", "Trace inputs, management decisions, and likely constraints.", "Evaluate the output alongside soil, water, health, and storage."],
+    "checkpoint": "Which production decision most affects the outcome, and why?"
+  },
+  "ict": {
+    "title": "Trace the information",
+    "steps": ["Identify the input and the task the system should perform.", "Follow the steps, tools, or rules that transform the input.", "Check the output and consider privacy, accuracy, and safety."],
+    "checkpoint": "Can you explain where an incorrect result could enter the process?"
+  },
+  "kiswahili": {
+    "title": "Grow meaning from context",
+    "steps": ["Listen to or read the whole message before translating.", "Notice vocabulary, sentence patterns, and the speaker's purpose.", "Respond or write in Kiswahili, then check whether the meaning is natural."],
+    "checkpoint": "Which context clue helped you choose the right word or expression?"
+  },
+  "literature-in-english": {
+    "title": "Move from detail to interpretation",
+    "steps": ["Choose a precise detail from the text.", "Examine how voice, image, structure, or character shapes it.", "Connect that choice to a theme and support your interpretation."],
+    "checkpoint": "Have you explained how the writer creates the effect, not only named it?"
+  },
+  "cre": {
+    "title": "Read, interpret, apply",
+    "steps": ["Identify the teaching or value in its scriptural context.", "Explain what the teaching means before judging it.", "Connect it to an ethical or community question with reasons."],
+    "checkpoint": "Does your application follow from the teaching and context you described?"
+  },
+  "ire": {
+    "title": "Connect source and lived practice",
+    "steps": ["Identify the teaching and the source being studied.", "Explain its meaning within Islamic belief or practice.", "Apply it to a question of conduct, community, or responsibility."],
+    "checkpoint": "Have you distinguished the source's teaching from your own example?"
+  },
+  "art-and-design": {
+    "title": "Let the idea develop on the page",
+    "steps": ["Observe a subject and collect visual references or sketches.", "Experiment with materials, composition, and more than one possibility.", "Refine a chosen idea and explain the decisions behind it."],
+    "checkpoint": "Can someone see how your final design grew from your experiments?"
+  },
+  "performing-arts-and-music": {
+    "title": "Rehearse with one intention",
+    "steps": ["Choose the mood, message, or musical idea to communicate.", "Practise a specific technique and listen to how it changes the performance.", "Review a rehearsal and make one deliberate adjustment."],
+    "checkpoint": "What changed in the performance after your adjustment, and why?"
+  },
+  "physical-education": {
+    "title": "Link movement to performance",
+    "steps": ["Describe the movement skill or fitness goal.", "Identify the technique, training principle, or tactic being used.", "Review safe participation and one observable way to improve."],
+    "checkpoint": "What evidence would show that the movement or performance improved?"
+  },
+  "technology-and-design": {
+    "title": "Design, test, improve",
+    "steps": ["Turn the brief into needs, constraints, and criteria.", "Sketch and compare possible solutions before choosing one.", "Test the design against the criteria and record what to improve."],
+    "checkpoint": "Which test result most strongly supports your design decision?"
+  },
+  "nutrition-and-food-technology": {
+    "title": "Plan from need to safe plate",
+    "steps": ["Start with the person's needs, context, budget, and available foods.", "Choose ingredients and preparation methods that fit those needs.", "Check nutrition, food safety, cost, and waste before evaluating the meal."],
+    "checkpoint": "Would the plan still work if one ingredient, cost, or dietary need changed?"
+  },
+  "french": {
+    "title": "Build a message for its audience",
+    "steps": ["Identify who is speaking, to whom, and in what situation.", "Choose useful French vocabulary and sentence patterns for that purpose.", "Say or write the message, then check meaning, agreement, and register."],
+    "checkpoint": "Does the French sound appropriate for this person and situation?"
+  },
+  "german": {
+    "title": "Make the sentence structure visible",
+    "steps": ["Find the main idea and the key verb in the message.", "Arrange the words using the relevant German sentence pattern.", "Read or say the result aloud and check whether it communicates clearly."],
+    "checkpoint": "Can you explain why the verb belongs in that position?"
+  },
+  "arabic": {
+    "title": "Read the script into meaning",
+    "steps": ["Notice the letter forms and pronunciation in the written word.", "Use vocabulary and sentence context to identify the message.", "Respond in Arabic and check that the structure carries your intended meaning."],
+    "checkpoint": "Which letter, pattern, or context clue helped you understand the text?"
+  },
+  "chinese": {
+    "title": "Connect sound, character, and context",
+    "steps": ["Practise the sound and tone of a useful expression.", "Notice the characters and sentence pattern that carry its meaning.", "Use the expression in a short context and check that it fits."],
+    "checkpoint": "How would a tone or character change affect the meaning?"
+  },
+  "luganda": {
+    "title": "Carry a clear idea across forms",
+    "steps": ["Listen for the main idea in a familiar spoken or written context.", "Notice the vocabulary and sentence pattern used to express it.", "Retell or write the idea for a chosen audience, preserving its meaning."],
+    "checkpoint": "What changed in your wording, and what meaning needed to stay?"
+  },
+  "runyankole-rukiga": {
+    "title": "Build a message people can follow",
+    "steps": ["Choose a familiar event, idea, or point of view.", "Arrange the details in a clear spoken or written sequence.", "Review vocabulary and expression for the intended listener or reader."],
+    "checkpoint": "Which detail helps your audience understand the message most?"
+  },
+  "luo": {
+    "title": "Keep the meaning in the conversation",
+    "steps": ["Identify the speaker, setting, and central idea.", "Use vocabulary and sentence patterns that fit the context.", "Respond or retell the message, checking sequence and clarity."],
+    "checkpoint": "Could a listener retell your main idea after hearing your response?"
+  },
+  "general-paper": {
+    "title": "Turn a broad issue into a defensible view",
+    "steps": ["Define the issue and narrow the question being asked.", "Gather relevant examples and consider more than one perspective.", "Build a clear argument that weighs evidence and reaches a reasoned conclusion."],
+    "checkpoint": "Does each example support your argument rather than merely relate to the topic?"
+  },
+  "economics": {
+    "title": "Trace the choice and its consequences",
+    "steps": ["Identify the scarce resource, decision, or market change.", "Use a model or evidence to trace who is affected and how.", "Evaluate the outcome, including trade-offs and possible limits."],
+    "checkpoint": "Who gains, who bears a cost, and what assumption shapes your conclusion?"
+  }
+}

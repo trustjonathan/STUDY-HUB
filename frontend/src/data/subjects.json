@@ -256,7 +256,7 @@
     "name": "Nutrition & Food Technology / Home Economics",
     "category": "applied-technical",
     "storageFolder": "nutrition-and-food-technology",
-    "folderAliases": ["food-and-nutrition", "foods-and-nutrition", "home-economics"],
+    "folderAliases": ["food-and-nutrition", "foods-and-nutrition", "home-economics", "fn", "food-nutrition", "food-and-nutrition-technology", "nutrition-food-technology"],
     "levels": ["O-Level", "A-Level"],
     "tracks": ["O-Level elective", "A-Level principal"],
     "codes": [{ "level": "A-Level", "code": "P640" }],

@@ -11,6 +11,7 @@ interface Props {
   anonKey: string;
   apiUrl: string;
   embedded?: boolean;
+  subjectPreview?: boolean;
   initialClass?: string;
   initialSubject?: string;
 }
@@ -552,6 +553,7 @@ export default function LibraryWorkspace({
   anonKey,
   apiUrl,
   embedded = false,
+  subjectPreview = false,
   initialClass,
   initialSubject,
 }: Props) {
@@ -936,6 +938,17 @@ export default function LibraryWorkspace({
   }
 
   const path = selected ? ['Home', 'Library', selected.label] : ['Home', 'Library'];
+  const previewSubject = subjectFilter === 'all' && initialSubject
+    ? canonicalSubject(initialSubject)
+    : subjectFilter;
+  const previewResources = useMemo(() => resources.filter((resource) => {
+    const matchesClass = !selected
+      || (selected.category
+        ? resource.category === selected.category
+        : selected.keys.some((key) => resource.keys.includes(key)));
+    const subjects = subjectsForClassSelection(resource, selected?.category ? undefined : selected?.keys);
+    return matchesClass && subjects.some((value) => canonicalSubject(value) === previewSubject);
+  }), [previewSubject, resources, selected]);
 
 
   function onNavigate(index: number) {
@@ -944,7 +957,7 @@ export default function LibraryWorkspace({
   }
 
   return (
-    <div className={`library ${selected ? 'is-dashboard' : ''}${embedded ? ' is-embedded' : ''}`}>
+    <div className={`library ${selected ? 'is-dashboard' : ''}${embedded ? ' is-embedded' : ''}${subjectPreview ? ' is-subject-preview' : ''}`}>
       {preferencesOpen && profileToken && (
         <div className="lib-preferences-backdrop" role="presentation">
           <section className="lib-preferences-dialog" role="dialog" aria-modal="true" aria-labelledby="lib-preferences-heading">
@@ -980,7 +993,16 @@ export default function LibraryWorkspace({
         })}
       </nav>}
 
-      {selected ? (
+      {subjectPreview ? (
+        <SubjectResourcePreview
+          subject={previewSubject}
+          resources={previewResources}
+          loading={loading}
+          error={error}
+          catalogSources={catalogSources}
+          readerHref={readerHref}
+        />
+      ) : selected ? (
         <ClassDashboard
           selected={selected}
           embedded={embedded}
@@ -1079,6 +1101,45 @@ function CatalogSourceNotice({ sources }: { sources: CatalogSourceStatus[] }) {
         <span> · Additional sources: {sources.slice(1).map((source) => source.label).join(', ')}</span>
       )}
     </p>
+  );
+}
+
+function SubjectResourcePreview({ subject, resources, loading, error, catalogSources, readerHref }: {
+  subject: string;
+  resources: Resource[];
+  loading: boolean;
+  error: string;
+  catalogSources: CatalogSourceStatus[];
+  readerHref: (row: Resource) => string;
+}) {
+  return (
+    <section className="lib-subject-preview" aria-label={`${subject} catalogue preview`} aria-busy={loading}>
+      <div className="lib-subject-preview-total">
+        {loading
+          ? <span className="lib-count-skeleton" aria-label="Loading resource count" />
+          : error && resources.length === 0
+            ? <strong>Unavailable</strong>
+            : <><strong>{resources.length.toLocaleString()}</strong><span>catalogued resources</span></>}
+      </div>
+      {loading && resources.length === 0 && (
+        <p className="lib-subject-preview-status" role="status">Loading the shared catalogue…</p>
+      )}
+      {!loading && error && <p className="lib-subject-preview-error" role="alert">{error}</p>}
+      {!loading && !error && resources.length === 0 && (
+        <p className="lib-subject-preview-status" role="status">No resources are currently listed for this subject.</p>
+      )}
+      {resources.length > 0 && (
+        <ul className="lib-subject-preview-list">
+          {resources.slice(0, 3).map((resource) => (
+            <li key={resource.id}>
+              <span>{resource.type}</span>
+              <a href={readerHref(resource)}>{resource.title}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+      <CatalogSourceNotice sources={catalogSources} />
+    </section>
   );
 }
 

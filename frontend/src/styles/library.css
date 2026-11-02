@@ -625,6 +625,44 @@
   outline-offset: 2px;
 }
 
+.library.is-subject-preview {
+  display: block;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--color-ink);
+}
+.lib-subject-preview {
+  display: grid;
+  gap: var(--space-3);
+  padding: clamp(14px, 2.5vw, 22px);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+.lib-subject-preview-total { display: flex; align-items: baseline; gap: 8px; color: var(--color-muted); font-size: var(--text-sm); }
+.lib-subject-preview-total strong { color: var(--color-ink); font: 800 var(--text-xl)/1.2 var(--font-display); }
+.lib-subject-preview-total .lib-count-skeleton { width: 52px; height: 24px; }
+.lib-subject-preview-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lib-subject-preview-list li {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+}
+.lib-subject-preview-list li > span { color: var(--color-muted); font-size: var(--text-xs); }
+.lib-subject-preview-list a { width: fit-content; max-width: 100%; color: var(--color-primary-hover); font-size: var(--text-sm); font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; text-decoration: none; }
+.lib-subject-preview-list a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.lib-subject-preview-status, .lib-subject-preview-error { margin: 0; font-size: var(--text-sm); line-height: 1.55; }
+.lib-subject-preview-status { color: var(--color-muted); }
+.lib-subject-preview-error { padding: 10px 12px; border-radius: var(--radius-sm); background: var(--color-danger-surface); color: var(--color-danger); }
+.lib-subject-preview .lib-catalog-provenance { margin: 0; }
+
 @media (max-width: 520px) {
   .lib-shelf { padding: var(--space-4) var(--space-3) var(--space-8); }
   .lib-shelf-hero { min-height: 330px; }

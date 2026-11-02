@@ -3,316 +3,38 @@ import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
 import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 ---
 
-<LegacyPageLayout title="Biology Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Biology notes for UACE – concise diagrams, explanations, and exam-focused study tools." dataPage="biology">
+<LegacyPageLayout
+  title="Biology Study Hub | Study Hub"
+  description="Explore Biology revision topics, level-specific study prompts, and resources from the shared Study Hub catalogue."
+  dataPage="biology"
+>
   <Fragment slot="head">
-
-  <!-- GOOGLE VERIFICATION (one copy only) -->
-  <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
-
-  <!-- BASIC META -->
-  
-  
-  
-
-  <!-- DESCRIPTION + KEYWORDS -->
-  
-  <meta name="keywords" content="biology notes, free study notes, life sciences, diagrams, UACE biology">
-  <meta name="author" content="Jonathan">
-
-  <!-- CANONICAL -->
-  <!--<link rel="canonical" href="https://trustjonathan.github.io/STUDY-HUB/biology.html">-->
-
-  <!-- FAVICON -->
-
-  <!-- JSON-LD STRUCTURED DATA -->
-  <script is:inline type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "Study Hub",
-    "url": "https://trustjonathan.github.io/STUDY-HUB/",
-    "logo": "https://trustjonathan.github.io/STUDY-HUB/favicon.svg",
-    "description": "Free study notes and tools for Biology students.",
-    "sameAs": []
-  }
-  </script>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="../styles/themes.css">
-  <link rel="stylesheet" href="../styles/home.css">
-  <link rel="stylesheet" href="../styles/biology.css">
-
-  <!-- JS -->
-  
-  <script is:inline src="../script/biology.js" defer></script>
-
+    <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
+    <meta name="keywords" content="biology, study guide, revision topics, learning resources">
+    <meta name="author" content="Jonathan">
+    <script is:inline type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Study Hub",
+        "url": "https://trustjonathan.github.io/STUDY-HUB/",
+        "logo": "https://trustjonathan.github.io/STUDY-HUB/favicon.svg",
+        "description": "Study resources and tools for learners.",
+        "sameAs": []
+      }
+    </script>
+    <link rel="stylesheet" href="../styles/home.css">
+    <link rel="stylesheet" href="../styles/themes.css">
+    <link rel="stylesheet" href="../styles/mathematics.css">
   </Fragment>
-
-  <!-- ==========================
-       FULL-PAGE WATER EFFECTS
-  =========================== -->
-  <div class="fx-container">
-    <span></span><span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span><span></span>
-  </div>
 
   <div id="container">
     <SubjectDashboard
       subject="biology"
       name="Biology"
       icon="🧬"
-      headline="Study Biology with a clear next step."
-      description="Explore life processes, genetics, ecology, and practical work with notes and exam resources."
+      headline="Explore the science of living things."
+      description="Explore life processes, genetics, ecology, and practical work."
     />
-
-    <hr>
-  <br><br>
   </div>
-
-  <br>
-  <hr><br>
-
-  <!-- FOOTER -->
-  <footer>
-    <!-- Modern Study Hub Footer -->
-    <footer class="study-hub-footer">
-      <div class="footer-container">
-  
-        <!-- Column 1: Brand & Tagline -->
-        <div class="footer-col brand-col">
-          <h2 class="footer-logo">STUDY <span>HUB</span></h2>
-          <p class="footer-tagline">
-            Empowering Ugandan learners with free NCDC-aligned study notes, interactive tools, and exam practice
-            resources.
-          </p>
-          <div class="curriculum-badge">
-            <span>🇺🇬 Follows NCDC Lower & Upper Secondary Syllabus</span>
-          </div>
-        </div>
-  
-        <!-- Column 2: Subjects & Resources -->
-        <div class="footer-col">
-          <h3>Academic Subjects</h3>
-          <ul>
-            <li><a href="#biology">🧬 Biology (O & A Level)</a></li>
-            <li><a href="#chemistry">⚗️ Chemistry Notes</a></li>
-            <li><a href="#math">📐 Mathematics Solutions</a></li>
-            <li><a href="#past-papers">📄 NCDC Sample Items</a></li>
-          </ul>
-        </div>
-  
-        <!-- Column 4: Support & Contact -->
-        <div class="footer-col">
-          <h3>Connect & Feedback</h3>
-          <p style="font-size: 14px; color: #a0aec0; margin-bottom: 12px;">Have a question or note request?</p>
-          <a href="mailto:trusteth777@gmail.com" class="footer-btn">💬 Talk to Teacher / Author 🔗</a>
-  
-          <div class="footer-socials">
-            <a href="https://wa.me/+256701810497" aria-label="WhatsApp">📱</a>
-            <a href="#" aria-label="YouTube">▶️</a>
-            <a href="mailto:trusteth777@gmail.com" aria-label="Email">✉️</a>
-          </div>
-        </div>
-  
-      </div>
-  
-      <!-- Bottom Copyright & Back-to-Top Bar -->
-      <div class="footer-bottom">
-        <div class="bottom-container">
-          <p>© 2026+ STUDY HUB. All rights reserved. Made for academic excellence.</p>
-          <a href="#top" class="back-to-top">⬆️ Back to top</a>
-        </div>
-      </div>
-    </footer>
-  
-    <style>
-      /* Footer Styles */
-      .study-hub-footer {
-        background-color: #0f172a;
-        color: #f8fafc;
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        padding-top: 50px;
-        border-top: 4px solid #2e7d32;
-        margin-top: 60px;
-      }
-  
-      .footer-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px 40px 20px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 30px;
-      }
-  
-      .footer-col h3 {
-        color: #ffffff;
-        font-size: 18px;
-        margin-bottom: 18px;
-        position: relative;
-      }
-  
-      .footer-col h3::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: -6px;
-        width: 35px;
-        height: 3px;
-        background-color: #2e7d32;
-        border-radius: 2px;
-      }
-  
-      .footer-logo {
-        font-size: 24px;
-        font-weight: 800;
-        letter-spacing: 1px;
-        margin: 0 0 12px 0;
-        color: #ffffff;
-      }
-  
-      .footer-logo span {
-        color: #4caf50;
-      }
-  
-      .footer-tagline {
-        font-size: 14px;
-        color: #94a3b8;
-        line-height: 1.6;
-        margin-bottom: 15px;
-      }
-  
-      .curriculum-badge {
-        display: inline-block;
-        background: rgba(46, 125, 50, 0.2);
-        border: 1px solid #2e7d32;
-        border-radius: 20px;
-        padding: 6px 12px;
-        font-size: 12px;
-        color: #81c784;
-      }
-  
-      .footer-col ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-  
-      .footer-col ul li {
-        margin-bottom: 10px;
-      }
-  
-      .footer-col ul li a {
-        color: #cbd5e1;
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.2s ease, padding-left 0.2s ease;
-      }
-  
-      .footer-col ul li a:hover {
-        color: #4caf50;
-        padding-left: 5px;
-      }
-  
-      .footer-btn {
-        display: inline-block;
-        background-color: #2e7d32;
-        color: #ffffff;
-        padding: 10px 16px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        transition: background 0.2s ease;
-      }
-  
-      .footer-btn:hover {
-        background-color: #1b5e20;
-      }
-  
-      .footer-socials {
-        display: flex;
-        gap: 15px;
-        margin-top: 15px;
-        font-size: 20px;
-      }
-  
-      .footer-socials a {
-        text-decoration: none;
-        transition: transform 0.2s;
-      }
-  
-      .footer-socials a:hover {
-        transform: translateY(-3px);
-      }
-  
-      /* Bottom Bar */
-      .footer-bottom {
-        background-color: #020617;
-        border-top: 1px solid #1e293b;
-        padding: 18px 20px;
-        font-size: 13px;
-        color: #64748b;
-      }
-  
-      .bottom-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-  
-      .back-to-top {
-        color: #94a3b8;
-        text-decoration: none;
-        font-weight: 600;
-      }
-  
-      .back-to-top:hover {
-        color: #4caf50;
-      }
-  
-      /* Responsive Adjustments */
-      @media (max-width: 600px) {
-        .footer-container {
-          grid-template-columns: 1fr;
-        }
-  
-        .bottom-container {
-          flex-direction: column;
-          text-align: center;
-        }
-      }
-    </style>
-  
-  </footer>
-
-  <!--============================
-        BOTTOM NAVIGATION
-  =============================-->
-  <div class="bottom-nav">
-    <a href="/STUDY-HUB/">Home</a>
-    <a href="biology.html">Biology</a>
-    <a href="chemistry.html">Chemistry</a>
-    <a href="mathematics.html">Math</a>
-    <a href="#account">AI</a>
-  </div>
-  <!-- AI Panel -->
-  <!-- BIO GPT PANEL -->
-  <div id="bio-ai-panel" class="ai-panel">
-    <button id="bio-ai-close" class="back-btn">✖</button>
-    <h3>BioGPT Tutor</h3>
-    <div id="bio-ai-messages" class="messages"></div>
-    <textarea id="bio-ai-input" placeholder="Ask a biology question..."></textarea>
-    <button id="bio-ai-send">Send</button>
-  </div>
-
-
-  
-
 </LegacyPageLayout>

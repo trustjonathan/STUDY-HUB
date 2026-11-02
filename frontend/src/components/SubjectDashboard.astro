@@ -1,6 +1,7 @@
 ---
 import subjectCatalog from "../data/subjects.json";
 import subjectGuides from "../data/subjectGuides.json";
+import subjectMethods from "../data/subjectMethods.json";
 import LibraryWorkspace from "./LibraryWorkspace";
 import "../styles/library.css";
 
@@ -8,6 +9,12 @@ interface SubjectGuide {
   overview: string;
   topicAreas: string[];
   levelGuides: Record<string, { focus: string; example: string }>;
+}
+
+interface SubjectMethod {
+  title: string;
+  steps: string[];
+  checkpoint: string;
 }
 
 interface Props {
@@ -23,6 +30,16 @@ const subjectInfo = subjectCatalog.find((entry) => entry.slug === subject);
 if (!subjectInfo) throw new Error(`Unknown Study Hub subject: ${subject}`);
 const subjectGuide = (subjectGuides as Record<string, SubjectGuide>)[subject];
 if (!subjectGuide) throw new Error(`Missing subject revision guide: ${subject}`);
+const subjectMethod = (subjectMethods as Record<string, SubjectMethod>)[subject];
+if (!subjectMethod) throw new Error(`Missing subject study method: ${subject}`);
+const categoryLabels: Record<string, string> = {
+  "sciences-math": "Science & mathematics",
+  languages: "Languages",
+  "humanities-social": "Humanities & society",
+  "applied-technical": "Applied & technical",
+  "business-economics": "Business & economics",
+};
+const subjectCategory = categoryLabels[subjectInfo.category] || "Subject guide";
 const base = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : `${import.meta.env.BASE_URL}/`;
@@ -36,89 +53,98 @@ const apiUrl = (import.meta.env.PUBLIC_STUDY_HUB_API_URL || "").trim();
 ---
 
 <main class="subject-dashboard" id="main-content" tabindex="-1" data-subject={subject}>
-  <section class="dashboard-hero">
-    <div class="dashboard-welcome">
-      <p class="dashboard-eyebrow">Study Hub · {name}</p>
-      <h1>{headline}</h1>
-      <p>{description}</p>
-      <div class="dashboard-hero-actions">
-        <a class="dashboard-primary" href={`#${libraryId}`}>Explore {name} resources <span aria-hidden="true">→</span></a>
-        <a class="dashboard-ai-link" href={assistantHref}>Ask AI Study about {name}</a>
-        <span class="dashboard-public-note">Free resources, open to everyone</span>
+  <section class="subject-hero" aria-labelledby={`${subject}-title`}>
+    <div class="subject-hero-copy">
+      <p class="subject-eyebrow">{subjectCategory} <span aria-hidden="true">/</span> {name}</p>
+      <h1 id={`${subject}-title`}>{headline}</h1>
+      <p class="subject-hero-description">{description}</p>
+      <div class="subject-hero-actions">
+        <a class="subject-button subject-button-primary" href={`#${libraryId}`}>Browse resources <span aria-hidden="true">→</span></a>
+        <a class="subject-button subject-button-secondary" href={assistantHref}>Open AI Study <span aria-hidden="true">↗</span></a>
       </div>
+      <p class="subject-hero-context">{subjectInfo.levels.join(" · ")} <span aria-hidden="true">/</span> A practical revision map</p>
     </div>
-    <div class="dashboard-subject-mark" aria-hidden="true">
-      <span>{icon}</span>
-      <small>{name.toUpperCase()}</small>
+    <div class="subject-hero-art" aria-label={`${name} study lens: ${subjectMethod.title}`}>
+      <span class="subject-art-ring subject-art-ring-outer" aria-hidden="true"></span>
+      <span class="subject-art-ring subject-art-ring-inner" aria-hidden="true"></span>
+      <span class="subject-art-icon" aria-hidden="true">{icon}</span>
+      <span class="subject-art-caption">Study lens</span>
+      <strong>{subjectMethod.title}</strong>
     </div>
   </section>
 
-  <section class="dashboard-section curriculum-overview" aria-labelledby={`${subject}-curriculum-heading`}>
-    <div class="dashboard-section-heading">
-      <div><p class="dashboard-eyebrow">Revision map · {subjectInfo.levels.join(" · ")}</p><h2 id={`${subject}-curriculum-heading`}>A guide to {name}</h2></div>
+  <section class="subject-section subject-levels" aria-labelledby={`${subject}-levels-heading`}>
+    <div class="subject-section-heading">
+      <p class="subject-eyebrow">Choose your starting point</p>
+      <h2 id={`${subject}-levels-heading`}>Study focus by level</h2>
     </div>
-    <div class="curriculum-details">
-      <p class="curriculum-summary">{subjectGuide.overview}</p>
-      <div class="curriculum-topic-list" aria-label={`${name} topic areas`}>
-        {subjectGuide.topicAreas.map((topic) => <span>{topic}</span>)}
-      </div>
-      <p><strong>Curriculum track</strong><span>{subjectInfo.tracks.join(" · ")}</span></p>
-      {subjectInfo.codes.length > 0 && (
-        <p><strong>UNEB subject code</strong><span>{subjectInfo.codes.map(({ level, code }) => `${level}: ${code}`).join(" · ")}</span></p>
-      )}
-      <p class="curriculum-note">This is a practical revision map, not a complete or official syllabus. Follow your current school scheme of work and check the latest guidance from your teacher.</p>
-    </div>
-  </section>
-
-  <section class="dashboard-section dashboard-learning-path" aria-labelledby={`${subject}-learning-heading`}>
-    <div class="dashboard-section-heading">
-      <div><p class="dashboard-eyebrow">Study with purpose</p><h2 id={`${subject}-learning-heading`}>How to make progress in {name}</h2></div>
-    </div>
-    <div class="dashboard-learning-copy">
-      <p>Use the topic map above to choose one area that matches your current class work. Read an explanation actively, note the step or idea that is least clear, and try to restate it in your own words before moving on.</p>
-      <p>For a practical check, try the example below for your study level without looking at a worked answer first. Show your reasoning, then compare it with your notes. Keep a short list of errors or questions to revisit; a specific gap is easier to address than rereading a whole unit.</p>
-      <p>When you are ready, use past-paper questions to practise applying what you have learned. Exam materials and classroom schemes can change, so use your teacher’s current guidance when deciding which topics and requirements to prioritise.</p>
-    </div>
-    <div class="dashboard-level-guides">
+    <div class="subject-level-grid">
       {subjectInfo.levels.map((level) => {
         const levelGuide = subjectGuide.levelGuides[level];
         return levelGuide && (
-          <article class="dashboard-level-guide">
-            <h3>{level} study focus</h3>
-            <p>{levelGuide.focus}</p>
-            <p><strong>Try this:</strong> {levelGuide.example}</p>
+          <article class="subject-level-card">
+            <p class="subject-card-label">{level}</p>
+            <h3>{levelGuide.focus}</h3>
+            <p class="subject-level-example"><strong>Try:</strong> {levelGuide.example}</p>
           </article>
         );
       })}
     </div>
-    <nav class="dashboard-learning-links" aria-label={`${name} study links`}>
-      <a href={`#${libraryId}`}>Browse notes and practice materials <span aria-hidden="true">↓</span></a>
-      <a href={fullLibraryHref}>Open this subject in the full Library <span aria-hidden="true">→</span></a>
-      <a href={assistantHref}>Ask AI Study about {name} <span aria-hidden="true">→</span></a>
-    </nav>
   </section>
 
-  <section class="dashboard-section dashboard-library" id={libraryId} aria-labelledby={`${subject}-library-heading`}>
-    <div class="dashboard-section-heading">
+  <section class="subject-section subject-route" aria-labelledby={`${subject}-route-heading`}>
+    <div class="subject-route-intro">
+      <p class="subject-eyebrow">Revision map</p>
+      <h2 id={`${subject}-route-heading`}>A route through {name}</h2>
+      <p>{subjectGuide.overview}</p>
+    </div>
+    <ol class="subject-route-list" aria-label={`${name} topic route`}>
+      {subjectGuide.topicAreas.map((topic, index) => (
+        <li>
+          <span class="subject-route-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+          <h3>{topic}</h3>
+        </li>
+      ))}
+    </ol>
+    <p class="subject-disclaimer">Use this map as a starting point, not a complete or official syllabus. Follow your current class work and your teacher’s latest guidance.</p>
+  </section>
+
+  <section class="subject-section subject-method" aria-labelledby={`${subject}-method-heading`}>
+    <div class="subject-method-intro">
+      <p class="subject-eyebrow">A practice move for this subject</p>
+      <h2 id={`${subject}-method-heading`}>{subjectMethod.title}</h2>
+    </div>
+    <ol class="subject-method-steps">
+      {subjectMethod.steps.map((step, index) => (
+        <li><span>{index + 1}</span><p>{step}</p></li>
+      ))}
+    </ol>
+    <aside class="subject-checkpoint">
+      <span aria-hidden="true">↗</span>
+      <p><strong>Check your understanding</strong>{subjectMethod.checkpoint}</p>
+    </aside>
+  </section>
+
+  <section class="subject-section subject-resources" id={libraryId} aria-labelledby={`${subject}-resources-heading`}>
+    <div class="subject-resources-heading">
       <div>
-        <p class="dashboard-eyebrow">Shared Study Hub catalogue</p>
-        <h2 id={`${subject}-library-heading`}>{name} resources</h2>
-        <p>Search the same catalogue used by the full Library. Resource availability can differ by class and topic.</p>
+        <p class="subject-eyebrow">Shared Study Hub catalogue</p>
+        <h2 id={`${subject}-resources-heading`}>{name} resources</h2>
+        <p>Browse a short preview, or open the full Library with this subject already selected.</p>
       </div>
-      <a href={fullLibraryHref}>Open full Library <span aria-hidden="true">→</span></a>
+      <a class="subject-library-link" href={fullLibraryHref}>View all {name} resources <span aria-hidden="true">→</span></a>
     </div>
-    <div class="dashboard-library-workspace">
-      <LibraryWorkspace
-        client:load
-        homeHref={home}
-        supabaseUrl={supabaseUrl}
-        anonKey={anonKey}
-        apiUrl={apiUrl}
-        embedded={true}
-        initialClass="all"
-        initialSubject={subject}
-      />
-    </div>
+    <LibraryWorkspace
+      client:load
+      homeHref={home}
+      supabaseUrl={supabaseUrl}
+      anonKey={anonKey}
+      apiUrl={apiUrl}
+      embedded={true}
+      subjectPreview={true}
+      initialClass="all"
+      initialSubject={subject}
+    />
   </section>
 </main>
 
@@ -126,89 +152,209 @@ const apiUrl = (import.meta.env.PUBLIC_STUDY_HUB_API_URL || "").trim();
 
 <style>
   .subject-dashboard {
-    --dashboard-accent: #28634f;
-    --dashboard-accent-soft: #e8f2eb;
-    max-width: 1180px;
-    margin: 28px auto 20px;
-    padding: 0 28px;
-    color: #192b3b;
-    font-family: "DM Sans", Arial, sans-serif;
+    display: grid;
+    gap: clamp(24px, 4vw, 40px);
+    width: min(1180px, 100%);
+    margin: 28px auto 40px;
+    padding: 0 clamp(16px, 3vw, 28px);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
   }
-  .subject-dashboard[data-subject="chemistry"] { --dashboard-accent: #94621c; --dashboard-accent-soft: #fff3dc; }
-  .subject-dashboard[data-subject="mathematics"] { --dashboard-accent: #315c91; --dashboard-accent-soft: #eaf1fb; }
-  .subject-dashboard[data-subject="physics"] { --dashboard-accent: #286d7a; --dashboard-accent-soft: #e5f3f4; }
-  .dashboard-hero {
+  .subject-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+    align-items: center;
+    gap: clamp(24px, 5vw, 64px);
+    min-height: 300px;
+    overflow: hidden;
+    padding: clamp(26px, 5vw, 54px);
+    border: 1px solid var(--color-workspace-line);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(ellipse at 87% 14%, var(--color-workspace-raised), transparent 42%),
+      var(--color-workspace);
+    color: var(--color-workspace-text);
+  }
+  .subject-hero-copy { position: relative; z-index: 1; max-width: 700px; }
+  .subject-eyebrow {
+    margin: 0 0 9px;
+    color: var(--color-primary);
+    font: 800 var(--text-xs)/1.4 var(--font-display);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .subject-hero .subject-eyebrow { color: var(--color-workspace-accent); }
+  .subject-eyebrow span { padding: 0 5px; color: var(--color-muted); }
+  .subject-hero .subject-eyebrow span { color: var(--color-workspace-muted); }
+  .subject-hero h1 {
+    max-width: 690px;
+    margin: 0;
+    color: var(--color-workspace-text);
+    font: 800 clamp(2rem, 5vw, 3.45rem)/1.08 var(--font-display);
+    letter-spacing: -.035em;
+  }
+  .subject-hero-description {
+    max-width: 620px;
+    margin: 15px 0 0;
+    color: var(--color-workspace-muted);
+    font-size: var(--text-md);
+    line-height: 1.65;
+  }
+  .subject-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 23px; }
+  .subject-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 15px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .subject-button-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .subject-button-primary:hover { background: var(--color-primary-hover); }
+  .subject-button-secondary { border-color: var(--color-workspace-line); color: var(--color-workspace-text); }
+  .subject-button-secondary:hover { background: var(--color-workspace-surface); }
+  .subject-button:focus-visible, .subject-library-link:focus-visible {
+    outline: 3px solid var(--color-workspace-accent);
+    outline-offset: 3px;
+  }
+  .subject-hero-context { margin: 16px 0 0; color: var(--color-workspace-muted); font-size: var(--text-xs); }
+  .subject-hero-context span { padding: 0 5px; color: var(--color-workspace-accent); }
+  .subject-hero-art {
     position: relative;
     display: flex;
-    min-height: 240px;
+    min-height: 220px;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    overflow: hidden;
-    padding: 38px clamp(24px, 5vw, 58px);
-    border-radius: 18px;
-    background: radial-gradient(circle at 85% 20%, rgba(255,255,255,.13), transparent 26%), linear-gradient(125deg, #102a42, #1c4058);
-    color: white;
+    justify-content: center;
+    padding: 32px 16px;
+    border: 1px solid var(--color-workspace-line);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--color-workspace-surface) 72%, transparent);
+    text-align: center;
   }
-  .dashboard-welcome { position: relative; z-index: 1; max-width: 680px; }
-  .dashboard-eyebrow { margin: 0 0 8px; color: var(--dashboard-accent); font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-  .dashboard-hero .dashboard-eyebrow { color: #b8daca; }
-  .dashboard-hero h1 { max-width: 660px; margin: 0; color: #fff; font-family: Manrope, Arial, sans-serif; font-size: clamp(2rem, 4.2vw, 3.5rem); line-height: 1.08; }
-  .dashboard-hero p:not(.dashboard-eyebrow) { max-width: 620px; margin: 14px 0 0; color: rgba(255,255,255,.77); }
-  .dashboard-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 22px; }
-  .dashboard-primary { display: inline-flex; min-height: 44px; align-items: center; gap: 16px; padding: 0 17px; border-radius: 7px; background: #f0b642; color: #1b2d3d; font-size: .88rem; font-weight: 800; text-decoration: none; }
-  .dashboard-primary:hover { background: #ffca62; }
-  .dashboard-ai-link { color: #fff; font-size: .84rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
-  .dashboard-ai-link:focus-visible { outline: 3px solid #f0b642; outline-offset: 3px; }
-  .dashboard-public-note { color: rgba(255,255,255,.68); font-size: .82rem; }
-  .dashboard-subject-mark { display: grid; width: 150px; height: 150px; flex: 0 0 auto; align-content: center; justify-items: center; gap: 8px; margin-left: 30px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; background: rgba(255,255,255,.06); }
-  .dashboard-subject-mark span { font-size: 3.8rem; line-height: 1; }
-  .dashboard-subject-mark small { color: #c6d6df; font-size: .65rem; font-weight: 800; letter-spacing: .16em; }
-  .dashboard-section { margin: 28px 0; }
-  .curriculum-overview, .dashboard-learning-path { padding: 20px 22px; border: 1px solid #e0e6e9; border-radius: 12px; background: #fff; }
-  .curriculum-overview .dashboard-section-heading { margin-bottom: 12px; }
-  .curriculum-details { display: flex; flex-wrap: wrap; gap: 12px 28px; }
-  .curriculum-details > p { display: grid; gap: 2px; margin: 0; color: #657483; font-size: .82rem; }
-  .curriculum-details > .curriculum-summary { display: block; flex-basis: 100%; color: #435465; font-size: .94rem; line-height: 1.65; }
-  .curriculum-topic-list { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 8px; }
-  .curriculum-topic-list span { padding: 7px 10px; border-radius: 999px; background: var(--dashboard-accent-soft); color: var(--dashboard-accent); font-size: .76rem; font-weight: 700; }
-  .curriculum-details strong { color: #213448; font-size: .76rem; }
-  .curriculum-details .curriculum-note { flex-basis: 100%; margin-top: 4px; }
-  .dashboard-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-  .dashboard-section-heading .dashboard-eyebrow { margin-bottom: 4px; }
-  .dashboard-section-heading h2 { margin: 0; font-family: Manrope, Arial, sans-serif; font-size: clamp(1.3rem, 2vw, 1.7rem); }
-  .dashboard-section-heading > a { color: var(--dashboard-accent); font-size: .82rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
-  .dashboard-section-heading > a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .dashboard-learning-copy { display: grid; max-width: 920px; gap: 14px; color: #4f5f6c; font-size: .93rem; line-height: 1.75; }
-  .dashboard-learning-copy p { margin: 0; }
-  .dashboard-level-guides { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; margin-top: 18px; }
-  .dashboard-level-guide { padding: 16px; border: 1px solid #e0e6e9; border-radius: 10px; background: #f8faf9; }
-  .dashboard-level-guide h3 { margin: 0 0 8px; color: #213448; font-size: .95rem; }
-  .dashboard-level-guide p { margin: 0; color: #4f5f6c; font-size: .86rem; line-height: 1.6; }
-  .dashboard-level-guide p + p { margin-top: 10px; }
-  .dashboard-level-guide p strong { color: #213448; }
-  .dashboard-learning-links { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 18px; }
-  .dashboard-learning-links a { color: var(--dashboard-accent); font-size: .84rem; font-weight: 800; text-decoration: none; }
-  .dashboard-learning-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .dashboard-library { padding: 20px; border: 1px solid #dfe6e2; border-radius: 12px; background: #f8faf9; }
-  .dashboard-library .dashboard-section-heading > div { max-width: 72ch; }
-  .dashboard-library .dashboard-section-heading p:not(.dashboard-eyebrow) { margin: 8px 0 0; color: #526273; font-size: .84rem; line-height: 1.5; }
-  .dashboard-library-workspace { height: min(940px, 88vh); min-height: 680px; overflow: hidden; border: 1px solid #334155; border-radius: 10px; background: #0b1220; }
+  .subject-art-ring { position: absolute; width: 130px; height: 130px; border: 1px solid var(--color-workspace-line); border-radius: 50%; }
+  .subject-art-ring-outer { width: 178px; height: 178px; opacity: .48; }
+  .subject-art-ring-inner { width: 112px; height: 112px; border-color: var(--color-workspace-accent); opacity: .65; }
+  .subject-art-icon { position: relative; z-index: 1; margin: -6px 0 10px; color: var(--color-workspace-text); font-size: 2.4rem; line-height: 1; }
+  .subject-art-caption { position: relative; z-index: 1; color: var(--color-workspace-accent); font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+  .subject-hero-art strong { position: relative; z-index: 1; max-width: 200px; margin-top: 6px; color: var(--color-workspace-text); font: 700 var(--text-sm)/1.4 var(--font-display); }
+  .subject-section { min-width: 0; }
+  .subject-section-heading { margin-bottom: 14px; }
+  .subject-section-heading h2, .subject-route-intro h2, .subject-method-intro h2, .subject-resources h2 {
+    margin: 0;
+    color: var(--color-ink);
+    font: 800 clamp(1.35rem, 2.7vw, 1.85rem)/1.2 var(--font-display);
+    letter-spacing: -.025em;
+  }
+  .subject-level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+  .subject-level-card {
+    min-width: 0;
+    padding: 19px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    box-shadow: var(--shadow-soft);
+  }
+  .subject-card-label { margin: 0 0 9px; color: var(--color-primary); font-size: var(--text-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .subject-level-card h3 { margin: 0; color: var(--color-ink); font: 750 var(--text-lg)/1.3 var(--font-display); }
+  .subject-level-example { margin: 12px 0 0; color: var(--color-muted); font-size: var(--text-sm); line-height: 1.6; }
+  .subject-level-example strong { color: var(--color-ink-soft); }
+  .subject-route {
+    display: grid;
+    grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr);
+    gap: 18px 34px;
+    padding: clamp(20px, 4vw, 30px);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+  .subject-route-intro p:not(.subject-eyebrow) { margin: 12px 0 0; color: var(--color-muted); font-size: var(--text-sm); line-height: 1.7; }
+  .subject-route-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .subject-route-list li {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-raised);
+  }
+  .subject-route-number { flex: 0 0 auto; color: var(--color-primary); font: 800 var(--text-xs)/1.5 var(--font-display); }
+  .subject-route-list h3 { margin: 0; color: var(--color-ink-soft); font: 700 var(--text-sm)/1.45 var(--font-display); overflow-wrap: anywhere; }
+  .subject-disclaimer { grid-column: 1 / -1; margin: 0; color: var(--color-muted); font-size: var(--text-xs); line-height: 1.6; }
+  .subject-method {
+    display: grid;
+    grid-template-columns: minmax(190px, .75fr) minmax(0, 1.6fr);
+    align-items: start;
+    gap: 16px 34px;
+    padding: clamp(20px, 4vw, 30px);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius-sm) var(--radius-md) var(--radius-md) var(--radius-sm);
+    background: var(--color-success-surface);
+  }
+  .subject-method-intro .subject-eyebrow { color: var(--color-success); }
+  .subject-method-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .subject-method-steps li { display: flex; align-items: flex-start; gap: 12px; }
+  .subject-method-steps li > span {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: var(--text-xs);
+    font-weight: 800;
+  }
+  .subject-method-steps p { margin: 2px 0 0; color: var(--color-ink-soft); font-size: var(--text-sm); line-height: 1.6; }
+  .subject-checkpoint {
+    display: flex;
+    grid-column: 2;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-line));
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+  .subject-checkpoint > span { flex: 0 0 auto; color: var(--color-primary); font-size: var(--text-lg); font-weight: 800; }
+  .subject-checkpoint p { display: grid; gap: 4px; margin: 0; color: var(--color-ink-soft); font-size: var(--text-sm); line-height: 1.5; }
+  .subject-checkpoint strong { color: var(--color-ink); font-family: var(--font-display); }
+  .subject-resources { scroll-margin-top: 92px; }
+  .subject-resources-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+  .subject-resources-heading > div { max-width: 66ch; }
+  .subject-resources-heading > div > p:last-child { margin: 8px 0 0; color: var(--color-muted); font-size: var(--text-sm); line-height: 1.55; }
+  .subject-library-link { display: inline-flex; min-height: 44px; flex: 0 0 auto; align-items: center; gap: 9px; color: var(--color-primary); font-size: var(--text-sm); font-weight: 800; text-decoration: none; }
+  .subject-library-link:hover { text-decoration: underline; text-underline-offset: 3px; }
   @media (max-width: 760px) {
-    .subject-dashboard { margin-top: 16px; padding: 0 16px; }
-    .dashboard-hero { min-height: 215px; padding: 28px 24px; }
-    .dashboard-subject-mark { width: 92px; height: 92px; margin-left: 12px; }
-    .dashboard-subject-mark span { font-size: 2.6rem; }
-    .dashboard-section-heading { align-items: center; flex-wrap: wrap; }
+    .subject-dashboard { margin-top: 16px; }
+    .subject-hero { grid-template-columns: minmax(0, 1fr) 150px; gap: 18px; min-height: 0; }
+    .subject-hero-art { min-height: 180px; }
+    .subject-art-ring-outer { width: 148px; height: 148px; }
+    .subject-art-ring-inner { width: 100px; height: 100px; }
+    .subject-route { grid-template-columns: 1fr; }
+    .subject-method { grid-template-columns: 1fr; }
+    .subject-checkpoint { grid-column: 1; }
   }
-  @media (max-width: 480px) {
-    .dashboard-hero { align-items: flex-start; padding: 24px 18px; }
-    .dashboard-subject-mark { width: 56px; height: 56px; border: 0; background: transparent; }
-    .dashboard-subject-mark span { font-size: 2rem; }
-    .dashboard-subject-mark small { display: none; }
-    .dashboard-hero-actions { gap: 10px; }
-    .dashboard-public-note { width: 100%; }
-    .dashboard-learning-path { padding: 18px; }
-    .dashboard-library { padding: 12px; }
-    .dashboard-library-workspace { height: 78vh; min-height: 620px; }
+  @media (max-width: 520px) {
+    .subject-hero { grid-template-columns: 1fr; padding: 22px; }
+    .subject-hero-art { min-height: 150px; }
+    .subject-art-ring-outer { width: 130px; height: 130px; }
+    .subject-route-list { grid-template-columns: 1fr; }
+    .subject-resources-heading { align-items: flex-start; flex-direction: column; }
   }
 </style>

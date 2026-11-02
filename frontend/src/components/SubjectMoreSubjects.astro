@@ -1,0 +1,83 @@
+---
+import { availableSubjects } from "../data/availableSubjects";
+
+interface Props {
+  subject: string;
+}
+
+const { subject } = Astro.props;
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const current = availableSubjects.find((entry) => entry.slug === subject);
+const relatedSubjects = current
+  ? availableSubjects.filter((entry) => entry.slug !== subject && entry.category === current.category)
+  : [];
+const remainingSubjects = availableSubjects.filter((entry) => entry.slug !== subject && entry.category !== current?.category);
+const moreSubjects = [...relatedSubjects, ...remainingSubjects].slice(0, 6);
+---
+
+<nav class="footer-subject-row" aria-label="More subjects">
+  <div class="footer-subject-heading">
+    <div>
+      <p class="footer-subject-eyebrow">Keep exploring</p>
+      <h2>More subjects</h2>
+    </div>
+    <a class="footer-subject-all" href={`${base}subjects.html`}>All subjects <span aria-hidden="true">→</span></a>
+  </div>
+  <ul class="footer-subject-list">
+    {moreSubjects.map((entry) => (
+      <li>
+        <a href={`${base}frontend/src/html/${entry.slug}`}>
+          <span aria-hidden="true">{entry.icon}</span>
+          <strong>{entry.name}</strong>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .footer-subject-row {
+    width: min(1180px, 100%);
+    margin: 30px auto 0;
+    padding: 22px clamp(16px, 3vw, 28px) 0;
+    border-top: 1px solid var(--color-line);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+  .footer-subject-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+  .footer-subject-eyebrow { margin: 0 0 3px; color: var(--color-primary); font-size: var(--text-xs); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  .footer-subject-heading h2 { margin: 0; color: var(--color-ink); font: 800 var(--text-lg)/1.25 var(--font-display); }
+  .footer-subject-all { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; color: var(--color-primary-hover); font-size: var(--text-sm); font-weight: 800; text-decoration: none; }
+  .footer-subject-all:hover, .footer-subject-list a:hover strong { text-decoration: underline; text-underline-offset: 3px; }
+  .footer-subject-list { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .footer-subject-list a {
+    display: flex;
+    min-height: 64px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-ink-soft);
+    text-decoration: none;
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+  .footer-subject-list a:hover { border-color: var(--color-primary); background: var(--color-success-surface); }
+  .footer-subject-list a:focus-visible, .footer-subject-all:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+  .footer-subject-list a > span { flex: 0 0 auto; font-size: 1.25rem; }
+  .footer-subject-list strong { min-width: 0; color: var(--color-ink); font-size: var(--text-xs); line-height: 1.35; overflow-wrap: anywhere; }
+  @media (max-width: 850px) {
+    .footer-subject-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 520px) {
+    .footer-subject-row { margin-top: 24px; padding-top: 18px; }
+    .footer-subject-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .footer-subject-list a { min-height: 58px; padding: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .footer-subject-list a { transition: none; }
+  }
+</style>

@@ -4,7 +4,7 @@ import tokenStyles from '../styles/design-tokens.css?url';
 import legacyStyles from '../styles/legacy-refresh.css?url';
 import ResumeProgress from '../components/ResumeProgress.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import SubjectFooterCarousel from '../components/SubjectFooterCarousel.astro';
+import SubjectMoreSubjects from '../components/SubjectMoreSubjects.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import subjectCatalog from '../data/subjects.json';
 import resourceManifest from '../data/resources.json';
@@ -84,7 +84,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     {currentSubject && <a class="skip-link" href="#main-content">Skip to main content</a>}
     <SiteHeader base={base} home={home} routeKey={routeKey} />
     <slot />
-    {currentSubject && <SubjectFooterCarousel subject={currentSubject.slug} />}
+    {currentSubject && <SubjectMoreSubjects subject={currentSubject.slug} />}
     <SiteFooter home={home} />
     <ResumeProgress />
   </body>
