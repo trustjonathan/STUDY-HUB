@@ -78,13 +78,13 @@ Method: `git rm -r --cached resources` + `/resources/` in `.gitignore`, then **B
 | `backend/config/supabase.js` | Shared Supabase client (anon vs service_role) |
 | `backend/services/resourceService.js` | Read-path API (catalog query, search, stats, signed URLs) |
 | `frontend/src/data/resources.{js,json}` | **Generated** resource index (408 items) used by the static site |
-| `frontend/src/script/resources.js` | Renders/filters the library into `[data-resources]` containers |
-| `frontend/src/styles/resources.css` | Styles for the above |
+| `frontend/src/script/resources.js` | Removed after subject pages moved to the shared Library workspace |
+| `frontend/src/styles/resources.css` | Removed with the legacy DOM-based subject catalogue |
 | `supabase/config.toml`, `supabase/migrations/*` | Standard Supabase CLI project |
 
-### 0.4 Page rewiring (Supabase-backed library)
+### 0.4 Page rewiring (shared GitHub-first library)
 
-The 6 stale external links (`trustjonathan.github.io/BIOLOGY|CHEMISTRY|CHEMISTRTY|MATHEMATICS/#view-notes|#view-papers`) in `biology.html`, `chemistry.html`, `mathematics.html` were replaced with `data-resources` containers fed by the generated manifest. Chemistry's working internal `chem-notes-html/Electrochemistry.html` link was preserved. Mathematics is now indexed in the shared catalog and its Study Hub page reads Mathematics notes and papers directly from Supabase; the separate Mathematics app remains independently styled.
+Subject pages use the shared `LibraryWorkspace`, with GitHub catalogues as the default sources and the checked-in manifest as a fallback. The legacy `frontend/src/script/resources.js` fetch/render path and `frontend/src/styles/resources.css` have been removed. Chemistry's internal Electrochemistry notes page and the separate Mathematics archive remain linked. Supabase catalogue reads are optional and disabled by default.
 
 ### 0.5 Supabase migration pipeline
 
@@ -148,7 +148,7 @@ Authoring the 408 scanned PDFs as MDX would be a category error: they are binary
 **Gets replaced:**
 
 * All 8 CSS files → Tailwind utilities / design tokens
-* `frontend/src/script/resources.js` (direct DOM manipulation) → a framework component
+* `frontend/src/script/resources.js` (direct DOM manipulation) → `frontend/src/components/LibraryWorkspace.tsx` (implemented)
 * All 12 page bodies → layouts + components
 
 ### 2.3 Two roadmap items that need correcting on technical grounds

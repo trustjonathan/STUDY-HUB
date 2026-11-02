@@ -1,6 +1,7 @@
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { renderMarkdown } from './markdown';
 import { readAuthSession } from '../utils/authSession';
+import { availableSubjects } from '../data/availableSubjects';
 
 interface Props {
   homeHref: string;
@@ -120,6 +121,13 @@ export default function StudyWorkspace({
   const [memoryStatus, setMemoryStatus] = useState('');
   const [tourOpen, setTourOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const requestedSubject = new URLSearchParams(window.location.search).get('subject')?.trim().toLowerCase();
+    if (!requestedSubject) return;
+    const subject = availableSubjects.find((entry) => entry.slug === requestedSubject);
+    if (subject) setDraft((current) => current || `Help me study ${subject.name}. Explain a topic clearly and give me a practice question.`);
+  }, []);
 
   useEffect(() => {
     try {

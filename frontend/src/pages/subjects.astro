@@ -97,9 +97,9 @@ const subjectCatalogCount = availableSubjects.length + subjectsUnderDevelopment.
       </div>
       <p class="guide-callout">
         Class shelves describe how the library is organised; they do not mean that every subject or
-        class already has a complete collection. Subject pages currently cover O-Level and A-Level
-        materials for the four available subjects. Check each resource’s details and level before
-        using it.
+        class already has a complete collection. Subject pages currently provide revision guidance
+        and a shared library for subjects in the directory. Check each resource’s details and level
+        before using it.
       </p>
     </section>
 
@@ -193,7 +193,7 @@ const subjectCatalogCount = availableSubjects.length + subjectsUnderDevelopment.
                 >
                   <span class="directory-subject-icon" aria-hidden="true">{subject.icon}</span>
                   <div>
-                    <h4><a href={`${base}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></h4>
+                    <h4><a href={`${base}/frontend/src/html/${subject.slug}`}>{subject.name}</a></h4>
                     <p>{subject.description}</p>
                     <span class="directory-subject-levels">{subject.tracks.join(' · ')}</span>
                   </div>
@@ -205,8 +205,8 @@ const subjectCatalogCount = availableSubjects.length + subjectsUnderDevelopment.
         <p class="directory-no-results" data-no-results hidden>No available subjects match that search. Try another term or category.</p>
       </div>
       <p class="directory-development-note">
-        The full catalog also lists {subjectsUnderDevelopment.length} subjects being prepared. They
-        are not public subject libraries yet. <a href={`${base}/under-development.html`}>See the current development list</a>.
+        All {availableSubjects.length} subjects in the current directory have published subject pages.
+        Resource coverage varies by subject. <a href={`${base}/under-development.html`}>See development status</a>.
       </p>
     </section>
 

@@ -11,6 +11,8 @@ interface Props {
   anonKey: string;
   apiUrl: string;
   embedded?: boolean;
+  initialClass?: string;
+  initialSubject?: string;
 }
 
 type Source = 'study-hub' | 'resource-repository' | 'fresh-teacher' | 'premium-resources' | 'static-manifest';
@@ -45,6 +47,14 @@ interface ResourceStats {
 
 const TRENDING_2026_CLASS = { label: '2026 trending', keys: ['trending2026'] };
 const UNSORTED_CLASS = { label: 'Unsorted files', keys: ['unsorted'] };
+const ALL_CLASSES_SELECTION = {
+  label: 'All classes',
+  keys: [...new Set([
+    ...libraryClasses.flatMap((item) => item.keys),
+    ...TRENDING_2026_CLASS.keys,
+    ...UNSORTED_CLASS.keys,
+  ])],
+};
 const FRESH_TEACHER_ORIGINS = new Set([
   'https://fresh-teacher.github.io',
   'https://s6-fresh-teacher.vercel.app',
@@ -52,6 +62,8 @@ const FRESH_TEACHER_ORIGINS = new Set([
 ]);
 
 function findLibraryClass(label: string | null | undefined) {
+  const normalizedLabel = label?.trim().toLowerCase();
+  if (normalizedLabel === 'all' || normalizedLabel === 'all classes') return ALL_CLASSES_SELECTION;
   if (label === TRENDING_2026_CLASS.label) return TRENDING_2026_CLASS;
   if (label === UNSORTED_CLASS.label) return UNSORTED_CLASS;
   return libraryClasses.find((item) => item.label === label);
@@ -111,6 +123,19 @@ function titleCase(value: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
+function subjectToken(value: string): string {
+  return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function canonicalSubject(value: string): string {
+  const token = subjectToken(value);
+  const match = availableSubjects.find((subject) =>
+    [subject.name, subject.slug, subject.storageFolder, ...subject.folderAliases]
+      .some((alias) => subjectToken(alias) === token)
+  );
+  return match?.name || titleCase(value);
+}
+
 function premiumResourceCategories(resources: Resource[]): string[] {
   return Array.from(new Set(resources
     .filter((resource): resource is Resource & { category: string } =>
@@ -152,6 +177,12 @@ function previewFormat(url: string): string {
 
 interface CatalogLoad {
   resources: Resource[];
+  generatedAt?: string;
+}
+
+interface CatalogSourceStatus {
+  id: string;
+  label: string;
   generatedAt?: string;
 }
 
@@ -273,7 +304,7 @@ function isPremiumCatalogResource(value: unknown): value is PremiumCatalogResour
 function catalogUrlFor(url: string, base: string): string {
   if (/^https?:\/\//i.test(url)) return url;
   if (url.startsWith('/')) return new URL(url, window.location.origin).href;
-  return new URL(url, base).href;
+  return new URL(url, new URL(base, window.location.origin)).href;
 }
 
 async function fetchCachedCatalog(catalogUrl: string, cacheTtl = LIBRARY_CATALOG_CACHE_TTL): Promise<Response> {
@@ -332,10 +363,10 @@ async function loadResourceRepository(catalogUrl: string, fileBaseUrl: string): 
       const url = `${fileBaseUrl}/${encodedPath}`;
       const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
-      const subjects = [...new Set([...(item.subjects || []), item.subject || 'General'].map(titleCase))];
+      const subjects = [...new Set([...(item.subjects || []), item.subject || 'General'].map(canonicalSubject))];
       const classSubjects = item.classSubjects?.map((association) => ({
         classKey: association.classKey,
-        subject: titleCase(association.subject),
+        subject: canonicalSubject(association.subject),
       }));
       return {
         id: `ft:${url}`,
@@ -363,10 +394,10 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
       const classKeys = [...new Set([...(item.classKeys || []), item.classKey]
         .filter((key): key is string => typeof key === 'string' && LIBRARY_CLASS_KEY_PATTERN.test(key)))];
       const subjects = [...new Set([...(item.subjects || []), item.subject]
-        .map((subject) => titleCase(subject === 'All Subjects' ? 'General' : subject)))];
+        .map((subject) => canonicalSubject(subject === 'All Subjects' ? 'General' : subject)))];
       const classSubjects = item.classSubjects?.map((association) => ({
         classKey: association.classKey,
-        subject: titleCase(association.subject === 'All Subjects' ? 'General' : association.subject),
+        subject: canonicalSubject(association.subject === 'All Subjects' ? 'General' : association.subject),
       }));
       const keys = classKeys.length ? classKeys : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
@@ -409,7 +440,7 @@ async function loadPremiumResources(
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
         id: `ft:${resourceBaseUrl}/${encodedPath}`,
-        subject: typeof item.subject === 'string' ? item.subject : 'General',
+        subject: typeof item.subject === 'string' ? canonicalSubject(item.subject) : 'General',
         type: typeof item.type === 'string' ? item.type : 'Study Resources',
         source: 'premium-resources' as Source,
         title: item.title,
@@ -459,7 +490,7 @@ async function loadStaticManifest(catalogUrl: string): Promise<CatalogLoad> {
     .filter((item) => item.storagePath && item.publicUrl && (!item.sizeBytes || item.sizeBytes > 0))
     .map((item) => ({
       id: `sh:${item.storageBucket}:${item.storagePath}`,
-      subject: titleCase(item.subject),
+      subject: canonicalSubject(item.subject),
       type: supaType(item.category || '', item.resourceType || ''),
       source: 'static-manifest' as Source,
       title: item.title || item.originalFilename || 'Untitled resource',
@@ -504,7 +535,7 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
     const level = typeof row.level === 'string' ? row.level : '';
     return {
       id: `sh:${storagePath}`,
-      subject: titleCase(String(row.subject || 'General')),
+      subject: canonicalSubject(String(row.subject || 'General')),
       type: supaType(String(row.category || ''), String(row.resource_type || '')),
       source: 'study-hub' as Source,
       title: String(row.title || row.original_filename || 'Untitled'),
@@ -515,9 +546,21 @@ async function loadSupabase(url: string, anonKey: string): Promise<CatalogLoad> 
   return { resources, generatedAt: new Date().toISOString() };
 }
 
-export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUrl, embedded = false }: Props) {
-  const [selected, setSelected] = useState<LibrarySelection | null>(null);
-  const [subjectFilter, setSubjectFilter] = useState('all');
+export default function LibraryWorkspace({
+  homeHref,
+  supabaseUrl,
+  anonKey,
+  apiUrl,
+  embedded = false,
+  initialClass,
+  initialSubject,
+}: Props) {
+  const [selected, setSelected] = useState<LibrarySelection | null>(() =>
+    initialClass ? findLibraryClass(initialClass) || null : null
+  );
+  const [subjectFilter, setSubjectFilter] = useState(() =>
+    initialSubject ? canonicalSubject(initialSubject) : 'all'
+  );
   const [typeFilter, setTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
@@ -527,6 +570,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
   const [loading, setLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Loading library catalogs…');
   const [error, setError] = useState('');
+  const [catalogSources, setCatalogSources] = useState<CatalogSourceStatus[]>([]);
   const [profileToken, setProfileToken] = useState('');
   const [profileClass, setProfileClass] = useState('');
   const [preferredSubjects, setPreferredSubjects] = useState<string[]>([]);
@@ -620,6 +664,9 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       setLoading(true);
       setLoadingMessage('Loading library catalogs…');
       setError('');
+      setResources([]);
+      setTotalResourceCount(0);
+      setCatalogSources([]);
       const sources: Array<{ id: string; label: string; load: () => Promise<CatalogLoad> }> = CATALOG_SOURCES.map((source) => ({
         id: source.id,
         label: source.label,
@@ -647,11 +694,11 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
       }
 
       setLoadingMessage(`Loading ${sources.length} catalogs in parallel…`);
-      const loadedCatalogs = new Map<number, Resource[]>();
+      const loadedCatalogs = new Map<number, CatalogLoad>();
       const publishAvailableResources = () => {
         const merged = new Map<string, Resource>();
         for (let index = 0; index < sources.length; index += 1) {
-          for (const resource of loadedCatalogs.get(index) || []) {
+          for (const resource of loadedCatalogs.get(index)?.resources || []) {
             const existing = merged.get(resource.id);
             if (existing) {
               existing.keys = [...new Set([...existing.keys, ...resource.keys])];
@@ -672,11 +719,19 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
         const availableResources = [...merged.values()];
         setResources(availableResources);
         setTotalResourceCount(availableResources.length);
+        setCatalogSources(sources.flatMap((source, index) => {
+          const catalog = loadedCatalogs.get(index);
+          return catalog ? [{
+            id: source.id,
+            label: source.label,
+            generatedAt: catalog.generatedAt,
+          }] : [];
+        }));
       };
       const results = await Promise.allSettled(sources.map(async (source, index) => {
         const result = await source.load();
         if (!active) return;
-        loadedCatalogs.set(index, result.resources);
+        loadedCatalogs.set(index, result);
         publishAvailableResources();
       }));
       if (!active) return;
@@ -687,7 +742,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
         console.error(`${sources[index].label} catalog could not be loaded.`, reason);
         return [`${sources[index].label}: ${detail}`];
       });
-      const resources = [...loadedCatalogs.values()].flat();
+      const resources = [...loadedCatalogs.values()].flatMap((catalog) => catalog.resources);
       const requestedCategory = new URLSearchParams(window.location.search).get('category');
       const matchingCategory = requestedCategory
         ? resources.find((resource) => resource.category === requestedCategory)?.category
@@ -769,13 +824,16 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
     }
 
     const q = new URLSearchParams(window.location.search);
-    const cls = q.get('class');
+    const cls = q.get('class') || initialClass;
     if (cls) {
       const found = findLibraryClass(cls);
       if (found) setSelected({ label: found.label, keys: found.keys });
     }
-    const subject = q.get('subject');
-    if (subject) setSubjectFilter(subject);
+    const subject = q.get('subject') || initialSubject;
+    if (subject) {
+      setSubjectFilter(canonicalSubject(subject));
+      setShowAllSubjects(true);
+    }
     const typ = q.get('type');
     if (typ) setTypeFilter(typ);
     const query = q.get('q');
@@ -924,6 +982,7 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           loading={loading}
           loadingMessage={loadingMessage}
           error={error}
+          catalogSources={catalogSources}
           subjectFilter={subjectFilter}
           typeFilter={typeFilter}
           search={search}
@@ -983,14 +1042,41 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
           onBackToShelf={() => setSelected(null)}
         />
       ) : (
-        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} loadingMessage={loadingMessage} error={error} onSelect={setSelected} base={base} />
+        <ClassShelf resources={resources} totalResourceCount={totalResourceCount} loading={loading} loadingMessage={loadingMessage} error={error} catalogSources={catalogSources} onSelect={setSelected} base={base} />
       )}
     </div>
   );
 }
 
+function formatCatalogDate(value?: string): string {
+  if (!value) return 'date not provided by source';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'date unavailable';
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeZone: 'UTC',
+  }).format(date);
+}
 
-function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, error, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; loadingMessage: string; error: string; onSelect: (sel: LibrarySelection) => void; base: string }) {
+function CatalogSourceNotice({ sources }: { sources: CatalogSourceStatus[] }) {
+  if (!sources.length) return null;
+  const primary = sources[0];
+  const isLive = primary.id === 'supabase-catalog';
+
+  return (
+    <p className="lib-catalog-provenance" aria-label="Catalogue source and update date">
+      <strong>Primary catalogue source:</strong> {primary.label}
+      <span> · Last updated: {formatCatalogDate(primary.generatedAt)}</span>
+      <span> · {isLive ? 'Queried live' : 'Published catalogue snapshot; not a live resource scan'}</span>
+      {sources.length > 1 && (
+        <span> · Additional sources: {sources.slice(1).map((source) => source.label).join(', ')}</span>
+      )}
+    </p>
+  );
+}
+
+
+function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, error, catalogSources, onSelect, base }: { resources: Resource[]; totalResourceCount: number; loading: boolean; loadingMessage: string; error: string; catalogSources: CatalogSourceStatus[]; onSelect: (sel: LibrarySelection) => void; base: string }) {
   const countFor = (keys: string[]) => resources.filter((r) => keys.some((k) => r.keys.includes(k))).length;
   const classCount = libraryClassGroups.reduce((total, section) => total + section.items.length, 0);
   const categories = premiumResourceCategories(resources);
@@ -1026,6 +1112,7 @@ function ClassShelf({ resources, totalResourceCount, loading, loadingMessage, er
         {loading
           ? <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{loadingMessage} {totalResourceCount > 0 ? `${totalResourceCount.toLocaleString()} resources ready.` : 'Please wait while resources load.'}</p>
           : error && <p className="lib-shelf-status" role="alert">{error}</p>}
+        <CatalogSourceNotice sources={catalogSources} />
         {libraryClassGroups.map((section) => (
           <section key={section.group} className="lib-shelf-group">
             <h2>{section.group}</h2>
@@ -1090,6 +1177,7 @@ interface DashboardProps {
   selected: LibrarySelection;
   embedded: boolean;
   resources: Resource[];
+  catalogSources: CatalogSourceStatus[];
   loading: boolean;
   loadingMessage: string;
   error: string;
@@ -1761,6 +1849,7 @@ function ClassDashboard(props: DashboardProps) {
           )}
 
           <div id="library-resources" className="lib-resource-results" aria-busy={loading}>
+            <CatalogSourceNotice sources={props.catalogSources} />
             {error && <p className="lib-banner" role="alert">{error}</p>}
             {loading && <p className="lib-progress" role="status" aria-live="polite"><span className="lib-progress-spinner" aria-hidden="true" />{props.loadingMessage} {resources.length.toLocaleString()} resources ready.</p>}
 

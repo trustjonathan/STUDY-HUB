@@ -42,10 +42,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
 
   <!-- Scripts -->
   
-  <script is:inline src="../script/chemistry.js" defer></script>
-  <!-- Resource library assets -->
-  <link rel="stylesheet" href="../styles/resources.css">
-  <script is:inline src="../script/resources.js" defer></script>
 
   </Fragment>
 
@@ -68,40 +64,7 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
       description="Connect chemical principles to reactions, equations, experiments, and exam practice."
     />
 
-    <!--=========================
-             NOTES, PAPERS, VIDEOS (Expandable)
-        ==========================-->
-    <section class="resources-section chemistry-library" id="chemistry-library">
-      <div class="library-heading">
-        <p class="subject-badge">Study library</p>
-        <h2>Browse notes and past papers</h2>
-        <p>Use the collection links above to open your notes or exam papers, then search by topic or study level.</p>
-      </div>
-    
-    </section>
-    <section>
-      <!-- Expandable Content Containers -->
-            <div id="notes-content" class="resource-content" aria-labelledby="chemistry-notes-heading">
-        <h3 id="chemistry-notes-heading">Chemistry Notes</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search="chemistry|notes" placeholder="Search notes by topic or title..." aria-label="Search Chemistry notes">
-          <select data-resource-filter="chemistry|notes" aria-label="Filter Chemistry notes by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="chemistry|notes"></p>
-        <div data-resources data-subject="chemistry" data-category="notes" data-limit="12"></div>
-        <p><a href="chem-notes-html/Electrochemistry.html">Electrochemistry Notes</a></p>
-      </div>
-
-      <div id="papers-content" class="resource-content" aria-labelledby="chemistry-papers-heading">
-        <h3 id="chemistry-papers-heading">Chemistry Past Papers</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search="chemistry|papers" placeholder="Search past papers by name or year..." aria-label="Search Chemistry past papers">
-          <select data-resource-filter="chemistry|papers" aria-label="Filter Chemistry past papers by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="chemistry|papers"></p>
-        <div data-resources data-subject="chemistry" data-category="papers" data-limit="20"></div>
-      </div>
-    </section>
+    <p><a href="chem-notes-html/Electrochemistry.html">Open the Electrochemistry notes</a></p>
     
       <hr>
 

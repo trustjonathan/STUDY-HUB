@@ -27,7 +27,7 @@ const base = import.meta.env.BASE_URL.endsWith("/")
           {availableSubjects.map((entry) => (
             <a
               class={`footer-subject-card ${entry.slug === subject ? "is-current" : ""}`}
-              href={`${base}frontend/src/html/${entry.slug}.html`}
+              href={`${base}frontend/src/html/${entry.slug}`}
               aria-label={`Explore ${entry.name}`}
               aria-current={entry.slug === subject ? "page" : undefined}
               tabindex={copy === 1 ? -1 : undefined}

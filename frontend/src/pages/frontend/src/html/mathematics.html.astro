@@ -1,9 +1,6 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
 import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
-
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 ---
 
 <LegacyPageLayout title="Mathematics Notes – Free Study Hub | Jonathan GitHub Pages" description="Free Mathematics notes covering all topics with clear explanations, worked examples, and study tips for fast understanding." dataPage="mathematics">
@@ -17,9 +14,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
   <meta name="google-site-verification" content="sfHZ25XlkVnxKqIxzyH05-ZSdGWMMvXok7V3de4N0PY">
 
   <!-- Title + Favicon -->
-  
-  <meta name="study-hub-supabase-url" content={supabaseUrl}>
-  <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
 
   <!-- Canonical 
   <link rel="canonical" href="https://trustjonathan.github.io/STUDY-HUB/mathematics.html">
@@ -50,10 +44,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 
   <!-- Scripts -->
   
-  <script is:inline src="../script/mathematics.js" defer></script>
-  <!-- Resource library assets -->
-  <link rel="stylesheet" href="../styles/resources.css">
-  <script is:inline src="../script/resources.js" defer></script>
 
   </Fragment>
 
@@ -76,41 +66,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
       description="Build confidence through worked examples, clear methods, and exam practice."
     />
 
-    <section class="resources-section math-library" id="mathematics-library">
-      <div class="library-heading">
-        <p class="subject-badge">Study library</p>
-        <h2>Browse notes and past papers</h2>
-        <p>Use the collection links above to open your notes or exam papers, then search by topic or study level.</p>
-      </div>
-    
-    </section>
-
-  <section>
-    <!-- Expandable Content Containers -->
-          <div id="notes-content" class="resource-content" aria-labelledby="math-notes-heading">
-        <h3 id="math-notes-heading">Mathematics Notes</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search="mathematics|notes" placeholder="Search notes by topic or title..." aria-label="Search Mathematics notes">
-          <select data-resource-filter="mathematics|notes" aria-label="Filter Mathematics notes by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="mathematics|notes" aria-live="polite"></p>
-        <div data-resources data-subject="mathematics" data-category="notes" data-limit="12"></div>
-        <p>Also see the <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html#archive" rel="noopener">Mathematics archive</a> for published notes.</p>
-      </div>
-
-      <div id="papers-content" class="resource-content" aria-labelledby="math-papers-heading">
-        <h3 id="math-papers-heading">Mathematics Past Papers</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search="mathematics|papers" placeholder="Search past papers by name or year..." aria-label="Search Mathematics past papers">
-          <select data-resource-filter="mathematics|papers" aria-label="Filter Mathematics past papers by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="mathematics|papers" aria-live="polite"></p>
-        <div data-resources data-subject="mathematics" data-category="papers" data-limit="20"></div>
-        <p>Looking for more practice? Browse the <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html#archive" rel="noopener">Mathematics archive</a>.</p>
-      </div>
-    
-    </section>
-
+    <p>For more Mathematics material, visit the <a href="https://trustjonathan.github.io/MATHEMATICS/archive.html#archive" rel="noopener noreferrer">Mathematics archive</a>.</p>
 
     
     <hr>

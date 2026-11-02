@@ -45,9 +45,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
   <!-- JS -->
   
   <script is:inline src="../script/biology.js" defer></script>
-  <!-- Resource library assets -->
-  <link rel="stylesheet" href="../styles/resources.css">
-  <script is:inline src="../script/resources.js" defer></script>
 
   </Fragment>
 
@@ -69,41 +66,6 @@ import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
       headline="Study Biology with a clear next step."
       description="Explore life processes, genetics, ecology, and practical work with notes and exam resources."
     />
-
-    <section class="resources-section biology-library" id="biology-library">
-      <div class="library-heading">
-        <p class="subject-badge">Study library</p>
-        <h2>Browse notes and past papers</h2>
-        <p>Use the collection links above to open your notes or exam papers, then search by topic or study level.</p>
-      </div>
-
-    </section>
-
-    <section>
-      <!-- Expandable Content Containers -->
-            <div id="notes-content" class="resource-content" aria-labelledby="biology-notes-heading">
-              <h3 id="biology-notes-heading">Biology Notes</h3>
-              <div class="resource-toolbar">
-                <input type="search" data-resource-search="biology|notes" placeholder="Search notes by topic or title..." aria-label="Search Biology notes">
-                <select data-resource-filter="biology|notes" aria-label="Filter Biology notes by level"></select>
-              </div>
-        <p class="resource-status" data-resource-status="biology|notes"></p>
-        <div data-resources data-subject="biology" data-category="notes" data-limit="12"></div>
-      </div>
-
-            <div id="papers-content" class="resource-content" aria-labelledby="biology-papers-heading">
-              <h3 id="biology-papers-heading">Biology Past Papers</h3>
-        <div class="resource-toolbar">
-                <input type="search" data-resource-search="biology|papers" placeholder="Search past papers by name or year..." aria-label="Search Biology past papers">
-                <select data-resource-filter="biology|papers" aria-label="Filter Biology past papers by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="biology|papers"></p>
-        <div data-resources data-subject="biology" data-category="papers" data-limit="20"></div>
-      </div>
-
-    </section>
-
-
 
     <hr>
   <br><br>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type SubmitEvent } from 'react';
 import { readAuthSession } from '../utils/authSession';
+import { ENABLE_SUPABASE_CATALOG } from '../config/catalogSources';
 
 interface PlanTopic {
   id: string;
@@ -263,8 +264,9 @@ export default function StudyPlanWorkspace({
           }
         }
         let studyHubItems: LibraryResource[] = [];
-        if (supabaseUrl && anonKey) {
-          const endpoint = new URL('/rest/v1/study_hub_resources', supabaseUrl);
+        if (ENABLE_SUPABASE_CATALOG && supabaseUrl && anonKey) {
+          try {
+            const endpoint = new URL('/rest/v1/study_hub_resources', supabaseUrl);
           endpoint.searchParams.set('select', 'subject,category,storage_bucket,storage_path,original_filename,title,level,resource_type');
           endpoint.searchParams.set('limit', '1000');
           const headers: Record<string, string> = { apikey: anonKey };
@@ -287,6 +289,9 @@ export default function StudyPlanWorkspace({
               source: 'study-hub' as const,
             };
           }).filter((item) => item.url);
+          } catch (catalogError) {
+            console.warn('The optional Supabase resource catalog could not be loaded; continuing with GitHub catalogs.', catalogError);
+          }
         }
         if (!active) return;
         const items = [...externalItems, ...studyHubItems];

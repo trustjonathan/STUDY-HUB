@@ -11,7 +11,6 @@ export function getStaticPaths() {
 }
 
 const { subject } = Astro.props;
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
 const levelLabel = subject.levels.join(", ");
 ---
 
@@ -21,13 +20,10 @@ const levelLabel = subject.levels.join(", ");
   dataPage={subject.slug}
 >
   <Fragment slot="head">
-    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
     <meta name="keywords" content={`${subject.name}, UNEB, NCDC, ${levelLabel}, study notes, past papers`}>
     <link rel="stylesheet" href="../styles/home.css">
     <link rel="stylesheet" href="../styles/themes.css">
     <link rel="stylesheet" href="../styles/mathematics.css">
-    <link rel="stylesheet" href="../styles/resources.css">
-    <script is:inline src="../script/resources.js" defer></script>
   </Fragment>
 
   <div id="container">
@@ -38,32 +34,5 @@ const levelLabel = subject.levels.join(", ");
       headline={subject.headline}
       description={subject.description}
     />
-    <section class="resources-section math-library" id={`${subject.slug}-library`}>
-      <div class="library-heading">
-        <p class="subject-badge">UNEB / NCDC study library</p>
-        <h2>{subject.name} resources</h2>
-        <p>Search notes and past papers by title, topic, study level, or year.</p>
-      </div>
-
-      <div id="notes-content" class="resource-content" aria-labelledby={`${subject.slug}-notes-heading`}>
-        <h3 id={`${subject.slug}-notes-heading`}>{subject.name} Notes</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search={`${subject.slug}|notes`} placeholder="Search notes by topic or title..." aria-label={`Search ${subject.name} notes`}>
-          <select data-resource-filter={`${subject.slug}|notes`} aria-label={`Filter ${subject.name} notes by level`}></select>
-        </div>
-        <p class="resource-status" data-resource-status={`${subject.slug}|notes`} aria-live="polite"></p>
-        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="notes" data-limit="12"></div>
-      </div>
-
-      <div id="papers-content" class="resource-content" aria-labelledby={`${subject.slug}-papers-heading`}>
-        <h3 id={`${subject.slug}-papers-heading`}>{subject.name} Past Papers</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search={`${subject.slug}|papers`} placeholder="Search past papers by name or year..." aria-label={`Search ${subject.name} past papers`}>
-          <select data-resource-filter={`${subject.slug}|papers`} aria-label={`Filter ${subject.name} past papers by level`}></select>
-        </div>
-        <p class="resource-status" data-resource-status={`${subject.slug}|papers`} aria-live="polite"></p>
-        <div data-resources data-subject={subject.slug} data-subject-aliases={subject.folderAliases.join(",")} data-category="papers" data-limit="20"></div>
-      </div>
-    </section>
   </div>
 </LegacyPageLayout>

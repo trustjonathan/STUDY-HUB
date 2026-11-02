@@ -1,9 +1,6 @@
 ---
 import LegacyPageLayout from "../../../../layouts/LegacyPageLayout.astro";
 import SubjectDashboard from "../../../../components/SubjectDashboard.astro";
-
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
 ---
 
 <LegacyPageLayout
@@ -12,8 +9,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
   dataPage="physics"
 >
   <Fragment slot="head">
-    <meta name="study-hub-supabase-url" content={supabaseUrl}>
-    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
     <meta name="keywords" content="physics notes, physics past papers, mechanics, electricity, UACE physics">
     <meta name="author" content="Jonathan">
     <meta property="og:title" content="Physics Notes – Free Study Hub">
@@ -23,9 +18,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
     <link rel="stylesheet" href="../styles/themes.css">
     <link rel="stylesheet" href="../styles/mathematics.css">
     <link rel="stylesheet" href="../styles/physics.css">
-    <link rel="stylesheet" href="../styles/resources.css">
-    <script is:inline src="../script/physics.js" defer></script>
-    <script is:inline src="../script/resources.js" defer></script>
   </Fragment>
 
   <div id="container">
@@ -36,32 +28,5 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
       headline="Understand the forces shaping the world."
       description="Explore motion, matter, and energy through Physics resources and exam practice."
     />
-    <section class="resources-section math-library physics-library" id="physics-library">
-      <div class="library-heading">
-        <p class="subject-badge">Study library</p>
-        <h2>Browse notes and past papers</h2>
-        <p>Use the collection links above to open Physics notes or exam papers, then search by topic or study level.</p>
-      </div>
-
-      <div id="notes-content" class="resource-content" aria-labelledby="physics-notes-heading">
-        <h3 id="physics-notes-heading">Physics Notes</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search="physics|notes" placeholder="Search notes by topic or title..." aria-label="Search Physics notes">
-          <select data-resource-filter="physics|notes" aria-label="Filter Physics notes by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="physics|notes" aria-live="polite"></p>
-        <div data-resources data-subject="physics" data-category="notes" data-limit="12"></div>
-      </div>
-
-      <div id="papers-content" class="resource-content" aria-labelledby="physics-papers-heading">
-        <h3 id="physics-papers-heading">Physics Past Papers</h3>
-        <div class="resource-toolbar">
-          <input type="search" data-resource-search="physics|papers" placeholder="Search past papers by name or year..." aria-label="Search Physics past papers">
-          <select data-resource-filter="physics|papers" aria-label="Filter Physics past papers by level"></select>
-        </div>
-        <p class="resource-status" data-resource-status="physics|papers" aria-live="polite"></p>
-        <div data-resources data-subject="physics" data-category="papers" data-limit="20"></div>
-      </div>
-    </section>
   </div>
 </LegacyPageLayout>

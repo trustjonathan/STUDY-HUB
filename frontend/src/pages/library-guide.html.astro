@@ -9,25 +9,23 @@ import studyImage from '../assets/images/study_pic.png';
 import { availableSubjects } from '../data/availableSubjects';
 
 const home = import.meta.env.BASE_URL.replace(/\/$/, '');
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 const subjects = [
   {
     name: 'Biology',
     image: biologyImage,
-    hub: `${home}/frontend/src/html/biology.html`,
+    hub: `${home}/frontend/src/html/biology`,
     archive: 'https://trustjonathan.github.io/BIOLOGY/archive.html'
   },
   {
     name: 'Chemistry',
     image: chemistryImage,
-    hub: `${home}/frontend/src/html/chemistry.html`,
+    hub: `${home}/frontend/src/html/chemistry`,
     archive: 'https://trustjonathan.github.io/CHEMISTRY/archive.html'
   },
   {
     name: 'Mathematics',
     image: mathematicsImage,
-    hub: `${home}/frontend/src/html/mathematics.html`,
+    hub: `${home}/frontend/src/html/mathematics`,
     archive: 'https://trustjonathan.github.io/MATHEMATICS/archive.html'
   }
 ];
@@ -35,21 +33,15 @@ const subjects = [
 
 <SiteLayout
   title="Study Hub Library Guide"
-  description="A detailed guide to Study Hub subjects, resource counts, navigation, searching, and submitting study materials."
+  description="A guide to Study Hub subjects, the shared resource library, navigation, searching, and submitting study materials."
 >
-  <Fragment slot="head">
-    <meta name="study-hub-supabase-url" content={supabaseUrl}>
-    <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey}>
-    <meta name="study-hub-resource-repository-catalog" content={`${home}/study-hub-resources-1-catalog.json`}>
-    <meta name="study-hub-fresh-teacher-catalog" content={`${home}/fresh-teacher-catalog.json`}>
-  </Fragment>
   <main class="library-guide">
     <section class="guide-intro" id="guide-start" aria-labelledby="guide-title">
       <div class="guide-intro-copy">
         <p class="eyebrow">Study Hub reference</p>
         <h1 id="guide-title">The library, explained.</h1>
-        <p class="guide-lede">Find resources in the four active subject libraries and learn how contributed files are reviewed before they become public.</p>
-        <p class="guide-updated">Resource counts are read live from the public catalog.</p>
+        <p class="guide-lede">Browse subject pages, search the shared library, and learn how contributed files are reviewed before they become public.</p>
+        <p class="guide-updated">The shared Library displays catalogue provenance and its latest update date.</p>
       </div>
       <img class="guide-hero-image" src={studentsImage.src} alt="Learners studying together" />
     </section>
@@ -66,9 +58,9 @@ const subjects = [
             <img src={`${home}/assets/library-guide/library-shelf.png`} alt="" />
             <span>Visual site tour</span>
           </a>
-          <a href="#resource-counts">
+          <a href={`${home}/library.html`}>
             <img src={mathematicsImage.src} alt="" />
-            <span>Resource counts</span>
+            <span>Browse resources</span>
           </a>
           <a href="#find-resources">
             <img src={biologyImage.src} alt="" />
@@ -93,13 +85,13 @@ const subjects = [
         <section class="guide-section" id="how-it-works" aria-labelledby="how-title">
           <p class="eyebrow">01 / The library</p>
           <h2 id="how-title">How the library works</h2>
-          <p>Study Hub currently publishes learning libraries for Biology, Chemistry, Mathematics, and Physics. Materials are organised by subject, resource type, and the details available for each file. Other subject pages are under development and are not part of the public resource directory yet. The <a href={`${home}/subjects.html`}>Subjects and learning guide</a> explains the classes, school levels, and future university plans.</p>
+          <p>Study Hub publishes subject pages for the subjects in its current directory. Materials are organised by subject, resource type, and the details available for each file. Resource coverage differs by subject and class; the <a href={`${home}/subjects.html`}>Subjects and learning guide</a> explains the classes, school levels, and future university plans.</p>
           <p>The Library class shelf includes a <strong>2026 trending</strong> tile and an <strong>Unsorted files</strong> tile. Resources from the <a href="https://github.com/trustjonathan/STUDT-HUB-RESOURCES-2026">categorized resources archive</a> appear in their matching class when the filename identifies one; other files remain available in Unsorted files. Archive resources open in the Study Hub flipbook reader, and sample UNEB papers have their own year-organized folder.</p>
           <div class="guide-callout">
             <strong>From submission to library</strong>
             <p>Contributed files are reviewed before they can appear in public search. Sending a form does not publish a resource automatically.</p>
           </div>
-          <p>The resource-count table below summarises the published library by subject and category. Counts update while this page is open; a temporary connection problem may prevent the latest totals from loading.</p>
+          <p>Use the shared <a href={`${home}/library.html`}>Library</a> for catalogue search, subject filters, and live source and update information. This guide does not calculate a separate set of resource totals.</p>
         </section>
 
         <section class="guide-section" id="site-tour" aria-labelledby="site-tour-title">
@@ -126,53 +118,14 @@ const subjects = [
           </div>
         </section>
 
-        <section class="guide-section" id="resource-counts" aria-labelledby="counts-title">
-          <p class="eyebrow">03 / The collection</p>
-          <h2 id="counts-title">How many resources are available?</h2>
-          <p>The total combines files from the full subject catalog with resources from the Study Hub subject libraries. Counts refresh when this page opens and periodically while it remains open.</p>
-          <div class="guide-table-wrap">
-            <table>
-              <caption>Library resources across all catalog subjects, grouped by category</caption>
-              <thead>
-                <tr><th scope="col">Subject</th><th scope="col">Notes</th><th scope="col">Past papers</th><th scope="col">Other / uncategorized</th><th scope="col">Total</th></tr>
-              </thead>
-              <tbody data-resource-counts>
-                <tr><td colspan="5" role="status">Loading all-subject library counts…</td></tr>
-              </tbody>
-              <tfoot data-resource-totals>
-                <tr><th scope="row">All library resources</th><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-              </tfoot>
-            </table>
-          </div>
-          <div class="guide-count-controls">
-            <p class="guide-count-status" data-resource-count-status role="status" aria-live="polite">Counting files from all library subjects…</p>
-            <button class="guide-count-refresh" type="button" data-resource-count-refresh>Refresh counts</button>
-          </div>
-          <template data-subject-rows>
-                {availableSubjects.map((subject) => (
-                  <tr>
-                    <th
-                      scope="row"
-                      data-subject-name={subject.slug}
-                      data-subject-aliases={[subject.storageFolder, ...subject.folderAliases].join(',')}
-                    >{subject.name}</th>
-                    <td data-count-category="notes">0</td>
-                    <td data-count-category="papers">0</td>
-                    <td data-count-category="other">0</td>
-                    <td><strong data-count-category="total">0</strong></td>
-                  </tr>
-                ))}
-          </template>
-        </section>
-
         <section class="guide-section" id="find-resources" aria-labelledby="find-title">
-          <p class="eyebrow">04 / Browse and study</p>
+          <p class="eyebrow">03 / Browse and study</p>
           <h2 id="find-title">Search the library</h2>
           <ol class="guide-steps">
-            <li><strong>Choose a subject.</strong> Use Browse subjects in the header or the directory below to open one of the four available subject libraries.</li>
-            <li><strong>Choose a collection.</strong> Subject pages provide separate study-note and recently added sections; past papers and other resources appear where they are available.</li>
+            <li><strong>Choose a subject.</strong> Use Browse subjects in the header or the directory below to open one of the published subject pages.</li>
+            <li><strong>Choose a class and subject.</strong> The embedded shared Library opens with the current subject selected; use its filters to explore a different collection.</li>
             <li><strong>Search and filter.</strong> Search matches words in resource titles, filenames, subject, type, level, year, and other indexed details. Use available level or year filters to narrow the list.</li>
-            <li><strong>Load more results.</strong> Recent and notes collections scroll independently and request additional catalog pages as you continue. Search can also check the full matching collection.</li>
+            <li><strong>Browse more results.</strong> The Library loads matching catalogue data from its configured public sources; use its active source and update details to understand the catalogue snapshot.</li>
             <li><strong>Preview before opening.</strong> The class Library shows a lazy first-page preview for supported PDFs and Word documents. A preview may be unavailable when the file host is offline or blocks browser access.</li>
             <li><strong>Open the file.</strong> Select a resource title or its “Open resource” link to read it in the document viewer.</li>
           </ol>
@@ -203,7 +156,7 @@ const subjects = [
         <section class="guide-section" id="page-map" aria-labelledby="map-title">
           <p class="eyebrow">07 / Page directory</p>
           <h2 id="map-title">Explore subjects and site pages</h2>
-          <p>Browse the four subject libraries currently available. More subjects are being prepared; see <a href={`${home}/under-development.html`}>Pages under development</a> for the current status.</p>
+          <p>Browse all {availableSubjects.length} published subject pages. Resource coverage can differ between subjects; the directory lists each subject included in the current catalogue.</p>
           <div class="guide-directory">
             {availableSubjects.map((subject) => (
               <section class="directory-row subject-directory-row" aria-label={`${subject.name} subject page`}>
@@ -211,7 +164,7 @@ const subjects = [
                 <div>
                   <h3>{subject.name}</h3>
                   <p>{subject.description}</p>
-                  <a href={`${home}/frontend/src/html/${subject.slug}.html`}>Open subject page</a>
+                  <a href={`${home}/frontend/src/html/${subject.slug}`}>Open subject page</a>
                 </div>
               </section>
             ))}
@@ -236,221 +189,4 @@ const subjects = [
       </article>
     </div>
   </main>
-</SiteLayout>
-
-<script>
-  type SubjectCounts = { notes: number; papers: number; other: number; total: number };
-  type ResourceCategory = 'notes' | 'papers' | 'other';
-
-  const tableBody = document.querySelector<HTMLTableSectionElement>('[data-resource-counts]');
-  const totalsFooter = document.querySelector<HTMLTableSectionElement>('[data-resource-totals]');
-  const status = document.querySelector<HTMLParagraphElement>('[data-resource-count-status]');
-  const refreshButton = document.querySelector<HTMLButtonElement>('[data-resource-count-refresh]');
-  const supabaseUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-url"]')?.content.replace(/\/+$/, '');
-  const anonKey = document.querySelector<HTMLMetaElement>('meta[name="study-hub-supabase-anon-key"]')?.content;
-  const resourceRepositoryCatalogUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-resource-repository-catalog"]')?.content;
-  const freshTeacherCatalogUrl = document.querySelector<HTMLMetaElement>('meta[name="study-hub-fresh-teacher-catalog"]')?.content;
-  const subjectTemplate = document.querySelector<HTMLTemplateElement>('template[data-subject-rows]');
-  const pageSize = 1000;
-  let isLoading = false;
-
-  const formatCount = (count: number) => count.toLocaleString();
-
-  function normalizeSubject(subject: string) {
-    const normalized = subject.trim().replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ');
-    if (!normalized || normalized.toLowerCase() === 'all subjects') return 'General';
-    return normalized.split(/\s+/).map((word) => (
-      word.length <= 3 ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1)
-    )).join(' ');
-  }
-
-  function makeSubjectKeys() {
-    const keys = new Map<string, string>();
-    for (const row of subjectTemplate?.content.querySelectorAll<HTMLTableRowElement>('[data-subject-name]') || []) {
-      const slug = row.dataset.subjectName;
-      const label = row.querySelector<HTMLElement>('[data-subject-name]')?.textContent?.trim();
-      if (!slug || !label) continue;
-      keys.set(slug.toLowerCase(), label);
-      for (const alias of (row.dataset.subjectAliases || '').split(',')) {
-        if (alias.trim()) keys.set(alias.trim().toLowerCase(), label);
-      }
-    }
-    return keys;
-  }
-
-  function addResourceCount(counts: Map<string, SubjectCounts>, subject: string, resourceType: string, subjectKeys: Map<string, string>) {
-    const rawSubject = subject.trim() || 'General';
-    const label = subjectKeys.get(rawSubject.toLowerCase()) || normalizeSubject(rawSubject);
-    const type = resourceType.toLowerCase();
-    const category: ResourceCategory = type.includes('paper')
-      ? 'papers'
-      : type.includes('note') || type.includes('lesson')
-        ? 'notes'
-        : 'other';
-    const subjectCount = counts.get(label) || { notes: 0, papers: 0, other: 0, total: 0 };
-    subjectCount[category] += 1;
-    subjectCount.total += 1;
-    counts.set(label, subjectCount);
-  }
-
-  async function fetchExternalCatalogCounts(catalogUrl: string | undefined, source: string, subjectKeys: Map<string, string>) {
-    if (!catalogUrl) throw new Error(`${source} catalog URL is not configured.`);
-    const response = await fetch(catalogUrl);
-    if (!response.ok) throw new Error(`${source} catalog returned HTTP ${response.status}.`);
-    const data = await response.json();
-    if (!Array.isArray(data?.items)) throw new Error(`${source} catalog returned an invalid list.`);
-
-    const counts = new Map<string, SubjectCounts>();
-    const countedUrls = new Set<string>();
-    let fetched = 0;
-    for (const item of data.items) {
-      if (typeof item?.url !== 'string' || !item.url.trim()) continue;
-      if (countedUrls.has(item.url)) continue;
-      countedUrls.add(item.url);
-      addResourceCount(counts, String(item.subject || 'General'), String(item.type || ''), subjectKeys);
-      fetched += 1;
-    }
-    return { counts, fetched };
-  }
-
-  async function fetchStudyHubCounts(subjectKeys: Map<string, string>) {
-    if (!supabaseUrl || !anonKey) throw new Error('Study Hub subject catalog is not configured.');
-    const counts = new Map<string, SubjectCounts>();
-    let offset = 0;
-    let fetched = 0;
-    const headers: Record<string, string> = { apikey: anonKey };
-    if (anonKey.startsWith('eyJ')) headers.Authorization = `Bearer ${anonKey}`;
-
-    for (;;) {
-      const endpoint = new URL(`${supabaseUrl}/rest/v1/study_hub_resources`);
-      endpoint.searchParams.set('select', 'subject,category');
-      endpoint.searchParams.set('order', 'subject.asc,category.asc');
-      endpoint.searchParams.set('limit', String(pageSize));
-      endpoint.searchParams.set('offset', String(offset));
-
-      const response = await fetch(endpoint, { headers });
-      if (!response.ok) throw new Error(`Study Hub catalog returned HTTP ${response.status}.`);
-      const rows = await response.json();
-      if (!Array.isArray(rows)) throw new Error('Study Hub catalog returned an invalid list.');
-
-      for (const resource of rows) {
-        addResourceCount(counts, String(resource.subject || 'General'), String(resource.category || ''), subjectKeys);
-      }
-      fetched += rows.length;
-      if (rows.length < pageSize) break;
-      offset += rows.length;
-    }
-    return { counts, fetched };
-  }
-
-  function renderResourceCounts(counts: Map<string, SubjectCounts>) {
-    if (!tableBody || !totalsFooter) return { subjectCount: 0, totals: { notes: 0, papers: 0, other: 0, total: 0 } };
-    const fragment = document.createDocumentFragment();
-    const totals: SubjectCounts = { notes: 0, papers: 0, other: 0, total: 0 };
-    const subjects = Array.from(counts.entries()).sort(([a], [b]) => a.localeCompare(b));
-
-    for (const [subject, subjectCount] of subjects) {
-      const row = document.createElement('tr');
-      const name = document.createElement('th');
-      name.scope = 'row';
-      name.textContent = subject;
-      row.appendChild(name);
-      for (const category of ['notes', 'papers', 'other'] as const) {
-        const cell = document.createElement('td');
-        cell.textContent = formatCount(subjectCount[category]);
-        row.appendChild(cell);
-        totals[category] += subjectCount[category];
-      }
-      const total = document.createElement('td');
-      const totalValue = document.createElement('strong');
-      totalValue.textContent = formatCount(subjectCount.total);
-      total.appendChild(totalValue);
-      row.appendChild(total);
-      totals.total += subjectCount.total;
-      fragment.appendChild(row);
-    }
-
-    tableBody.replaceChildren(fragment);
-    totalsFooter.querySelectorAll('td').forEach((cell, index) => {
-      cell.textContent = formatCount([totals.notes, totals.papers, totals.other, totals.total][index]);
-    });
-    return { subjectCount: subjects.length, totals };
-  }
-
-  function showError(message: string) {
-    if (status) status.textContent = message;
-    if (tableBody) {
-      tableBody.replaceChildren();
-      const row = document.createElement('tr');
-      const cell = document.createElement('td');
-      cell.colSpan = 5;
-      cell.setAttribute('role', 'alert');
-      cell.textContent = message;
-      row.appendChild(cell);
-      tableBody.appendChild(row);
-    }
-    totalsFooter?.querySelectorAll('td').forEach((cell) => { cell.textContent = '—'; });
-  }
-
-  async function loadResourceCounts() {
-    if (isLoading || !tableBody || !totalsFooter || !subjectTemplate || !refreshButton) return;
-    isLoading = true;
-    refreshButton.disabled = true;
-    if (status) status.textContent = 'Counting files from all library subjects…';
-
-    try {
-      const subjectKeys = makeSubjectKeys();
-      const [resourceRepositoryResult, freshTeacherResult, studyHubResult] = await Promise.allSettled([
-        fetchExternalCatalogCounts(resourceRepositoryCatalogUrl, 'Resource repository', subjectKeys),
-        fetchExternalCatalogCounts(freshTeacherCatalogUrl, 'Fresh Teacher', subjectKeys),
-        fetchStudyHubCounts(subjectKeys),
-      ]);
-      const failures: string[] = [];
-      const resourceRepository = resourceRepositoryResult.status === 'fulfilled' ? resourceRepositoryResult.value : null;
-      const freshTeacher = freshTeacherResult.status === 'fulfilled' ? freshTeacherResult.value : null;
-      const studyHub = studyHubResult.status === 'fulfilled' ? studyHubResult.value : null;
-      if (resourceRepositoryResult.status === 'rejected') {
-        failures.push(`Resource repository: ${resourceRepositoryResult.reason instanceof Error ? resourceRepositoryResult.reason.message : 'request failed'}`);
-      }
-      if (freshTeacherResult.status === 'rejected') {
-        failures.push(`Fresh Teacher: ${freshTeacherResult.reason instanceof Error ? freshTeacherResult.reason.message : 'request failed'}`);
-      }
-      if (studyHubResult.status === 'rejected') {
-        failures.push(`Study Hub: ${studyHubResult.reason instanceof Error ? studyHubResult.reason.message : 'request failed'}`);
-      }
-      if (!resourceRepository && !freshTeacher && !studyHub) throw new Error(failures.join(' '));
-
-      const counts = new Map<string, SubjectCounts>();
-      for (const sourceCounts of [resourceRepository?.counts, freshTeacher?.counts, studyHub?.counts]) {
-        sourceCounts?.forEach((sourceCount, subject) => {
-          const combined = counts.get(subject) || { notes: 0, papers: 0, other: 0, total: 0 };
-          combined.notes += sourceCount.notes;
-          combined.papers += sourceCount.papers;
-          combined.other += sourceCount.other;
-          combined.total += sourceCount.total;
-          counts.set(subject, combined);
-        });
-      }
-
-      const { subjectCount, totals } = renderResourceCounts(counts);
-      const updatedAt = new Date().toLocaleTimeString();
-      if (status) {
-        status.textContent = failures.length
-          ? `Partial count: ${formatCount(totals.total)} resources across ${subjectCount} subject groups. ${failures.join(' ')} Last updated ${updatedAt}.`
-          : `Counted ${formatCount(totals.total)} resources across ${subjectCount} subject groups: ${formatCount(resourceRepository?.fetched || 0)} resource repository files, ${formatCount(freshTeacher?.fetched || 0)} Fresh Teacher files, and ${formatCount(studyHub?.fetched || 0)} Study Hub files. Last updated ${updatedAt}.`;
-      }
-    } catch (error) {
-      console.error('Unable to refresh all-subject Study Hub resource counts:', error);
-      showError('Could not load library resource counts. Check your connection and try again.');
-    } finally {
-      isLoading = false;
-      refreshButton.disabled = false;
-    }
-  }
-
-  refreshButton?.addEventListener('click', loadResourceCounts);
-  void loadResourceCounts();
-  window.setInterval(() => {
-    if (document.visibilityState === 'visible') void loadResourceCounts();
-  }, 60_000);
-</script>
+  </SiteLayout>

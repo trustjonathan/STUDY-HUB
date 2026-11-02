@@ -6,6 +6,7 @@ import { availableSubjects } from '../data/availableSubjects';
 import '../styles/landing.css';
 
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const featuredSubjects = availableSubjects.slice(0, 4);
 ---
 
 <SiteLayout
@@ -50,11 +51,11 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
           <p class="landing-eyebrow">Start with a subject</p>
           <h2>Choose a place to begin.</h2>
         </div>
-        <p>These subject libraries are available now. Each opens a subject dashboard with collections, study notes, and practice resources.</p>
+        <p>Start with a featured subject or browse the full directory. Each page has its own revision guidance and the shared resource library.</p>
       </div>
       <div class="landing-subject-grid">
-        {availableSubjects.map((subject, index) => (
-          <a class={`landing-subject-card landing-subject-${subject.slug}`} href={`${base}frontend/src/html/${subject.slug}.html`}>
+        {featuredSubjects.map((subject, index) => (
+          <a class={`landing-subject-card landing-subject-${subject.slug}`} href={`${base}frontend/src/html/${subject.slug}`}>
             <span class="landing-subject-index">{String(index + 1).padStart(2, '0')}</span>
             <span class="landing-subject-icon" aria-hidden="true">{subject.icon}</span>
             <span class="landing-subject-name">{subject.name}</span>
@@ -63,7 +64,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
           </a>
         ))}
       </div>
-      <p class="landing-subject-foot">More subjects are being prepared. <a href={`${base}under-development.html`}>See what is in development</a> or <a href={`${base}subjects.html`}>browse the subject directory</a>.</p>
+      <p class="landing-subject-foot">Browse all {availableSubjects.length} published subjects in the <a href={`${base}subjects.html`}>subject directory</a>.</p>
     </section>
 
     <section class="landing-tour" id="site-tour">

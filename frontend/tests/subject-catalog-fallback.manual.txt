@@ -1,25 +1,30 @@
-Study Hub subject catalog fallback checklist
+Study Hub shared catalogue manual checklist
 
-Run against the built site or a local preview. In browser developer tools, block
-the Supabase REST request for study_hub_resources and return HTTP 402 instead.
-Keep the manifest and GitHub catalog requests available.
+Use the built site or a local preview. The shared Library loads its configured
+sources in priority order, in parallel, and keeps available results if a source
+fails. Supabase catalogue loading is disabled unless
+PUBLIC_ENABLE_SUPABASE_CATALOG=true.
 
-Repeat for each subject route:
-- /frontend/src/html/biology.html
-- /frontend/src/html/chemistry.html
-- /frontend/src/html/mathematics.html
-- /frontend/src/html/physics.html
+Repeat these checks on every generated subject route from src/data/subjects.json.
+At minimum, check Biology, Chemistry, Mathematics, Physics, and one subject
+outside those four.
 
-For each route, verify:
-1. The dashboard and the Notes/Guides and Past Papers lists load from the checked-in
-   resources.json snapshot after Supabase returns 402.
-2. The status identifies the checked-in manifest, gives its generated date, and
-   explicitly says it is not live.
-3. Use "Try GitHub resource catalog snapshot"; the displayed source changes to
-   that catalog, shows its generated date, and explicitly says it is not live.
-4. Search, level filters, show/load-more controls, and resource links still work.
-5. To exercise the final fallback, block both the Supabase REST request and the
-   manifest asset request; confirm the GitHub catalog loads and is labeled as a
-   snapshot, not live.
-6. With all three sources blocked, confirm the page reports each failed source
-   and does not offer a retry that repeats an exhausted source.
+1. With the default configuration, confirm each page loads resource rows from
+   the GitHub catalogues and the shared Library filters them to the page subject.
+   Verify there is no public-resource catalogue request to Supabase.
+2. Verify the Library identifies its highest-priority successful source, its
+   last-updated date (or says the source did not provide one), and states that a
+   GitHub/static catalogue is a published snapshot, not a live resource scan.
+3. Set PUBLIC_ENABLE_SUPABASE_CATALOG=true and return HTTP 402 from the Supabase
+   catalogue request. Confirm GitHub catalogues still load, the page remains
+   usable, and the error identifies the failed Supabase source.
+4. Block the GitHub catalogue requests while leaving the checked-in manifest
+   available. Confirm the manifest supplies rows and is identified as a
+   snapshot. Test search, class/subject filters, pagination, and GitHub-backed
+   resource links. Note: manifest file URLs still point to Supabase Storage, so
+   opening those legacy files may fail while Supabase Storage is unavailable.
+5. Block all configured catalogue requests. Confirm the Library reports each
+   failed source and does not display stale source metadata as if it succeeded.
+6. On each page, confirm the revision map, subject guidance, and AI Study link
+   remain visible. Confirm the subject query parameter is preserved when opening
+   the full Library.

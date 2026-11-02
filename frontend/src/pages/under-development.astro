@@ -7,7 +7,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 <SiteLayout
   title="Pages Under Development | Study Hub"
-  description="See which Study Hub subject libraries are available now and which are still being prepared."
+  description="See the current publication and development status for Study Hub subject pages."
 >
   <Fragment slot="head">
     <meta name="robots" content="noindex, follow">
@@ -17,26 +17,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <header class="development-hero">
       <p class="eyebrow">Study Hub library status</p>
       <h1>Pages under development</h1>
-      <p>Study Hub is publishing subject libraries in stages so that each active page has useful learning material and a working resource catalogue.</p>
-      <p>At the moment, the public libraries are <strong>Biology, Chemistry, Mathematics, and Physics</strong>. The subjects listed below are not yet available as public resource pages. We will add them when their content is ready; no launch dates are promised.</p>
-      <a class="development-primary-link" href={`${base}/subjects.html`}>Explore available subjects <span aria-hidden="true">→</span></a>
+      <p>Study Hub publishes subject pages as the shared catalogue and revision guidance become available. Resource coverage can differ between subjects and classes.</p>
+      <p>All subjects in the current directory have published pages. Additional subjects may be added when their content is ready; no launch dates are promised.</p>
+      <a class="development-primary-link" href={`${base}/subjects.html`}>Explore all subjects <span aria-hidden="true">→</span></a>
     </header>
 
     <section class="development-status" aria-labelledby="available-title">
-      <h2 id="available-title">Available now</h2>
+      <h2 id="available-title">Published subject pages</h2>
       <ul class="development-active-list">
         {availableSubjects.map((subject) => (
-          <li><a href={`${base}/frontend/src/html/${subject.slug}.html`}>{subject.name}</a></li>
+          <li><a href={`${base}/frontend/src/html/${subject.slug}`}>{subject.name}</a></li>
         ))}
       </ul>
     </section>
 
     <section class="development-status" aria-labelledby="preparing-title">
-      <h2 id="preparing-title">Being prepared</h2>
-      <p>These subjects are not linked to empty or incomplete library pages. This list is a status notice, not a promise that every subject will be published.</p>
-      <ul class="development-pending-list">
-        {subjectsUnderDevelopment.map((subject) => <li>{subject.name}</li>)}
-      </ul>
+      <h2 id="preparing-title">Additional subjects</h2>
+      {subjectsUnderDevelopment.length ? (
+        <>
+          <p>These subjects are not yet published as public subject pages.</p>
+          <ul class="development-pending-list">
+            {subjectsUnderDevelopment.map((subject) => <li>{subject.name}</li>)}
+          </ul>
+        </>
+      ) : <p>No additional subjects are currently listed as being prepared.</p>}
     </section>
 
     <p class="development-contact">Have a correction or a resource request? <a href={`${base}/community-chat.html`}>Send Study Hub a suggestion</a>.</p>
