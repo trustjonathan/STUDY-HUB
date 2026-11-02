@@ -86,8 +86,8 @@ test('rejects invalid phone numbers and unsupported resource URLs before inserti
   assert.equal(inserted, false);
 });
 
-test('accepts repository downloads and rejects other raw GitHub paths', async () => {
-  const resourceUrl = 'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main/Resources/Primary/P1/Mathematics/Paper%202024.pdf';
+test('accepts repository CDN downloads and rejects other repository paths', async () => {
+  const resourceUrl = 'https://cdn.jsdelivr.net/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main/Resources/Primary/P1/Mathematics/Paper%202024.pdf';
   sequelize.query = async (sql, options) => {
     assert.match(sql, /INSERT INTO public\.study_hub_document_payments/);
     assert.equal(options.replacements.resourceId, `ft:${resourceUrl}`);
@@ -105,6 +105,12 @@ test('accepts repository downloads and rejects other raw GitHub paths', async ()
   let inserted = false;
   sequelize.query = async () => { inserted = true; return []; };
   const rejectedUrls = [
+    'https://cdn.jsdelivr.net/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main-evil/Resources/paper.pdf',
+    'https://cdn.jsdelivr.net/gh/another-owner/STUDY-HUB-RESOURCES-1@main/Resources/paper.pdf',
+    'https://cdn.jsdelivr.net/gh/trustjonathan/STUDY-HUB-RESOURCES-1@dev/Resources/paper.pdf',
+    'https://cdn.jsdelivr.net/gh/trustjonathan/OTHER-REPO@main/Resources/paper.pdf',
+    'http://cdn.jsdelivr.net/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main/Resources/paper.pdf',
+    'https://user@cdn.jsdelivr.net/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main/Resources/paper.pdf',
     'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main-evil/Resources/paper.pdf',
     'https://raw.githubusercontent.com/another-owner/STUDY-HUB-RESOURCES-1/main/Resources/paper.pdf',
     'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/dev/Resources/paper.pdf',
@@ -120,8 +126,21 @@ test('accepts repository downloads and rejects other raw GitHub paths', async ()
   assert.equal(inserted, false);
 });
 
+test('continues accepting previously published raw repository links', async () => {
+  const resourceUrl = 'https://raw.githubusercontent.com/trustjonathan/STUDY-HUB-RESOURCES-1/main/Resources/Primary/P1/Mathematics/Paper%202024.pdf';
+  sequelize.query = async (_sql, options) => {
+    assert.equal(options.replacements.deliveryUrl, resourceUrl);
+    return [{ id: 8, resourceTitle: 'P1 Mathematics Paper 2024', amountUgx: 1000, status: 'pending' }];
+  };
+  const accepted = responseMock();
+
+  await controller.submitPayment(validRequest({ resourceId: `ft:${resourceUrl}` }), accepted);
+
+  assert.equal(accepted.statusCode, 201);
+});
+
 test('accepts paid downloads from the exact premium archive only', async () => {
-  const archiveUrl = 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/Primary/P1/Mathematics/Paper%202026.pdf';
+  const archiveUrl = 'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main/Primary/P1/Mathematics/Paper%202026.pdf';
   sequelize.query = async (sql, options) => {
     assert.match(sql, /INSERT INTO public\.study_hub_document_payments/);
     assert.equal(options.replacements.resourceId, `ft:${archiveUrl}`);
@@ -139,6 +158,9 @@ test('accepts paid downloads from the exact premium archive only', async () => {
   let inserted = false;
   sequelize.query = async () => { inserted = true; return []; };
   for (const url of [
+    'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main-evil/Paper.pdf',
+    'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@dev/Paper.pdf',
+    'https://cdn.jsdelivr.net/gh/another-owner/STUDT-HUB-RESOURCES-2026@main/Paper.pdf',
     'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main-evil/Paper.pdf',
     'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/dev/Paper.pdf',
     'https://raw.githubusercontent.com/another-owner/STUDT-HUB-RESOURCES-2026/main/Paper.pdf',

@@ -13,15 +13,21 @@ const FRESH_TEACHER_ORIGINS = new Set([
   'https://s6-fresh-teacher.vercel.app',
   'https://freshteachers.vercel.app',
 ]);
-const RESOURCE_REPOSITORY_ORIGIN = 'https://raw.githubusercontent.com';
-const RESOURCE_REPOSITORY_PATH = '/trustjonathan/STUDY-HUB-RESOURCES-1/main/';
-const PREMIUM_ARCHIVE_PATH = '/trustjonathan/STUDT-HUB-RESOURCES-2026/main/';
+const GITHUB_RESOURCE_PATHS = new Map([
+  ['https://cdn.jsdelivr.net', [
+    '/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main/',
+    '/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main/',
+  ]],
+  ['https://raw.githubusercontent.com', [
+    '/trustjonathan/STUDY-HUB-RESOURCES-1/main/',
+    '/trustjonathan/STUDT-HUB-RESOURCES-2026/main/',
+  ]],
+]);
 
 function isSupportedExternalResourceUrl(url) {
   if (url.protocol !== 'https:' || url.username !== '' || url.password !== '') return false;
   return FRESH_TEACHER_ORIGINS.has(url.origin) ||
-    (url.origin === RESOURCE_REPOSITORY_ORIGIN &&
-      (url.pathname.startsWith(RESOURCE_REPOSITORY_PATH) || url.pathname.startsWith(PREMIUM_ARCHIVE_PATH)));
+    (GITHUB_RESOURCE_PATHS.get(url.origin) || []).some((prefix) => url.pathname.startsWith(prefix));
 }
 
 function responseError(res, status, error) {

@@ -12,6 +12,10 @@ export const CATALOG_SOURCES = [
     label: 'GitHub 2026 archive',
     url: 'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main/resource-catalog.json',
     fileBaseUrl: 'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main',
+    oversizedFileBaseUrl: 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main',
+    oversizedFilePaths: [
+      'General - Unclassified/2026/UGANDA MARTYRS SS NAMUGOGO BIOLOGY SEMINAR.pdf',
+    ],
   },
   {
     id: 'fresh-teacher',

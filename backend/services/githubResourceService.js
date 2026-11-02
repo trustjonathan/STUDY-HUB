@@ -30,7 +30,7 @@ function encodePath(value) {
 }
 
 function resourceUrlForPath(filePath) {
-  return `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${encodePath(filePath)}`;
+  return `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@${BRANCH}/${encodePath(filePath)}`;
 }
 
 async function githubRequest(path, options = {}, allowNotFound = false) {

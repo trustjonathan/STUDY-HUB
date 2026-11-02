@@ -157,7 +157,7 @@ async function main() {
   console.log(`[fresh-teacher] Aggregating ${fileNames.length} data files...`);
 
   const fetched = await mapWithConcurrency(fileNames, 15, async (name) => {
-    const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${encodeURIComponent(name)}.json`;
+    const url = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@${BRANCH}/${encodeURIComponent(name)}.json`;
     const data = await fetchJson(url);
     return { name, data };
   });

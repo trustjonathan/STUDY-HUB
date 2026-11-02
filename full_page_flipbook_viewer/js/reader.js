@@ -15,18 +15,24 @@ import * as tus from 'tus-js-client';
     'https://s6-fresh-teacher.vercel.app',
     'https://freshteachers.vercel.app'
   ]);
-  const resourceRepositoryOrigin = 'https://raw.githubusercontent.com';
-  const resourceRepositoryPath = '/trustjonathan/STUDY-HUB-RESOURCES-1/main/';
+  const githubResourceCdnOrigin = 'https://cdn.jsdelivr.net';
+  const githubResourceRawOrigin = 'https://raw.githubusercontent.com';
 
   function isResourceRepositoryUrl(url) {
-    return url.protocol === 'https:' &&
-      url.origin === resourceRepositoryOrigin &&
-      url.pathname.startsWith(resourceRepositoryPath);
+    return url.protocol === 'https:' && (
+      (url.origin === githubResourceCdnOrigin &&
+        url.pathname.startsWith('/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main/')) ||
+      (url.origin === githubResourceRawOrigin &&
+        url.pathname.startsWith('/trustjonathan/STUDY-HUB-RESOURCES-1/main/'))
+    );
   }
   function isPremiumArchiveUrl(url) {
-    return url.protocol === 'https:' &&
-      url.origin === resourceRepositoryOrigin &&
-      url.pathname.startsWith('/trustjonathan/STUDT-HUB-RESOURCES-2026/main/');
+    return url.protocol === 'https:' && (
+      (url.origin === githubResourceCdnOrigin &&
+        url.pathname.startsWith('/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main/')) ||
+      (url.origin === githubResourceRawOrigin &&
+        url.pathname.startsWith('/trustjonathan/STUDT-HUB-RESOURCES-2026/main/'))
+    );
   }
   const toolbar = document.querySelector('#reader-toolbar');
   const readerResumeBanner = document.querySelector('#reader-resume');

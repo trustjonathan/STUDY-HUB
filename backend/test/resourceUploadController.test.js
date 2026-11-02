@@ -55,7 +55,7 @@ test('validates archive metadata and stores canonical class keys', async () => {
   githubResourceService.commitResource = async ({ filePath, resource }) => {
     assert.equal(filePath, 'ACEITEKA/2026/paper.pdf');
     assert.deepEqual(resource.classKeys, ['s4', 's5']);
-    assert.equal(resource.url, 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/ACEITEKA/2026/paper.pdf');
+    assert.equal(resource.url, 'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main/ACEITEKA/2026/paper.pdf');
     return { commitSha: 'commit-sha' };
   };
   const response = responseMock();

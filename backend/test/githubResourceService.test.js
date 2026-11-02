@@ -237,7 +237,7 @@ test('moves a file and its catalog entry in the same GitHub commit', async () =>
   assert.equal(catalog.resources[0].path, 'JJEB/2025/renamed-paper.pdf');
   assert.equal(catalog.resources[0].filename, 'renamed-paper.pdf');
   assert.equal(catalog.resources[0].title, 'Renamed paper');
-  assert.equal(catalog.resources[0].url, 'https://raw.githubusercontent.com/trustjonathan/STUDT-HUB-RESOURCES-2026/main/JJEB/2025/renamed-paper.pdf');
+  assert.equal(catalog.resources[0].url, 'https://cdn.jsdelivr.net/gh/trustjonathan/STUDT-HUB-RESOURCES-2026@main/JJEB/2025/renamed-paper.pdf');
   assert.equal(catalog.resources[0].category, 'JJEB');
   assert.equal(catalog.resources[0].year, '2025');
 });

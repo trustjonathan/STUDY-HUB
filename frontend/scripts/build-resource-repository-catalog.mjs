@@ -9,7 +9,7 @@ const OUTPUT = path.join(frontendRoot, 'public', 'study-hub-resources-1-catalog.
 const OWNER = 'trustjonathan';
 const REPO = 'STUDY-HUB-RESOURCES-1';
 const BRANCH = 'main';
-const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@${BRANCH}`;
 const RESOURCE_EXTENSIONS = new Set([
   '.pdf', '.doc', '.docx', '.rtf', '.ppt', '.pptx', '.xls', '.xlsx',
   '.jpg', '.jpeg', '.png', '.webp', '.gif', '.epub', '.zip', '.rar',
@@ -142,7 +142,7 @@ async function main() {
         className: CLASS_LABELS[classKey] || 'Unsorted',
         subject,
         type: typeForResource(title, entry.path),
-        url: `${RAW_BASE}/${encodedPath}`,
+        url: `${CDN_BASE}/${encodedPath}`,
       };
     })
     .sort((left, right) => left.path.localeCompare(right.path));

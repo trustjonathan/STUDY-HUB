@@ -385,7 +385,12 @@ async function loadFreshTeacher(catalogUrl: string): Promise<CatalogLoad> {
   return { resources, generatedAt: typeof data.generatedAt === 'string' ? data.generatedAt : undefined };
 }
 
-async function loadPremiumResources(catalogUrl: string, fileBaseUrl: string): Promise<CatalogLoad> {
+async function loadPremiumResources(
+  catalogUrl: string,
+  fileBaseUrl: string,
+  oversizedFileBaseUrl: string,
+  oversizedFilePaths: readonly string[],
+): Promise<CatalogLoad> {
   const response = await fetchCachedCatalog(catalogUrl, PREMIUM_CATALOG_CACHE_TTL);
   if (!response.ok) throw new Error(`Premium resource catalog request failed (HTTP ${response.status}).`);
   const payload: unknown = await response.json();
@@ -399,15 +404,16 @@ async function loadPremiumResources(catalogUrl: string, fileBaseUrl: string): Pr
     .map((item) => {
       const resourcePath = item.path;
       const encodedPath = resourcePath.split('/').map(encodeURIComponent).join('/');
+      const resourceBaseUrl = oversizedFilePaths.includes(resourcePath) ? oversizedFileBaseUrl : fileBaseUrl;
       const keys = item.classKeys.length ? [...item.classKeys] : [...UNSORTED_CLASS.keys];
       if (item.year === '2026') keys.push(...TRENDING_2026_CLASS.keys);
       return {
-        id: `ft:${fileBaseUrl}/${encodedPath}`,
+        id: `ft:${resourceBaseUrl}/${encodedPath}`,
         subject: typeof item.subject === 'string' ? item.subject : 'General',
         type: typeof item.type === 'string' ? item.type : 'Study Resources',
         source: 'premium-resources' as Source,
         title: item.title,
-        url: `${fileBaseUrl}/${encodedPath}`,
+        url: `${resourceBaseUrl}/${encodedPath}`,
         keys,
         category: typeof item.category === 'string' ? item.category : '',
       };
@@ -623,7 +629,12 @@ export default function LibraryWorkspace({ homeHref, supabaseUrl, anonKey, apiUr
             case 'github-resources-1':
               return loadResourceRepository(url, source.fileBaseUrl);
             case 'github-2026':
-              return loadPremiumResources(url, source.fileBaseUrl);
+              return loadPremiumResources(
+                url,
+                source.fileBaseUrl,
+                source.oversizedFileBaseUrl,
+                source.oversizedFilePaths,
+              );
             case 'fresh-teacher':
               return loadFreshTeacher(url);
             case 'static-manifest':

@@ -240,8 +240,10 @@ export default function StudyPlanWorkspace({
             try {
               const url = new URL(item.url);
               const acceptedOrigin = source === 'resource-repository'
-                ? url.origin === 'https://raw.githubusercontent.com'
-                  && url.pathname.startsWith('/trustjonathan/STUDY-HUB-RESOURCES-1/main/')
+                ? (url.origin === 'https://cdn.jsdelivr.net'
+                    && url.pathname.startsWith('/gh/trustjonathan/STUDY-HUB-RESOURCES-1@main/'))
+                  || (url.origin === 'https://raw.githubusercontent.com'
+                    && url.pathname.startsWith('/trustjonathan/STUDY-HUB-RESOURCES-1/main/'))
                 : ['https://fresh-teacher.github.io', 'https://s6-fresh-teacher.vercel.app', 'https://freshteachers.vercel.app'].includes(url.origin);
               if (url.protocol !== 'https:' || url.username || url.password || !acceptedOrigin) continue;
             } catch {
