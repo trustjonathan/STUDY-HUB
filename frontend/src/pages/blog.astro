@@ -8,7 +8,8 @@ const articles = [
     category: 'Exam preparation',
     readingTime: '4 min read',
     title: 'Make past papers count',
-    excerpt: 'Use practice questions to find the next topic to revise, not only to measure what you already know.',
+    summary: 'Use practice questions to find the next topic to revise, not only to measure what you already know.',
+    intro: 'A past paper can do more than give you a score: it can show which ideas deserve another look.',
     paragraphs: [
       'Before you begin, choose a paper that matches the level and subject you are studying. Set aside a realistic block of time, keep your notes closed for the first attempt, and mark any question you are unsure about.',
       'After the attempt, review each answer carefully. When an official marking guide is available, use it to understand the expected method and wording. If one is not available, ask a teacher to check questions where accuracy matters.',
@@ -22,7 +23,8 @@ const articles = [
     category: 'Study skills',
     readingTime: '3 min read',
     title: 'Read notes actively',
-    excerpt: 'A simple recall routine can help turn reading time into a better check of your understanding.',
+    summary: 'Turn a short section of notes into an active-recall exercise.',
+    intro: 'Rereading can feel familiar without showing whether you can explain an idea on your own.',
     paragraphs: [
       'Start with a short section rather than trying to memorise an entire chapter at once. Read it to understand the main idea, then pause and look away from the page.',
       'Write down or explain the key points from memory. Compare your explanation with the notes, correct anything missing or unclear, and make a question to revisit later. This reveals gaps that can be easy to miss when you only reread.',
@@ -36,7 +38,8 @@ const articles = [
     category: 'Using Study Hub',
     readingTime: '3 min read',
     title: 'Find the right resource for your class',
-    excerpt: 'A few checks can make searching the Study Hub library faster and help you choose material that fits.',
+    summary: 'Use class, subject, and resource details to narrow a library search.',
+    intro: 'Start with the class and subject you are working on, then narrow your search with the details available.',
     paragraphs: [
       'Begin with the class or level you are studying, then narrow by subject or resource type where those filters are available. If a search gives too few results, try a shorter topic or title and remove one filter at a time.',
       'Before opening a file, check its title and the details shown for its subject, class, year, and source. Collections vary, so not every class or subject will have the same kinds or number of materials.',
@@ -85,7 +88,7 @@ const articles = [
             <span class="blog-card-index">{String(index + 1).padStart(2, '0')}</span>
             <span class="blog-card-category">{article.category}</span>
             <h3>{article.title}</h3>
-            <p>{article.excerpt}</p>
+            <p>{article.summary}</p>
             <span class="blog-card-footer">{article.readingTime}<span aria-hidden="true">Read article →</span></span>
           </a>
         ))}
@@ -102,7 +105,7 @@ const articles = [
           </div>
           <div class="blog-article-content">
             <h2>{article.title}</h2>
-            <p class="blog-article-intro">{article.excerpt}</p>
+            <p class="blog-article-intro">{article.intro}</p>
             {article.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
             <a href={article.link}>{article.linkText} <span aria-hidden="true">→</span></a>
           </div>
