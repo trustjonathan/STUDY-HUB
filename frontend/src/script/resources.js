@@ -23,6 +23,10 @@
   const READER_PAGE = document.querySelector('meta[name="study-hub-reader-url"]')?.content || '/STUDY-HUB/full_page_flipbook_viewer/index.html';
   const SUPABASE_TABLE = 'study_hub_resources';
   const PAGE_SIZE = 100;
+  const RESOURCE_MANIFEST_URL = document.querySelector('meta[name="study-hub-resource-manifest-url"]')?.content || '';
+  const RESOURCE_REPOSITORY_CATALOG_URL = document.querySelector('meta[name="study-hub-resource-repository-catalog-url"]')?.content || '';
+  let resourceManifestPromise = null;
+  let resourceRepositoryCatalogPromise = null;
 
   function publicStorageUrl(bucket, storagePath, projectUrl = SUPABASE_CONFIG.url) {
     const encodedPath = String(storagePath)
@@ -132,6 +136,246 @@
     if (item.category === 'notes') return 'notes';
     if (item.category === 'papers') return 'papers';
     return 'other';
+  }
+
+  function normalizedSubject(value) {
+    return normalizeSearchText(value).replace(/\s+/g, '');
+  }
+
+  function matchesResourceSubject(value, subjects) {
+    const subject = normalizedSubject(value);
+    if (!subject || subject === 'allsubjects') return false;
+    return Array.from(subjects).some((candidate) => normalizedSubject(candidate) === subject);
+  }
+
+  function loadJsonCatalog(url, label, cacheName) {
+    if (cacheName === 'manifest' && resourceManifestPromise) return resourceManifestPromise;
+    if (cacheName === 'repository' && resourceRepositoryCatalogPromise) return resourceRepositoryCatalogPromise;
+
+    const request = fetch(url, { cache: 'no-cache' }).then(async (response) => {
+      if (!response.ok) throw new Error(`${label} request failed (HTTP ${response.status}).`);
+      const data = await response.json();
+      if (!data || !Array.isArray(data.items)) throw new Error(`${label} returned an invalid catalog.`);
+      return data;
+    }).catch((error) => {
+      if (cacheName === 'manifest') resourceManifestPromise = null;
+      if (cacheName === 'repository') resourceRepositoryCatalogPromise = null;
+      throw error;
+    });
+
+    if (cacheName === 'manifest') resourceManifestPromise = request;
+    if (cacheName === 'repository') resourceRepositoryCatalogPromise = request;
+    return request;
+  }
+
+  function pageFromItems(items, offset, source) {
+    const page = items.slice(offset, offset + PAGE_SIZE);
+    return {
+      items: page,
+      total: items.length,
+      scanned: page.length,
+      hasMore: offset + page.length < items.length,
+      generatedAt: source.generatedAt
+    };
+  }
+
+  async function fetchSupabaseCatalogPage(subjects, { category, offset = 0, order }) {
+    const catalogUrl = String(SUPABASE_CONFIG.url || '').replace(/\/+$/, '');
+    const anonKey = SUPABASE_CONFIG.anonKey || '';
+    const endpoint = new URL(`${catalogUrl}/rest/v1/${SUPABASE_TABLE}`);
+    endpoint.searchParams.set(
+      'select',
+      'subject,category,storage_bucket,storage_path,original_filename,title,extension,size_bytes,level,year,resource_type,uploaded_at,updated_at'
+    );
+    endpoint.searchParams.set('subject', `in.(${Array.from(subjects).join(',')})`);
+    endpoint.searchParams.set('size_bytes', 'gt.0');
+    if (category === 'notes') endpoint.searchParams.set('or', '(resource_type.in.(notes,guide),and(category.eq.notes,resource_type.eq.other),and(category.eq.notes,resource_type.is.null),resource_type.eq.other,and(category.is.null,resource_type.is.null))');
+    else if (category === 'papers') endpoint.searchParams.set('or', '(resource_type.eq.paper,and(category.eq.papers,resource_type.eq.other),and(category.eq.papers,resource_type.is.null),resource_type.eq.other,and(category.is.null,resource_type.is.null))');
+    else if (category) endpoint.searchParams.set('category', `eq.${category}`);
+    endpoint.searchParams.set('order', order || 'uploaded_at.desc.nullslast,title.asc,storage_path.asc');
+    endpoint.searchParams.set('limit', String(PAGE_SIZE));
+    endpoint.searchParams.set('offset', String(offset));
+
+    const headers = { apikey: anonKey, Prefer: 'count=exact' };
+    if (anonKey.startsWith('eyJ')) headers.Authorization = `Bearer ${anonKey}`;
+    const response = await fetch(endpoint, { headers });
+    if (!response.ok) throw new Error(`Supabase catalog request failed (HTTP ${response.status}).`);
+
+    const page = await response.json();
+    if (!Array.isArray(page)) throw new Error('Supabase catalog returned an invalid list.');
+    const totalValue = response.headers.get('content-range')?.match(/\/(\d+)$/)?.[1];
+    if (totalValue === undefined) throw new Error('Supabase catalog did not provide an exact resource count.');
+    const total = Number(totalValue);
+    if (!Number.isSafeInteger(total) || total < 0) throw new Error('Supabase catalog returned an invalid resource count.');
+    const items = page.map((item) => ({
+      title: item.title,
+      originalFilename: item.original_filename,
+      storagePath: item.storage_path,
+      subject: item.subject,
+      category: item.category,
+      extension: item.extension,
+      sizeBytes: item.size_bytes,
+      level: item.level,
+      year: item.year,
+      resourceType: classifyResourceType(item),
+      uploadedAt: item.uploaded_at,
+      updatedAt: item.updated_at,
+      publicUrl: publicStorageUrl(item.storage_bucket, item.storage_path, catalogUrl)
+    }));
+    const filteredItems = items.filter((item) => !category || (
+      category === 'notes' ? resourceGroup(item) === 'notes'
+        : category === 'papers' ? resourceGroup(item) === 'papers'
+          : item.category === category
+    ));
+    return {
+      items: filteredItems,
+      total: category ? null : total,
+      scanned: page.length,
+      hasMore: page.length === PAGE_SIZE && offset + page.length < total
+    };
+  }
+
+  async function fetchManifestCatalogPage(subjects, { category, offset = 0 }) {
+    const manifest = await loadJsonCatalog(RESOURCE_MANIFEST_URL, 'Checked-in resource manifest', 'manifest');
+    const items = manifest.items
+      .filter((item) => isUsableResource(item) && matchesResourceSubject(item.subject, subjects))
+      .map((item) => ({
+        ...item,
+        resourceType: classifyResourceType(item),
+        storagePath: item.storagePath || item.storage_path,
+        publicUrl: item.publicUrl || publicStorageUrl(
+          item.storageBucket || item.storage_bucket || manifest.bucket || 'study-hub-resources',
+          item.storagePath || item.storage_path,
+          manifest.projectUrl || SUPABASE_CONFIG.url
+        )
+      }))
+      .filter((item) => !category || (
+        category === 'notes' ? resourceGroup(item) === 'notes'
+          : category === 'papers' ? resourceGroup(item) === 'papers'
+            : item.category === category
+      ))
+      .sort((left, right) =>
+        String(left.title || left.originalFilename || '').localeCompare(String(right.title || right.originalFilename || ''))
+      );
+    return pageFromItems(items, offset, manifest);
+  }
+
+  async function fetchResourceRepositoryCatalogPage(subjects, { category, offset = 0 }) {
+    const catalog = await loadJsonCatalog(
+      RESOURCE_REPOSITORY_CATALOG_URL,
+      'GitHub resource catalog',
+      'repository'
+    );
+    const items = catalog.items
+      .filter((item) => item && typeof item.url === 'string' && matchesResourceSubject(item.subject, subjects))
+      .map((item) => {
+        const type = String(item.type || '').toLowerCase();
+        const resourceType = type.includes('paper') ? 'paper'
+          : type.includes('note') ? 'notes'
+            : type.includes('guide') ? 'guide'
+              : classifyResourceType({ title: item.title, originalFilename: item.path });
+        const extension = String(item.path || new URL(item.url).pathname).split('.').pop().toLowerCase();
+        const classNames = Array.isArray(item.classKeys) ? item.classKeys : [item.classKey || ''];
+        return {
+          title: item.title || item.path,
+          originalFilename: item.path,
+          storagePath: item.path,
+          subject: item.subject,
+          category: resourceType === 'paper' ? 'papers' : resourceType === 'notes' || resourceType === 'guide' ? 'notes' : 'other',
+          extension,
+          level: item.className || classNames.filter(Boolean).join(', '),
+          year: item.year,
+          resourceType,
+          publicUrl: item.url
+        };
+      })
+      .filter((item) => !category || (
+        category === 'notes' ? resourceGroup(item) === 'notes'
+          : category === 'papers' ? resourceGroup(item) === 'papers'
+            : item.category === category
+      ))
+      .sort((left, right) => String(left.title || '').localeCompare(String(right.title || '')));
+    return pageFromItems(items, offset, catalog);
+  }
+
+  function createCatalogSourcePipeline(subjects) {
+    const sources = [];
+    if (SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
+      sources.push({ id: 'supabase', label: 'Live Supabase catalog', load: fetchSupabaseCatalogPage });
+    }
+    sources.push(
+      { id: 'manifest', label: 'Checked-in manifest snapshot', load: fetchManifestCatalogPage },
+      { id: 'github', label: 'GitHub resource catalog snapshot', load: fetchResourceRepositoryCatalogPage }
+    );
+    let sourceIndex = 0;
+    let currentSource = null;
+    let failures = [];
+
+    return {
+      get currentSource() { return currentSource; },
+      get nextSource() { return sources[sourceIndex + 1] || null; },
+      get failures() { return failures; },
+      advance() {
+        if (sourceIndex + 1 >= sources.length) return false;
+        sourceIndex += 1;
+        currentSource = null;
+        failures = [];
+        return true;
+      },
+      async loadPage(options) {
+        let reset = false;
+        while (sourceIndex < sources.length) {
+          const source = sources[sourceIndex];
+          try {
+            const page = await source.load(subjects, {
+              ...options,
+              offset: reset ? 0 : options.offset
+            });
+            currentSource = {
+              id: source.id,
+              label: source.label,
+              generatedAt: page.generatedAt || ''
+            };
+            return { ...page, source: currentSource, reset };
+          } catch (error) {
+            console.warn(`${source.label} could not be loaded; trying the next source.`, error);
+            failures.push({ label: source.label, message: error instanceof Error ? error.message : String(error) });
+            sourceIndex += 1;
+            reset = true;
+          }
+        }
+        const error = new Error(`No resource catalog source could be loaded: ${failures.map((failure) => `${failure.label}: ${failure.message}`).join('; ')}.`);
+        error.failures = failures;
+        throw error;
+      }
+    };
+  }
+
+  function catalogSourceDescription(source) {
+    if (!source) return '';
+    if (source.id === 'supabase') return `${source.label} (live)`;
+    const date = source.generatedAt && Number.isFinite(Date.parse(source.generatedAt))
+      ? new Date(source.generatedAt).toISOString().slice(0, 10)
+      : 'date unavailable';
+    return `${source.label}, generated ${date} (not live)`;
+  }
+
+  function setCatalogStatus(element, pipeline, message, onAdvance) {
+    if (!element) return;
+    const description = catalogSourceDescription(pipeline.currentSource);
+    const failures = pipeline.failures.length
+      ? ` Earlier source failures: ${pipeline.failures.map((failure) => `${failure.label} (${failure.message})`).join('; ')}.`
+      : '';
+    element.replaceChildren(document.createTextNode(
+      `${description ? `${description}. ` : ''}${message}${failures}`
+    ));
+    if (!pipeline.nextSource) return;
+    const nextButton = document.createElement('button');
+    nextButton.type = 'button';
+    nextButton.className = 'dashboard-retry';
+    nextButton.textContent = `Try ${pipeline.nextSource.label}`;
+    nextButton.addEventListener('click', onAdvance);
+    element.append(document.createTextNode(' '), nextButton);
   }
 
   function classifyResourceType(item) {
@@ -314,12 +558,18 @@
 
   function createDashboardCatalog(subjects) {
     const catalog = { items: [], total: null, hasMore: true, offset: 0, pending: null };
+    const sourcePipeline = createCatalogSourcePipeline(subjects);
 
     async function loadNext() {
       if (catalog.pending) return catalog.pending;
       if (!catalog.hasMore) return catalog;
 
-      catalog.pending = fetchCatalogPage(subjects, { offset: catalog.offset }).then((page) => {
+      catalog.pending = sourcePipeline.loadPage({ offset: catalog.offset }).then((page) => {
+        if (page.reset) {
+          catalog.items.length = 0;
+          catalog.offset = 0;
+          catalog.total = null;
+        }
         const existing = new Set(catalog.items.map((item) => item.storagePath));
         page.items.forEach((item) => {
           if (!existing.has(item.storagePath)) catalog.items.push(item);
@@ -327,6 +577,7 @@
         catalog.offset += page.scanned ?? page.items.length;
         catalog.total = page.total ?? catalog.total;
         catalog.hasMore = page.hasMore;
+        catalog.source = page.source;
         return catalog;
       }).finally(() => {
         catalog.pending = null;
@@ -343,7 +594,16 @@
       return catalog;
     }
 
-    return { ...catalog, get items() { return catalog.items; }, get total() { return catalog.total; }, get hasMore() { return catalog.hasMore; }, loadNext, loadAll };
+    return {
+      ...catalog,
+      get items() { return catalog.items; },
+      get total() { return catalog.total; },
+      get hasMore() { return catalog.hasMore; },
+      get source() { return catalog.source; },
+      sourcePipeline,
+      loadNext,
+      loadAll
+    };
   }
 
   function renderDashboardLibraries() {
@@ -499,6 +759,27 @@
         }
       }
 
+      async function useNextCatalogSource() {
+        if (!catalog.sourcePipeline.advance()) return;
+        catalog.items.length = 0;
+        catalog.offset = 0;
+        catalog.total = null;
+        catalog.hasMore = true;
+        catalog.hasMore = true;
+        all = [];
+        refresh();
+        try {
+          await catalog.loadNext();
+          all = catalog.items;
+          populateFilters();
+          updateDashboardStats();
+          refresh();
+        } catch (error) {
+          console.error('The next subject resource catalog could not be loaded.', error);
+          if (globalStatus) globalStatus.textContent = error.message || 'No resource catalog source could be loaded.';
+        }
+      }
+
       function appendBatch(name, rowState) {
         if (rowState.loading || rowState.next >= rowState.items.length) return;
         rowState.loading = true;
@@ -545,9 +826,10 @@
           });
         if (globalStatus) {
           const searchDescription = query || level || year;
-          globalStatus.textContent = catalog.hasMore
+          const message = catalog.hasMore
             ? `${filtered.length} matching resource${filtered.length === 1 ? '' : 's'} in ${all.length} loaded. ${searchDescription ? 'Searching the full collectionâ€¦' : 'Scroll a row to load more.'}`
             : `${filtered.length} matching resource${filtered.length === 1 ? '' : 's'} found. Recently added and study notes are shown below.`;
+          setCatalogStatus(globalStatus, catalog.sourcePipeline, message, () => { void useNextCatalogSource(); });
         }
 
         for (const [name, items] of [['recent', recent], ['notes', notes]]) {
@@ -680,14 +962,7 @@
           refresh();
         } catch (error) {
           console.error('Unable to load the subject resource catalog:', error);
-          const message = document.createElement('span');
-          message.textContent = 'Resources could not be loaded right now.';
-          const retry = document.createElement('button');
-          retry.type = 'button';
-          retry.className = 'dashboard-retry';
-          retry.textContent = 'Try again';
-          retry.addEventListener('click', initialize);
-          if (globalStatus) globalStatus.replaceChildren(message, document.createTextNode(' '), retry);
+          if (globalStatus) globalStatus.textContent = error.message || 'No resource catalog source could be loaded.';
         }
       }
 
@@ -718,6 +993,7 @@
       .flatMap((element) => (element.dataset.subjectAliases || '').split(','))
       .filter(Boolean);
     const matchingSubjects = new Set([subject, ...resourceSubjects]);
+    const sourcePipeline = createCatalogSourcePipeline(matchingSubjects);
 
     function draw() {
       if (loading) return;
@@ -732,7 +1008,10 @@
           ? hasMore && query ? 'No match in the loaded resources yet. Searching the full collectionâ€¦' : 'No matching resources.'
           : hasMore ? 'Loading more resourcesâ€¦' : 'No files uploaded for this subject yet.';
         listEl.innerHTML = `<div class="resource-empty">${message}</div>`;
-        if (statusEl) statusEl.textContent = hasMore && query ? `Searching ${all.length} of ${total ?? 'the'} resourcesâ€¦` : '';
+        if (statusEl) {
+          const statusMessage = hasMore && query ? `Searching ${all.length} of ${total ?? 'the'} resourcesâ€¦` : message;
+          setCatalogStatus(statusEl, sourcePipeline, statusMessage, () => { void useNextCatalogSource(); });
+        }
         return;
       }
 
@@ -760,13 +1039,26 @@
       }
 
       if (statusEl) {
-        statusEl.textContent = hasMore
+        const message = hasMore
           ? `Showing ${Math.min(visible, filtered.length)} of ${total ?? 'more'} resources. Load more or search the full collection.`
           : `Showing ${Math.min(visible, filtered.length)} of ${filtered.length} file(s).`;
+        setCatalogStatus(statusEl, sourcePipeline, message, () => { void useNextCatalogSource(); });
       }
     }
 
-    function renderError() {
+    async function useNextCatalogSource() {
+      if (!sourcePipeline.advance()) return;
+      all = [];
+      visible = pageSize;
+      offset = 0;
+      total = null;
+      hasMore = false;
+      started = false;
+      loadFailed = false;
+      await loadNextPage(true);
+    }
+
+    function renderError(error) {
       loading = false;
       listEl.innerHTML = '';
       const message = document.createElement('div');
@@ -774,15 +1066,8 @@
       message.setAttribute('role', 'alert');
       const subjectName = subject.charAt(0).toUpperCase() + subject.slice(1);
       message.textContent = `${subjectName} resources could not be loaded.`;
-
-      const retry = document.createElement('button');
-      retry.type = 'button';
-      retry.className = 'btn resource-retry';
-      retry.textContent = 'Retry';
-      retry.addEventListener('click', () => void loadNextPage(true));
-      listEl.append(message, retry);
-
-      if (statusEl) statusEl.textContent = 'Check your connection, then try again.';
+      listEl.append(message);
+      if (statusEl) statusEl.textContent = error?.message || 'All resource catalog sources failed. Check your connection and reload the page.';
     }
 
     async function loadNextPage(reset = false) {
@@ -802,11 +1087,17 @@
       if (statusEl) statusEl.textContent = 'Loading the next resource batchâ€¦';
       pageRequest = (async () => {
       try {
-        const page = await fetchCatalogPage(matchingSubjects, {
+        const page = await sourcePipeline.loadPage({
           category,
           offset: nextOffset,
           order: 'title.asc,original_filename.asc,storage_path.asc'
         });
+        if (page.reset) {
+          all = [];
+          visible = pageSize;
+          offset = 0;
+          total = null;
+        }
         const existing = new Set(all.map((item) => item.storagePath));
         page.items.forEach((item) => {
           if (!existing.has(item.storagePath)) all.push(item);
@@ -836,7 +1127,7 @@
         loading = false;
         loadFailed = true;
         hasMore = false;
-        renderError();
+        renderError(error);
       }
       })().finally(() => {
         loading = false;

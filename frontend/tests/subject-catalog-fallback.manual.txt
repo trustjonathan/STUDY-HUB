@@ -1,0 +1,25 @@
+Study Hub subject catalog fallback checklist
+
+Run against the built site or a local preview. In browser developer tools, block
+the Supabase REST request for study_hub_resources and return HTTP 402 instead.
+Keep the manifest and GitHub catalog requests available.
+
+Repeat for each subject route:
+- /frontend/src/html/biology.html
+- /frontend/src/html/chemistry.html
+- /frontend/src/html/mathematics.html
+- /frontend/src/html/physics.html
+
+For each route, verify:
+1. The dashboard and the Notes/Guides and Past Papers lists load from the checked-in
+   resources.json snapshot after Supabase returns 402.
+2. The status identifies the checked-in manifest, gives its generated date, and
+   explicitly says it is not live.
+3. Use "Try GitHub resource catalog snapshot"; the displayed source changes to
+   that catalog, shows its generated date, and explicitly says it is not live.
+4. Search, level filters, show/load-more controls, and resource links still work.
+5. To exercise the final fallback, block both the Supabase REST request and the
+   manifest asset request; confirm the GitHub catalog loads and is labeled as a
+   snapshot, not live.
+6. With all three sources blocked, confirm the page reports each failed source
+   and does not offer a retry that repeats an exhausted source.

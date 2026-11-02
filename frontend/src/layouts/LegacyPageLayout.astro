@@ -6,6 +6,7 @@ import SubjectFooterCarousel from '../components/SubjectFooterCarousel.astro';
 import { availableSubjects } from '../data/availableSubjects';
 import subjectCatalog from '../data/subjects.json';
 import resourceManifest from '../data/resources.json';
+import resourceManifestUrl from '../data/resources.json?url';
 
 interface Props {
   title: string;
@@ -51,6 +52,8 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <meta name="study-hub-reader-url" content={`${base}full_page_flipbook_viewer/index.html`} />
     <meta name="study-hub-supabase-url" content={supabaseUrl} />
     <meta name="study-hub-supabase-anon-key" content={supabaseAnonKey} />
+    <meta name="study-hub-resource-manifest-url" content={resourceManifestUrl} />
+    <meta name="study-hub-resource-repository-catalog-url" content={`${base}study-hub-resources-1-catalog.json`} />
     <title>{title}</title>
     <slot name="head" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

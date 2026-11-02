@@ -1,0 +1,527 @@
+STUDY HUB — SYSTEM, UX, CONTENT AND ADSENSE AUDIT
+================================================================
+
+Audit date: 2 November 2026
+Repository: https://github.com/trustjonathan/STUDY-HUB
+Local repository: E:\PROJECTS\STUDY HUB 2026\STUDY-HUB
+Audited commit: 29bc084 — Add admin performance monitoring and AI insights
+Deployment checked: https://trustjonathan.github.io/STUDY-HUB/
+
+
+EXECUTIVE SUMMARY
+----------------------------------------------------------------
+
+Study Hub is a multi-part learning platform: an Astro static site with
+React-based library and study workspaces, an Express API, Supabase-backed
+accounts/data/uploads, three public GitHub-hosted resource collections, and
+a custom document reader. Its strongest design choice is that public browsing
+and reading do not require an account. The landing, subject and policy content
+also make a serious effort to explain scope and warn that AI and curriculum
+guidance are not official advice.
+
+The most urgent operational defect is confirmed on the live Biology page:
+its Supabase resource-catalog request returns HTTP 402, and the page then
+shows “Resources could not be loaded right now.” Its retry control retries
+the same failing service instead of using the available static manifest or
+GitHub catalogues. The main Library has separate GitHub catalogue sources,
+but displays zero site-wide resources while they load. The public fallback
+manifest reports 1,965 Supabase objects totalling 4,005,978,299 bytes
+(approximately 4.01 GB); this is a snapshot, not an independently verified
+current Supabase usage figure or proof of the reason for suspension.
+
+Other material risks are excessive catalogue payload and duplicate entries,
+unclear rights/provenance for public study files, misalignment between the
+published ads.txt and the actual hosted project-site path, and an ad script
+in the reader that is not Google AdSense. The local Git branch is already at
+the same commit as origin/main: there were no commits to pull. The user
+selected “no PR.” Existing uncommitted changes were left untouched.
+
+
+PRIORITY KEY
+----------------------------------------------------------------
+
+P1 — Critical to core operation, policy/rights exposure, or monetization.
+P2 — Significant reliability, consistency, or maintenance risk.
+P3 — Quality, discoverability, or polish improvement.
+
+“Confirmed” means reproduced on the live site or directly verified in the
+checked-in source. “Risk” means the evidence calls for owner/provider
+verification; it is not a finding of a proven violation.
+
+
+APPLICATION FUNCTION AND DATA FLOW
+----------------------------------------------------------------
+
+1. Public site and navigation
+   - Astro builds a static GitHub Pages site at the /STUDY-HUB base path.
+   - The home page describes the service, links to subject pages, the
+     class-based Library and AI tools, and contains study-path/product
+     previews.
+   - Subjects, legal/policy, blog, guides and legacy subject pages are
+     static routes. Four subjects are presented as available; additional
+     catalogue subjects are marked as under development.
+
+2. Library
+   - The React Library workspace loads and merges the STUDY-HUB-RESOURCES-1
+     catalogue, the 2026 archive catalogue, an optional Supabase catalogue,
+     and the Fresh Teacher catalogue.
+   - It adds class/subject/type filtering, search, catalogue caching,
+     engagement, bookmarks and document-reader links.
+   - Catalogue loading is sequential and publishes intermediate merged
+     results; unavailable source catalogues are logged and surfaced.
+
+3. Subject pages and reader
+   - Subject pages build their initial statistics from the checked-in
+     frontend/src/data/resources.json snapshot. Their live filterable
+     catalogue is fetched separately from Supabase by
+     frontend/src/script/resources.js.
+   - The reader handles supported documents, progress, reading controls,
+     optional AI assistance, uploads and payment/download flows. Resource
+     files may be served from Supabase or GitHub raw URLs.
+
+4. Accounts, APIs and learning tools
+   - The Express server mounts identity, resource engagement, document
+     payment, AI tutor/companion, study-plan, lesson-guide and performance
+     endpoints.
+   - Supabase is configured for auth/resource data and uploads. The AI
+     tutor uses Gemini and can optionally use OpenAI embeddings for signed-in
+     topic memory.
+
+5. Storage arrangement
+   - Supabase is one catalogue/storage source, not the only source.
+   - GitHub repositories used by the app include:
+       Fresh-Teacher/fresh-teacher.github.io
+       trustjonathan/STUDY-HUB-RESOURCES-1
+       trustjonathan/STUDT-HUB-RESOURCES-2026
+   - The frontend generates/publishes static catalogue JSON for GitHub
+     sources, while raw resource files remain in their source repositories.
+
+
+FINDINGS
+----------------------------------------------------------------
+
+[P1] Confirmed — Supabase outage breaks live subject-library browsing
+
+Evidence:
+   - Live Biology route:
+     https://trustjonathan.github.io/STUDY-HUB/frontend/src/html/biology.html
+   - Browser console: Supabase catalog request failed with HTTP 402.
+   - Visible page state: “Resources could not be loaded right now.”
+   - Source: frontend/src/script/resources.js, fetchCatalogPage() and
+     initialize().
+
+Impact:
+   The route renders useful static Biology guidance and snapshot statistics,
+   but the live resource search/filter/list does not load. The retry button
+   repeats the same Supabase request. A checked-in resource manifest exists,
+   and other Library sources are available, but this subject-page failure
+   path does not switch to them after a configured Supabase request fails.
+   This is a degraded core learning journey, not merely an admin issue.
+
+Recommended action:
+   Add an explicit, validated fallback for a Supabase outage (static manifest
+   or a maintained public catalogue), show the active source and snapshot
+   date, and test that each subject page remains usable with Supabase
+   unavailable. Avoid silently presenting a stale snapshot as current.
+
+
+[P1] Risk — Large storage footprint and unexplained service cutoff
+
+Evidence:
+   - frontend/src/data/resources.json records generatedAt
+     2026-10-07T09:49:44.002Z, count 1,965, and totals.bytes
+     4,005,978,299.
+   - Live request returns HTTP 402.
+   - The account dashboard, billing response and provider usage details were
+     not available to this audit.
+
+Impact:
+   The manifest snapshot is approximately 4.01 GB of listed objects, and is
+   nearly four weeks older than this audit. Its total is not proof of actual
+   current billed storage, bandwidth, plan limit, or the cause of the 402.
+   Keeping all objects in one provider without verified quotas, growth
+   alerts, retention/archival rules and a tested recovery source makes
+   another cutoff foreseeable.
+
+Recommended action:
+   Verify current Storage, egress, database and plan usage in the Supabase
+   owner dashboard; identify the provider's exact 402 reason; export a
+   current object inventory with object sizes; separate active from archived
+   content; set alerts and a documented backup/restore test. Do not delete
+   files until object-to-catalog references and backups are verified.
+
+
+[P1] Risk — Rights and source provenance for public learning materials
+
+Evidence:
+   - The application catalogs and serves public third-party files from three
+     repositories and a Supabase bucket.
+   - The site's copyright page states that files may belong to third parties
+     and provides a contact/removal channel:
+     frontend/src/pages/copyright.astro.
+   - Some 2026 archive material is categorized as “General - Unclassified”
+     (884 of 1,087 resources in its published catalogue).
+
+Impact:
+   A rights notice and removal process are useful, but they do not establish
+   that each publicly hosted file was authorized for redistribution. Public
+   repository/storage access can amplify exposure. This is a legal and
+   Google publisher-policy risk if files infringe copyright; the audit did
+   not determine ownership or establish that any particular file infringes.
+
+Recommended action:
+   Maintain per-file source, author/rightsholder, permission or licence,
+   acquisition date and review status; provide an effective notice-and-
+   takedown workflow; quarantine disputed/unverified files; prioritize
+   review of exam-board, publisher and school materials. Have qualified
+   counsel review the intended educational-use/redistribution model.
+
+
+[P1] Confirmed configuration gap / risk — ads.txt at project path, not host root
+
+Evidence:
+   - The published project file is frontend/public/ads.txt, which is served
+     at https://trustjonathan.github.io/STUDY-HUB/ads.txt.
+   - That URL returns the declared Google publisher record.
+   - https://trustjonathan.github.io/ads.txt returns HTTP 404.
+   - Astro config sets site=https://trustjonathan.github.io and
+     base=/STUDY-HUB.
+
+Impact:
+   The file is present under the GitHub Pages project subpath, but not at
+   the host root commonly used for ads.txt discovery. If the AdSense site
+   being verified is trustjonathan.github.io, Google may not discover the
+   project-subpath file as expected. Actual AdSense account/domain approval
+   was not accessible, so this is not a finding that the account is
+   disapproved.
+
+Recommended action:
+   Confirm the exact site/domain entered in AdSense and the account's
+   ads.txt status. Serve the record at the root of the verified site/domain
+   using a supported hosting/domain arrangement; do not assume a project
+   subdirectory is equivalent.
+
+
+[P1] Risk — Actual reader ad is not AdSense; placement/integration needs review
+
+Evidence:
+   - Source scan found no Google AdSense display script/client code in the
+     application source.
+   - frontend/public/ads.txt declares a Google publisher ID.
+   - full_page_flipbook_viewer/js/reader.js injects a third-party script
+     from bauval.org using an Adsterra key, builds four reader sidebar
+     slots, and replicates the first rendered iframe URL into the other
+     slots.
+   - Privacy and Ads & Partnerships pages mention Google AdSense, but the
+     observed reader integration is a separate advertising provider.
+
+Impact:
+   An ads.txt declaration alone does not demonstrate that Google AdSense is
+   currently serving ads. The app's privacy/partnership statements can
+   mislead operators or users if they imply the observed ad unit is Google
+   inventory. Reusing an ad iframe URL across four slots also needs provider
+   approval and testing; this audit cannot certify the third party's terms.
+   Reader ads share a constrained document-reader UI with page controls,
+   so mobile layout and accidental-click separation merit review.
+
+Recommended action:
+   Inventory every ad provider and live route; align privacy disclosures,
+   ads.txt and actual integrations; verify the publisher account/provider
+   permits the implementation; test ad separation from reader/navigation
+   controls at phone/tablet sizes. For any Google ads, follow Google's
+   ad-code and placement rules and do not imitate navigation, downloads or
+   learning resources.
+
+
+[P2] Confirmed — Catalogue payload is large and contains duplicate entries
+
+Evidence from the generated local catalogue files:
+   - fresh-teacher-catalog.json: 5,961,539 bytes; 29,822 entries,
+     25,422 unique URLs/paths, and 11,725 repeated titles.
+   - study-hub-resources-1-catalog.json: 1,412,202 bytes; 3,730 entries.
+   - Combined generated JSON: 7,373,741 bytes (about 7.37 MB).
+   - Both files were generated on 21 October 2026.
+   - frontend/src/components/LibraryWorkspace.tsx fetches the catalogs
+     separately and loads sources sequentially.
+
+Impact:
+   A fresh Library visit can download several megabytes of catalogue JSON
+   before rendering the full result set, which is costly on mobile data and
+   adds parse/memory work. Fresh Teacher contains 4,400 more entries than
+   unique paths, indicating redundant catalogue records. Repeated titles
+   may be legitimate across files, so they should not be deduplicated by
+   title alone. Overlap between different storage sources can also produce
+   duplicate learning materials because source-specific IDs differ.
+
+Recommended action:
+   Deduplicate by stable canonical file URL/path during catalogue generation;
+   validate duplicate paths and merge metadata/class keys; paginate or
+   partition catalogues by class/subject; add ETags/compression and freshness
+   metadata; compare cross-source URLs/content hashes before displaying
+   duplicate records. Keep legitimate same-title, different-file resources.
+
+
+[P2] Confirmed — Catalogue consistency and classification are weak
+
+Evidence:
+   - The 2026 catalogue has 884 of 1,087 resources under
+     “General - Unclassified.”
+   - Static subject counts come from the 7 October Supabase manifest, while
+     the visible subject list is fetched from the live Supabase API.
+   - The Library independently merges GitHub-hosted, Supabase and
+     Fresh Teacher sources.
+
+Impact:
+   Different pages can show different totals or coverage; class/subject
+   filters may not find unclassified items; duplicates may be counted as
+   distinct resources across stores. Static totals can look authoritative
+   even when the live catalogue is unavailable or has since changed.
+
+Recommended action:
+   Choose one canonical resource ID and metadata schema. Display the
+   catalogue source and last-updated date. Track classification confidence
+   and make “unclassified” explicit. Reconcile source counts and duplicate
+   handling in a scheduled report.
+
+
+[P2] Confirmed — Test and build validation are currently blocked/failing
+
+Evidence:
+   - Frontend and backend package manifests require Node >=22.12.0.
+   - The installed runtime is Node v20.11.0; Astro refuses to run `astro
+     check` under this runtime.
+   - Backend `npm test`: 60 passed, 1 failed out of 61.
+   - Failing test: backend/test/lessonGuide.test.js, “answers a study
+     question through the server-side Gemini model.” It expects every
+     request to use gemini-3.8-flash.
+   - backend/services/geminiService.js defaults to gemini-3.5-flash and
+     gemini-3.5-flash-lite, which explains the assertion mismatch.
+
+Impact:
+   Frontend type/build health has not been verified. CI can remain red on
+   the backend suite even when the implemented configured/default model
+   behavior is intentional.
+
+Recommended action:
+   Run build/check and tests under the declared Node 22.12+ runtime. Decide
+   the supported Gemini model configuration, then update the stale assertion
+   or the implementation/configuration consistently; do not merely loosen
+   the test without confirming the desired production model.
+
+
+[P2] Confirmed inconsistency — Backend configuration has competing defaults
+
+Evidence:
+   - backend/server.js listens on PORT or 4000.
+   - backend/config/index.js defines PORT default 5000 and localhost:5000.
+   - backend/package.json contains both "type": "module" and later
+     "type": "commonjs"; it also has "types": "module".
+   - The server and controllers predominantly use CommonJS require().
+
+Impact:
+   Node/npm JSON parsing uses the later duplicate "type" value, which
+   currently makes the package CommonJS, but this is fragile and confusing
+   for tooling and future edits. Developers may point the frontend to 5000
+   while the server actually starts on 4000. The "types" value is not a
+   useful runtime module declaration.
+
+Recommended action:
+   Remove duplicate JSON keys, retain the module mode the code actually
+   uses, and centralize the server port/base URL so startup, docs, tests and
+   frontend configuration agree.
+
+
+[P3] Confirmed content repetition and unverified marketing claims
+
+Evidence:
+   - frontend/src/pages/blog.astro renders each article excerpt in its
+     featured card and repeats the same excerpt as the article introduction.
+   - Home, Subjects, About, Library Guide and subject pages repeat the same
+     basic “find → read → study/AI” explanation. Some repetition is
+     appropriate navigation/marketing, but not every repeated paragraph
+     adds new guidance.
+   - frontend/src/components/StudyBillboard.astro includes “Zero Lag, Low
+     Data Consumption” and “Past Papers & Official Marking Guides” and
+     “step-by-step solutions.”
+
+Impact:
+   The exact repeated blog excerpts inflate page length without adding
+   detail. “Zero lag/low data” and availability of official marking guides
+   or step-by-step solutions are measurable claims; this audit did not
+   verify them for every route/resource. Overclaiming availability can
+   undermine trust and may conflict with publisher/search requirements
+   against misleading functionality.
+
+Recommended action:
+   Use a short card summary and a distinct article introduction, consolidate
+   repeated product explanations, and qualify claims by resource/source
+   availability. Publish performance claims only with measured results.
+
+
+[P3] UX observation — Responsive navigation deserves a device pass
+
+Evidence:
+   - Browser screenshot of a public subject page at approximately 740 px
+     viewport width showed the header navigation visibly cramped/clipped.
+   - frontend/src/styles/astro-site.css has a tablet layout breakpoint at
+     760 px, and the Library also has its own responsive sidebar.
+
+Impact:
+   At tablet widths, users may miss or misread navigation links. This was
+   observed on one page/viewport; a complete device/browser matrix was not
+   run.
+
+Recommended action:
+   Test the header at 320, 375, 430, 720, 768 and 1024 px, plus keyboard
+   focus and enlarged text. Keep every navigation item reachable without
+   clipping or horizontal page overflow.
+
+
+GOOGLE ADSENSE POLICY REVIEW
+----------------------------------------------------------------
+
+Sources checked:
+   - AdSense Program policies:
+     https://support.google.com/adsense/answer/48182
+   - Google Publisher Policies:
+     https://support.google.com/adsense/answer/10502938
+   - Ad placement policies:
+     https://support.google.com/adsense/answer/1346295
+   - AdSense eligibility:
+     https://support.google.com/adsense/answer/9724
+   - AdSense code modification guidance:
+     https://support.google.com/adsense/answer/1354736
+   - Google publisher spam-policy guidance:
+     https://support.google.com/adsense/answer/1348737
+
+Assessment:
+   1. Original/valuable content: POSITIVE WITH REVIEW NEEDED.
+      The landing page, subject-specific revision maps, learning workflow,
+      legal explanations and practical study articles provide original
+      context. The three short blog articles and repeated marketing copy are
+      comparatively light. Google requires original, useful content; merely
+      aggregating public files/catalogues is not sufficient by itself.
+      Improve the unique instructional value and resource-level context.
+
+   2. Copyright/intellectual property: HIGH PRIORITY RISK.
+      Files from third-party sources need documented permission/licensing.
+      The presence of a copyright contact page is positive but is not
+      evidence of rights for each hosted resource. Do a rights audit before
+      seeking or expanding monetization.
+
+   3. Navigation and ad placement: NOT CERTIFIABLE FROM THIS DEPLOYMENT.
+      The checked-in reader injects a non-Google third-party ad script and
+      clones its iframe into four slots. No Google AdSense display code was
+      found in the source scan. Therefore this audit cannot certify actual
+      AdSense ad placement or interactions. Google specifically prohibits
+      deceptive placement that makes ads look like menus, downloads or
+      content and warns about accidental clicks near navigation controls.
+      Keep any Google units clearly labelled/separated and test on mobile.
+
+   4. ads.txt and ownership: VERIFY.
+      The publisher record exists at /STUDY-HUB/ads.txt but the host root
+      /ads.txt returns 404. Confirm the verified AdSense site/domain and
+      correct discovery location in the account.
+
+   5. Privacy/consent: VERIFY FOR ACTUAL AUDIENCE AND PROVIDERS.
+      The privacy page describes Google advertising, external providers and
+      learner data. The live reader also invokes another ad provider.
+      Reconcile the disclosure with actual network requests and obtain
+      appropriate consent where required for the site's audience and ad
+      products. This audit did not inspect the publisher account's consent
+      management configuration.
+
+   6. Accuracy/transparency: MOSTLY POSITIVE, SOME CLAIMS TO CHECK.
+      The site generally identifies itself as an independent educational
+      service and warns that resources/AI are not official. Verify
+      “official marking guides,” “step-by-step solutions,” availability,
+      freshness and performance claims against actual files and measured
+      behavior.
+
+Overall AdSense readiness: NOT READY TO CERTIFY.
+This is a source/live-site policy-risk assessment, not an AdSense approval
+decision. A publisher-account review, ownership verification, provider
+terms review and representative page/ad testing are still required.
+
+
+BUG AND FOLLOW-UP REGISTER
+----------------------------------------------------------------
+
+ID   Severity   Status       Issue
+SH-1 P1         Reproduced   Biology page gets Supabase HTTP 402; resources
+                             fail to load; retry uses the same service.
+SH-2 P1         Verify       Supabase storage usage/plan cause; manifest
+                             snapshot says about 4.01 GB / 1,965 objects.
+SH-3 P1         Verify       Rights/licensing evidence missing from the
+                             audited catalogue workflow.
+SH-4 P1         Reproduced   Host-root /ads.txt is 404; project-path file
+                             exists. Verify AdSense's configured site.
+SH-5 P1         Source       Reader runs Adsterra script, not AdSense
+                             display integration; four iframe slots need
+                             provider/policy/UI review.
+SH-6 P2         Measured     Fresh Teacher generated catalogue has 4,400
+                             duplicate paths and is 5.96 MB.
+SH-7 P2         Measured     Two generated catalogues total about 7.37 MB;
+                             the library loads sources sequentially.
+SH-8 P2         Reproduced   Frontend check blocked by local Node 20.11;
+                             project requires Node 22.12+.
+SH-9 P2         Reproduced   Backend tests 60/61; one Gemini model assertion
+                             expects 3.8 while implementation defaults to 3.5.
+SH-10 P2        Source       Backend default port is 4000 in server.js and
+                             5000 in config/index.js; package metadata has
+                             duplicate module-type keys.
+SH-11 P3        Source       Blog excerpts repeat verbatim in card and body;
+                             several product explanations overlap.
+SH-12 P3        Observed     Header navigation is cramped at ~740 px.
+
+
+LIMITATIONS
+----------------------------------------------------------------
+
+- I reviewed the main GitHub repository at commit 29bc084, key frontend and
+  backend paths, generated catalogues, public policy pages, a live subject
+  page, and selected live routes. This is not a line-by-line audit of every
+  source file, every binary learning resource, every screen size, browser,
+  user role, or API endpoint.
+- Supabase account/billing/admin access was not available. The HTTP 402 and
+  manifest are evidence of failure/snapshot size, not proof of the provider's
+  billing cause or current usage.
+- No production credentials, user accounts or private provider logs were
+  used. No data uploads, billing changes, file deletion or database changes
+  were performed.
+- The site was publicly rendered at a limited set of routes; full interaction
+  and mobile-device coverage remains outstanding.
+- No code bug was fixed in this audit; the requested output here is the
+  findings report.
+
+
+REPOSITORY SYNC AND CHANGE SAFETY
+----------------------------------------------------------------
+
+- `git fetch --prune origin` completed.
+- Local branch: main.
+- Local HEAD and origin/main both resolve to 29bc084; left/right commit
+  divergence was 0 / 0. No GitHub commits were ahead to pull.
+- The local worktree already contained 43 modified/untracked frontend files,
+  including generated catalogue and flipbook assets. These were preserved.
+- No PR was opened, as requested through the user's “no-pr” selection.
+- This report is the only file created by this audit.
+
+
+SUGGESTED REMEDIATION ORDER
+----------------------------------------------------------------
+
+1. Identify and resolve the Supabase 402 cause; make subject pages survive
+   that outage with a clearly dated, tested fallback.
+2. Verify current storage, bandwidth/plan usage and backup/restore, then
+   reduce/partition catalogues and deduplicate by canonical path.
+3. Establish rights/provenance records and remove or quarantine files that
+   cannot be validated.
+4. Align actual ad providers, the privacy disclosure, account setup and
+   ads.txt location; review reader ad placement and provider terms.
+5. Standardize catalogue schema/source-of-truth and expose freshness and
+   resource classification; eliminate misleading or stale counts.
+6. Test/build on Node 22.12+, correct the Gemini test/model expectation, and
+   align backend port/module metadata.
+7. Polish repeated content, validate measurable promotional claims, and
+   perform responsive/keyboard/accessibility testing.
