@@ -1,56 +1,20 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
+import GoogleIdentitySignIn from './GoogleIdentitySignIn';
 import { clearAuthSession, readAuthSession, saveAuthSession } from '../utils/authSession';
+import { getPostLoginHref } from '../utils/authRedirect';
+import type { GoogleAuthResult, GoogleAuthUser } from '../lib/googleSignIn';
 
 interface Props {
   apiUrl: string;
   googleClientId: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  showOneTap?: boolean;
   homeHref: string;
 }
 
-interface GoogleCredentialResponse {
-  credential?: string;
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (options: {
-            client_id: string;
-            callback: (response: GoogleCredentialResponse) => void;
-          }) => void;
-          renderButton: (element: HTMLElement, options: {
-            type: 'standard';
-            theme: 'outline';
-            size: 'large';
-            shape: 'rectangular';
-            text: 'continue_with' | 'signup_with';
-            logo_alignment: 'left';
-            width: number;
-          }) => void;
-        };
-      };
-    };
-  }
-}
-
-interface Account {
-  id?: number | string;
-  username: string;
-  email: string;
-  role?: string;
-  hasPassword?: boolean;
-  learnerType?: 'student' | 'non-student' | null;
-  educationLevel?: 'university' | 'secondary' | 'primary' | 'nursery' | null;
-  universityCourse?: string | null;
-  universityYear?: number | null;
-  secondaryTrack?: 'O-Level' | 'A-Level' | null;
-  classLevel?: string | null;
-  subjects?: string[];
-  onboardingComplete?: boolean;
-}
+type Account = GoogleAuthUser;
 
 interface AuthResponse {
   token?: string;
@@ -82,25 +46,14 @@ function getErrorMessage(result: AuthResponse, fallback: string): string {
   return validationMessage || result.message || result.error || fallback;
 }
 
-function getReturnHref(homeHref: string): string | null {
-  const candidate = new URLSearchParams(window.location.search).get('return');
-  if (!candidate) return null;
-  try {
-    const target = new URL(candidate, window.location.origin);
-    const homePath = new URL(homeHref, window.location.origin).pathname.replace(/\/+$/, '');
-    if (
-      target.origin !== window.location.origin
-      || target.username
-      || target.password
-      || !(target.pathname === homePath || target.pathname.startsWith(`${homePath}/`))
-    ) return null;
-    return target.href;
-  } catch {
-    return null;
-  }
-}
-
-export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
+export default function AuthPanel({
+  apiUrl,
+  googleClientId,
+  supabaseUrl,
+  supabaseAnonKey,
+  showOneTap = false,
+  homeHref,
+}: Props) {
   const apiBase = getApiBase(apiUrl);
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
@@ -110,11 +63,11 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
   const [newPassword, setNewPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [rememberedEmail, setRememberedEmail] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [credentialNotice, setCredentialNotice] = useState('');
-  const googleButtonRef = useRef<HTMLDivElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -132,6 +85,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
     } catch {
       setNotice('This browser does not allow Study Hub to remember an email address on this device.');
     }
+    setAuthChecked(true);
   }, []);
 
   function rememberAccountEmail(accountEmail: string) {
@@ -159,92 +113,23 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
     }
   }
 
-  async function signInWithGoogle(credential: string) {
-    if (busy || !apiBase) return;
-    setBusy(true);
-    setError('');
-    setNotice('');
-
-    try {
-      const response = await fetch(`${apiBase}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential }),
-      });
-      const result: AuthResponse = await response.json().catch(() => ({}));
-      if (!response.ok || typeof result.token !== 'string' || !result.user || typeof result.user.email !== 'string') {
-        throw new Error(getErrorMessage(result, 'Google sign-in could not be completed. Please try again.'));
-      }
-
-      saveAuthSession(result.token, result.user);
-      rememberAccountEmail(result.user.email);
-      if (result.user.onboardingComplete !== true || !result.user.learnerType) {
-        window.location.assign(`${homeHref.replace(/\/$/, '')}/study.html?welcome=1&view=preferences`);
-        return;
-      }
-      const returnHref = getReturnHref(homeHref);
-      window.location.assign(returnHref || `${homeHref.replace(/\/$/, '')}/study.html`);
-      return;
-    } catch (googleError) {
-      const message = googleError instanceof Error ? googleError.message : '';
-      setError(message === 'Failed to fetch'
-        ? 'Could not reach the account service. Check your connection and try again.'
-        : message || 'Google sign-in could not be completed. Please try again.');
-    } finally {
-      setBusy(false);
-    }
+  function completeSignIn(token: string, user: Account) {
+    saveAuthSession(token, user);
+    rememberAccountEmail(user.email);
+    window.location.assign(getPostLoginHref(homeHref, user));
   }
 
-  useEffect(() => {
-    const button = googleButtonRef.current;
-    if (!button || account || !apiBase || !googleClientId) return;
-
-    const configureGoogleButton = () => {
-      if (!window.google) {
-        setError('Google sign-in could not be loaded. Please use email sign-in or try again later.');
-        return;
-      }
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: (response) => {
-          if (!response.credential) {
-            setError('Google did not return a sign-in credential. Please try again.');
-            return;
-          }
-          void signInWithGoogle(response.credential);
-        },
-      });
-      button.replaceChildren();
-      window.google.accounts.id.renderButton(button, {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        shape: 'rectangular',
-        text: mode === 'register' ? 'signup_with' : 'continue_with',
-        logo_alignment: 'left',
-        width: Math.min(360, Math.floor(button.clientWidth || 360)),
-      });
-    };
-
-    const scriptUrl = 'https://accounts.google.com/gsi/client';
-    const script = document.querySelector<HTMLScriptElement>(`script[src="${scriptUrl}"]`);
-    if (window.google) {
-      configureGoogleButton();
-      return;
+  function handleGoogleSuccess(result: GoogleAuthResult) {
+    setError('');
+    setNotice('');
+    try {
+      completeSignIn(result.token, result.user);
+    } catch (signInError) {
+      setError(signInError instanceof Error
+        ? signInError.message
+        : 'Google sign-in could not be completed. Please try again.');
     }
-    if (!script) {
-      setError('Google sign-in script is missing from the sign-in page.');
-      return;
-    }
-    const handleScriptError = () => setError('Google sign-in could not be loaded. Please use email sign-in.');
-    script.addEventListener('load', configureGoogleButton);
-    script.addEventListener('error', handleScriptError);
-
-    return () => {
-      script?.removeEventListener('load', configureGoogleButton);
-      script?.removeEventListener('error', handleScriptError);
-    };
-  }, [account, apiBase, googleClientId, mode]);
+  }
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -266,14 +151,7 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
         throw new Error(getErrorMessage(result, 'Sign in could not be completed. Please try again.'));
       }
 
-      saveAuthSession(result.token, result.user);
-      rememberAccountEmail(result.user.email);
-      if (result.user.onboardingComplete !== true || !result.user.learnerType) {
-        window.location.assign(`${homeHref.replace(/\/$/, '')}/study.html?welcome=1&view=preferences`);
-        return;
-      }
-      const returnHref = getReturnHref(homeHref);
-      window.location.assign(returnHref || `${homeHref.replace(/\/$/, '')}/study.html`);
+      completeSignIn(result.token, result.user);
       return;
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : '';
@@ -523,11 +401,19 @@ export default function AuthPanel({ apiUrl, googleClientId, homeHref }: Props) {
               </form>
               <div className="auth-divider" aria-hidden="true"><span>or continue with</span></div>
               {googleClientId ? (
-                <div className={`auth-google-button ${busy ? 'is-busy' : ''}`} ref={googleButtonRef} aria-label="Continue with Google" />
+                authChecked && <GoogleIdentitySignIn
+                  apiBase={apiBase}
+                  clientId={googleClientId}
+                  supabaseUrl={supabaseUrl}
+                  supabaseAnonKey={supabaseAnonKey}
+                  showButton
+                  showOneTap={showOneTap}
+                  disabled={busy}
+                  onSuccess={handleGoogleSuccess}
+                />
               ) : (
                 <p className="auth-google-notice" role="status">Google sign-in is not configured yet. Use email sign-in for now.</p>
               )}
-              {googleClientId && error && <p className="auth-message auth-error" role="alert">{error}</p>}
             </>
           )}
         </div>

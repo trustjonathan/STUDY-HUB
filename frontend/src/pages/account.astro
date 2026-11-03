@@ -8,9 +8,11 @@ import '../styles/document-payments.css';
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const apiUrl = (import.meta.env.PUBLIC_STUDY_HUB_API_URL || '').trim();
 const googleClientId = (import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '').trim();
+const supabaseUrl = (import.meta.env.PUBLIC_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '').trim();
 ---
 
 <SiteLayout title="Your account | Study Hub" description="View your Study Hub document payment requests and resume approved downloads.">
-  <AuthPanel client:load apiUrl={apiUrl} googleClientId={googleClientId} homeHref={base.replace(/\/$/, '') || '/'} />
+  <AuthPanel client:load apiUrl={apiUrl} googleClientId={googleClientId} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} homeHref={base.replace(/\/$/, '') || '/'} />
   <AccountPaymentHistory client:load apiUrl={apiUrl} base={base} />
 </SiteLayout>

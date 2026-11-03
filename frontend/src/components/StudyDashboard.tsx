@@ -1,5 +1,8 @@
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
-import { clearAuthSession, readAuthSession, updateAuthSessionUser } from '../utils/authSession';
+import { clearAuthSession, readAuthSession, saveAuthSession, updateAuthSessionUser } from '../utils/authSession';
+import { getPostLoginHref } from '../utils/authRedirect';
+import GoogleIdentitySignIn from './GoogleIdentitySignIn';
+import type { GoogleAuthResult } from '../lib/googleSignIn';
 import StudyWorkspace from './StudyWorkspace';
 import LibraryWorkspace from './LibraryWorkspace';
 import LearningPreferencesForm, { type LearningPreferences } from './LearningPreferencesForm';
@@ -11,6 +14,10 @@ interface Props {
   baseHref: string;
   libraryHref: string;
   signInHref: string;
+  googleClientId?: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+  enableGoogleOneTap?: boolean;
   initialView?: 'home' | 'tutor';
 }
 
@@ -72,7 +79,16 @@ function Icon({ name }: { name: 'spark' | 'book' | 'target' | 'calendar' | 'arro
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
-export default function StudyDashboard({ baseHref, libraryHref, signInHref, initialView = 'home' }: Props) {
+export default function StudyDashboard({
+  baseHref,
+  libraryHref,
+  signInHref,
+  googleClientId,
+  supabaseUrl,
+  supabaseAnonKey,
+  enableGoogleOneTap = false,
+  initialView = 'home',
+}: Props) {
   const landingHref = baseHref.replace(/\/+$/, '') || '/';
   const [user, setUser] = useState<StudyUser | null>(null);
   const [profileReady, setProfileReady] = useState(false);
@@ -126,6 +142,17 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
     if (next === 'home') url.searchParams.delete('view');
     else url.searchParams.set('view', next);
     window.history.replaceState({}, '', url);
+  }
+
+  function handleGoogleSuccess(result: GoogleAuthResult) {
+    try {
+      saveAuthSession(result.token, result.user);
+      window.location.assign(getPostLoginHref(baseHref, result.user));
+    } catch (signInError) {
+      setNotice(signInError instanceof Error
+        ? signInError.message
+        : 'Google sign-in could not be completed. Please try again.');
+    }
   }
 
   useEffect(() => {
@@ -497,6 +524,15 @@ export default function StudyDashboard({ baseHref, libraryHref, signInHref, init
 
         {!online && <div className="study-offline-banner" role="status"><Icon name="wifi" /><span>You’re offline. Your dashboard is available; AI responses need an internet connection.</span></div>}
         {notice && <div className="study-notice" role="status"><span>{notice}</span><button type="button" onClick={() => setNotice('')} aria-label="Dismiss notice">×</button></div>}
+        {enableGoogleOneTap && profileReady && !user && view === 'home' && (
+          <GoogleIdentitySignIn
+            apiBase={apiBase()}
+            clientId={googleClientId || ''}
+            supabaseUrl={supabaseUrl || ''}
+            supabaseAnonKey={supabaseAnonKey || ''}
+            onSuccess={handleGoogleSuccess}
+          />
+        )}
 
         {view === 'home' && <div className="study-content">
           <section className="study-welcome">
