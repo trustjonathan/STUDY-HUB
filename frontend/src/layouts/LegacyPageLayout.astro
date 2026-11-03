@@ -2,6 +2,7 @@
 import sharedStyles from '../styles/astro-site.css?url';
 import tokenStyles from '../styles/design-tokens.css?url';
 import legacyStyles from '../styles/legacy-refresh.css?url';
+import motionStyles from '../styles/scroll-motion.css?url';
 import FooterTextLinks from '../components/FooterTextLinks.astro';
 import ResumeProgress from '../components/ResumeProgress.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -80,6 +81,7 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <link rel="stylesheet" href={sharedStyles} />
     <link rel="stylesheet" href={tokenStyles} />
     <link rel="stylesheet" href={legacyStyles} />
+    <link rel="stylesheet" href={motionStyles} />
   </head>
   <body data-page={dataPage} class={bodyClass}>
     {currentSubject && <a class="skip-link" href="#main-content">Skip to main content</a>}
@@ -89,5 +91,6 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     <SiteFooter home={home} />
     <FooterTextLinks home={home} />
     <ResumeProgress />
+    <script is:inline src={`${base}scripts/scroll-motion.js`} defer></script>
   </body>
 </html>

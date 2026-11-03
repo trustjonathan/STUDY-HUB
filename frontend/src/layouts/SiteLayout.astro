@@ -1,6 +1,7 @@
 ---
 import '../styles/astro-site.css';
 import '../styles/design-tokens.css';
+import '../styles/scroll-motion.css';
 import FooterTextLinks from '../components/FooterTextLinks.astro';
 import ResumeProgress from '../components/ResumeProgress.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -96,5 +97,6 @@ const socialImageUrl = new URL(`${base}social-preview.png`, siteUrl);
     )}
     <FooterTextLinks home={home} />
     <ResumeProgress />
+    <script is:inline src={`${base}scripts/scroll-motion.js`} defer></script>
   </body>
 </html>

@@ -1,0 +1,150 @@
+html.has-scroll-motion main [data-scroll-motion] {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  transition:
+    opacity 520ms cubic-bezier(.2, .7, .2, 1),
+    transform 620ms cubic-bezier(.2, .7, .2, 1);
+  transition-delay: 0ms;
+  will-change: opacity, transform;
+}
+
+html.has-scroll-motion main [data-scroll-motion].is-in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: calc(min(var(--motion-order, 0), 6) * 65ms);
+}
+
+html.has-scroll-motion main [data-motion-surface] {
+  transform-style: preserve-3d;
+}
+
+html.has-scroll-motion main [data-motion-image] {
+  background-color: #e9eee7;
+  background-image: linear-gradient(105deg, #e9eee7 25%, #f7f8f2 45%, #e9eee7 65%);
+  background-size: 220% 100%;
+  animation: motion-image-shimmer 1.35s linear infinite;
+  transition: transform 650ms cubic-bezier(.2, .7, .2, 1), filter 350ms ease;
+}
+
+html.has-scroll-motion main [data-motion-image][data-image-ready] {
+  animation: none;
+  background-image: none;
+}
+
+html.has-scroll-motion main :is(button, [role='button'], a.button, a[class*='-button'], .subject-button) {
+  transition:
+    transform 260ms cubic-bezier(.2, .8, .2, 1.25),
+    box-shadow 260ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+html.has-scroll-motion main :is(button, [role='button'], a.button, a[class*='-button'], .subject-button):active {
+  transform: scale(.98);
+}
+
+html.has-scroll-motion main :is(button, [role='button'], a.button, a[class*='-button'], .subject-button):focus-visible {
+  outline: 3px solid rgba(71, 133, 91, .55);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(71, 133, 91, .12);
+}
+
+.landing-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-hero::after {
+  position: absolute;
+  z-index: -1;
+  top: 4%;
+  right: -3%;
+  width: min(52vw, 620px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(154, 190, 145, .2), rgba(225, 197, 151, .08) 48%, transparent 72%);
+  content: '';
+  pointer-events: none;
+  animation: motion-ambient-drift 13s ease-in-out infinite alternate;
+}
+
+.landing-preview,
+.subject-hero,
+.study-brief,
+.landing-subject-card,
+.landing-more-grid > a,
+.landing-combination-grid article,
+.subject-level-card,
+.partner-card {
+  transition:
+    transform 420ms cubic-bezier(.2, .7, .2, 1),
+    box-shadow 420ms ease,
+    border-color 300ms ease,
+    background-color 300ms ease;
+}
+
+.landing-preview,
+.landing-subject-card,
+.landing-more-grid > a,
+.landing-combination-grid article,
+.subject-level-card,
+.partner-card {
+  border-radius: 10px;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html.has-scroll-motion main [data-motion-surface]:hover,
+  html.has-scroll-motion main [data-motion-surface]:focus-within {
+    z-index: 1;
+    transform: translate3d(0, -4px, 0) perspective(900px) rotateX(.45deg) scale(1.012);
+    box-shadow: 0 16px 36px rgba(23, 43, 36, .12);
+  }
+
+  html.has-scroll-motion main [data-motion-surface]:has([data-motion-image]):hover [data-motion-image],
+  html.has-scroll-motion main [data-motion-surface]:has([data-motion-image]):focus-within [data-motion-image] {
+    transform: scale(1.045);
+    filter: saturate(1.06);
+  }
+
+  html.has-scroll-motion main :is(button, [role='button'], a.button, a[class*='-button'], .subject-button):hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .landing-page .landing-preview:hover,
+  .landing-page .landing-preview:focus-within {
+    transform: translateY(-5px) rotateX(.35deg);
+    box-shadow: 0 24px 54px rgba(31, 49, 38, .19);
+  }
+}
+
+@keyframes motion-image-shimmer {
+  to { background-position: -220% 0; }
+}
+
+@keyframes motion-ambient-drift {
+  to { transform: translate3d(-12px, 15px, 0) scale(1.04); }
+}
+
+@media (max-width: 700px) {
+  .landing-hero::after { top: 9%; right: -22%; width: 78vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.has-scroll-motion main [data-scroll-motion],
+  html.has-scroll-motion main [data-motion-image],
+  html.has-scroll-motion main :is(button, [role='button'], a.button, a[class*='-button'], .subject-button),
+  .landing-preview,
+  .subject-hero,
+  .study-brief,
+  .landing-subject-card,
+  .landing-more-grid > a,
+  .landing-combination-grid article,
+  .subject-level-card,
+  .partner-card,
+  .landing-hero::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
