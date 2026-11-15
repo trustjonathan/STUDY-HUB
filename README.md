@@ -1,66 +1,195 @@
-# STUDY HUB
-STUDY HUB that will bring accademic resources at the comfort of the student's phones
+# Study Hub 📚🇺🇬
 
-## Requirements
+> A free-to-browse learning platform and AI study assistant tailored for Ugandan students from Primary school through O-Level, A-Level, and University.
 
-- Node.js 22.12.0 or newer (an LTS release is recommended).
-- On Windows, install it using the official [Node.js Windows Installer (.msi)](https://nodejs.org/en/download).
+[![Live Site](https://img.shields.io/badge/Live_Site-GitHub_Pages-246b49?style=flat-square)](https://trustjonathan.github.io/STUDY-HUB/)
+[![CI](https://github.com/trustjonathan/STUDY-HUB/actions/workflows/ci.yml/badge.svg)](https://github.com/trustjonathan/STUDY-HUB/actions/workflows/ci.yml)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.12.0-brightgreen?style=flat-square)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MIT_%2F_Content_Reserved-b97832?style=flat-square)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue?style=flat-square)](CONTRIBUTING.md)
 
-Verify the installation with `node --version` and `npm --version`.
+---
 
-## Resource contributions
+## 🌟 Mission
 
-The document reader accepts any number of files per batch, subject to a 250 MB total batch limit and a 50 MB per-file limit. It sends files directly to private, resumable staging storage in three parallel transfers; after the user submits the complete batch, the server verifies and moves each file to `contribution/` for manual sorting. Completed staged files survive leaving the reader; an interrupted file can resume when the user returns and reselects it in the same browser. Incomplete batches expire after 24 hours. The Biology, Chemistry, and Mathematics archive forms continue to store new uploads in the same private contribution inbox. Existing curated files and previously submitted files are not moved, and contributions are never published automatically.
+Quality study notes, revision materials, and examination past papers in Uganda are often expensive, scattered, or trapped behind steep paywalls. **Study Hub** brings curriculum-aligned learning resources directly to students' mobile phones and computers for free.
 
-The GitHub Actions workflows deploy the public site and Supabase upload backend separately. Before the first backend deployment, enable **Anonymous Sign-Ins** in Supabase Auth and add these GitHub repository secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`, `SUBMISSION_RATE_LIMIT_SALT`, and `CONTRIBUTION_CLEANUP_SECRET`. Upload forms currently do not use a CAPTCHA provider; origin checks, anonymous upload sessions, file validation, batch-size limits, and server-side rate limits remain active. `SUPABASE_ACCESS_TOKEN` must be a Supabase Personal Access Token beginning with `sbp_` (not an anon/service-role API key, JWT, or database password). Create it in Supabase account settings, grant access to the target project, and give it **Read** permission for **Project Settings**, **API Keys**, and **API Key Secrets**; the CLI's `supabase link` step requires all three. `SUPABASE_DB_PASSWORD` is different: it must be the current Postgres database password for that project's `postgres` role, not the personal access token, API key, or project reference. If Actions reports `password authentication failed for user "postgres"`, verify that GitHub's `SUPABASE_DB_PASSWORD` secret matches the current database password for the project selected by `SUPABASE_PROJECT_REF`; reset it only if the current value cannot be confirmed. If `db push` reports an object such as a policy already exists, first compare the remote schema with the pending migration. When the complete migration is already present but its version is absent from remote history, use `supabase migration repair --linked --status applied <version>` for only the verified version(s); this records history without rerunning SQL. Never mark a migration applied merely to bypass an error. If Actions reports `Invalid access token format`, replace the `SUPABASE_ACCESS_TOKEN` GitHub repository secret with a newly generated `sbp_` personal access token, then rerun the workflow. Add the repository variable `STUDY_HUB_ALLOWED_ORIGINS` (comma-separated exact origins, for example `https://trustjonathan.github.io,http://localhost:4321,http://127.0.0.1:4321`), and optionally `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` if the project differs from the defaults.
+Visitors can freely browse subjects, read notes in an interactive flipbook reader, and ask AI academic questions—without mandatory sign-ups or subscription fees.
 
-On pushes affecting `supabase/`, `.github/workflows/deploy-supabase.yml` links to the configured project, applies pending migrations, sets upload-only secrets, and deploys the generic reader endpoint, the three archive endpoints, and the staging lifecycle functions. `.github/workflows/cleanup-contribution-staging.yml` calls the protected cleanup function hourly. You can also run either workflow manually from GitHub Actions. Never put the Supabase service-role key in frontend code, URLs, or GitHub repository variables.
+---
 
-The reader's contents panel uses embedded PDF outlines or rendered document headings when available, saves bookmarks and color preferences in the current browser, and offers warm, grayscale, and night color modes. Resuming a partially transferred file requires reselecting that original file because browsers do not let a page reopen a user's local file automatically.
+## 🌐 Live Platform
 
-The Study Assistant answers academic questions and builds study guides; the PDF reader's optional AI Study Companion can explain the currently displayed page. Both use the Gemini key only on the backend. AI Study keeps the 20 most recent guide questions and generated answers in the current browser, so they can be searched and reopened without another AI request; backend-published guides are also listed. For local use, run the backend with `GEMINI_API_KEY` set in `backend/.env`, then set `PUBLIC_STUDY_HUB_API_URL=http://localhost:4000` in `frontend/.env` before building or running Astro. The backend defaults to `GEMINI_MODEL=gemini-3.5-flash` and automatically falls back to `GEMINI_FALLBACK_MODEL=gemini-3.5-flash-lite` when the primary model is busy or unavailable. Set either backend variable only to a Gemini model available to your key. For GitHub Pages, deploy the Express backend over HTTPS, set the repository variable `PUBLIC_STUDY_HUB_API_URL` to its public origin, and configure `GEMINI_API_KEY` in that backend's environment. Never add the Gemini key to frontend variables or source. Without a configured API URL, the AI features remain unavailable while the rest of the site continues to work.
+- **Production Frontend:** [https://trustjonathan.github.io/STUDY-HUB/](https://trustjonathan.github.io/STUDY-HUB/)
+- **Live Subjects:** Biology, Chemistry, Mathematics, Physics, and 24 additional curriculum subjects.
+- **AI Study Workspace (PWA):** [https://trustjonathan.github.io/STUDY-HUB/study.html](https://trustjonathan.github.io/STUDY-HUB/study.html)
 
-The AI Study workspace is available at `/STUDY-HUB/study.html` and can be installed as a PWA from supported desktop and mobile browsers. After the first successful visit, its dashboard and AI tutor pages plus built interface assets are cached for offline opening; locally saved recent study guides can be revisited in the tutor, but new AI responses and live library updates require internet. Authentication/API responses are excluded from the service-worker cache. Explicit offline saving of library documents and queued progress synchronization are planned follow-up steps and are not available yet.
+---
 
-Signed-in AI Study learners can build account-owned topic memory: the tutor retrieves related past study questions using OpenAI `text-embedding-3-small` embeddings and adds those topics as cautious context to Gemini-generated guides. Full AI answers and guest questions are not stored in server memory. The AI tutor sidebar provides memory export and deletion controls. Apply `backend/database/migrations/20261019_ai_study_memory.sql` to the backend PostgreSQL database before enabling this feature; it requires the `pgvector` extension. OpenAI credentials are read server-side in order from `OPEN_AI_API_KEY`, `OPEN_AI_API_KEY_1`, and `OPEN_AI_API_KEY_2`, with `OPENAI_API_KEY` and `OPENAI_KEY` retained as backward-compatible aliases. On authentication, quota, connection, or service failures, the backend tries the next configured key. `GEMINI_API_KEY` powers tutoring; all provider keys remain server-side. If memory storage is unavailable, the tutor still returns the guide and explicitly reports that it was not saved. This first memory increment stores topics only; mastery, quiz results, and adaptive progress are later steps.
+## 📸 Screenshots
 
-AI Study now prepares a personalized seven-day plan from the signed-in learner's saved class, course, year, and subjects while the first-time product tour is running. The proposed topics appear in the Tutor at the end of the tour; learners can request changes in the plan chat, mark study sessions complete, and open **My study plan** in the dashboard sidebar to view topic progress, a seven-day activity graph, and a daily streak. Creating a plan starts the learner with a five-day streak, which grows when they record completed study topics on consecutive days. A separate resource-curator model ranks class-and-subject-matched entries from the Study Library catalog and links directly to the resources. Apply `backend/database/migrations/20261019_ai_study_memory.sql` for personalized resource context, then `backend/database/migrations/20261021_study_plans_and_streaks.sql` and `backend/database/migrations/20261022_seed_initial_study_streak.sql` before enabling plan persistence and streak tracking. The planner uses `GEMINI_API_KEY`; resource ranking uses `STUDY_RESOURCE_GEMINI_MODEL` when configured, otherwise `GEMINI_FALLBACK_MODEL` (or `gemini-3.5-flash`). These settings and AI keys belong on the backend only.
+| Desktop Library & Reader | Mobile AI Tutor & Subjects |
+| :---: | :---: |
+| *![Desktop Library Screenshot](docs/archive/suggestions/phase-5/library-1440.png)* | *![Mobile Reader Screenshot](docs/archive/suggestions/phase-6/biology-375.png)* |
 
-## Optional accounts
+---
 
-Visitors can browse subjects and use the public library without an account. To enable account creation, sign-in, and saved learning preferences, apply `backend/database/migrations/20261014_auth_learning_profile.sql` to the backend PostgreSQL database. Configure a random `JWT_SECRET` of at least 32 bytes and the database connection on the backend host. For managed PostgreSQL, set `DATABASE_URL` to the provider's PostgreSQL connection string (it must start with `postgres://` or `postgresql://`); a Supabase HTTPS project URL is not a database connection string. Get the connection string from Supabase Dashboard > Connect, using a pooler connection if the backend host cannot connect to the direct database host. Keep it secret; production connections use TLS by default. If TLS verification reports an untrusted Supabase certificate, download the database CA certificate from Supabase Dashboard > Database Settings > SSL and set its PEM contents in the backend-only `DATABASE_SSL_CA` variable. Certificate verification remains enabled. Deploy the Express backend and set `PUBLIC_STUDY_HUB_API_URL` to its HTTPS origin in the GitHub Actions variables or secrets used by Pages builds. The deployment workflow validates this configuration before building so it cannot silently publish a disabled sign-in form. Configure `STUDY_HUB_ALLOWED_ORIGINS` on the backend with the exact frontend origins, comma-separated (including the GitHub Pages origin and local development origins if needed). First-time sign-ins are guided through AI Study and the Library, where learners can choose a class and subjects; they can change these preferences later from the sign-in/profile page. Account access tokens remain in the current tab's `sessionStorage`, so closing that tab ends the local signed-in session. The backend-issued token has a 30-day maximum lifetime as a safety limit. The sign-in page may remember only the last successful account email in browser `localStorage` to offer a “Continue as” shortcut; it never stores an authentication token or password there, and the email can be removed with the forget control. Since GitHub Pages and Render are on different sites, authentication does not depend on browser-blockable third-party cookies. The AI Study guide request may include the saved class and subject preferences, but does not send the account email or password to Gemini.
+## ✨ Key Features
 
-Google sign-in additionally requires applying `backend/database/migrations/20261015_google_sign_in.sql`, setting `GOOGLE_CLIENT_ID` on the backend, and configuring `PUBLIC_GOOGLE_CLIENT_ID`, `PUBLIC_SUPABASE_URL`, and `PUBLIC_SUPABASE_ANON_KEY` for the frontend build (in `frontend/.env` for local builds and as GitHub Actions repository variables or secrets for Pages deployments). Add each site origin (for example `https://trustjonathan.github.io` and `http://localhost:4321`) to the Google OAuth client's authorized JavaScript origins. In the Supabase Dashboard, enable Google under **Authentication → Providers** and configure that same OAuth client ID and its client secret there; the Google client secret belongs only in the Supabase Dashboard and must not be added to frontend files, backend settings, or GitHub Actions. Study Hub uses Supabase `signInWithIdToken` for Google credential verification and then uses the existing account service to create or link the Study Hub profile. Signed-out visitors may see Google One Tap after a short delay on the sign-in page or AI Study entry, and the sign-in page also has Google's standard “Continue with Google” button. Google controls whether One Tap appears; the browser/site does not enumerate saved email addresses itself. Public frontend values are included in the published site even if stored as Actions secrets.
+- **28 Subject Libraries:** Comprehensive notes and UNEB past papers indexed by subject and level (P1–P7, S1–S4, S5–S6, University).
+- **Interactive Document Reader:** Custom PDF flipbook viewer with night/warm reading themes, bookmarks, and search.
+- **AI Study Assistant (Gemini):** Academic Q&A tutor powered by Google Gemini with automatic model failover.
+- **7-Day Personalized Study Plans:** AI-generated study timetables, daily revision tasks, and streak tracking.
+- **Topic Memory (pgvector + OpenAI):** Long-term personalized topic recall for registered learners.
+- **Optional Accounts:** Sign up with email or Google One Tap (via Supabase Auth) to save bookmarks, ratings, and study history.
+- **Anonymous Contributions & Suggestions:** Students and teachers can submit notes and study suggestions without tracking.
+- **UGX 1,000 Mobile Money Document Downloads:** Manual verification queue supporting offline document delivery.
+- **Offline PWA Shell:** Cached reading interface and study dashboard optimized for low-bandwidth mobile connections.
 
-Resource ratings and bookmarks require an account. Apply `backend/database/migrations/20261016_resource_engagement.sql` after the account migrations, then apply `backend/database/migrations/20261017_resource_dislikes_and_shares.sql` to update an existing ratings table and add share counts. Authenticated learners can set one thumbs-up or thumbs-down rating per document and save private bookmarks; the public library and flipbook reader show aggregate rating percentages and successful share counts. Resource sharing is available without an account and is rate-limited by the backend. The class Library and subject-library resource lists lazily render first-page previews for supported PDFs, DOCX files, and images near the visible scroll area. The resource catalog search loads every Supabase catalog page before searching.
+---
 
-## Document Payments
+## 🛠 Tech Stack
 
-Study Hub documents have a **Download** action in the library and flipbook reader. It opens `/STUDY-HUB/document-payment.html`; learners must sign in before checkout, initiate the UGX 1,000 Mobile Money transaction, and submit only the sender phone number. Administrators compare that number with their received payment messages and manually verify or reject each request. Verified downloads become available from `/STUDY-HUB/account.html`; an open checkout page also starts the approved download automatically. An interrupted transfer returns the request to a resumable state, while a completed request is marked used. Checkout has no footer and links to the Terms and Privacy Policy. On phones the initiate action copies the business number and opens the dialer with `*185#`; the learner must complete the payment there.
+| Layer | Technology | Hosting / Infrastructure |
+| :--- | :--- | :--- |
+| **Frontend** | [Astro](https://astro.build/) (v7), React (v19), TypeScript, Tailwind/CSS | GitHub Pages |
+| **Backend API** | [Express](https://expressjs.com/) (Node.js), Sequelize ORM | Render |
+| **Database & Auth** | PostgreSQL, [Supabase](https://supabase.com/) (Auth, Storage, Edge Functions, pgvector) | Supabase Managed Cloud |
+| **AI Integration** | Google Gemini API (`gemini-3.5-flash`), OpenAI Embeddings (`text-embedding-3-small`) | Server-side API proxies |
+| **CI / CD** | GitHub Actions | Automated lint, build, test, and deployment |
 
-Apply `backend/database/migrations/20261018_document_payments.sql` after the account migrations. The recipient number defaults to `0701810497`; configure `PUBLIC_STUDY_HUB_PAYMENT_PHONE` for frontend builds if changing it. This migration preserves existing requests while allowing the legacy transaction/SMS columns to be empty. Promote the intended verifier to the exact `admin` role in `public.users`; the verification dashboard is `/STUDY-HUB/admin/payments.html`.
+---
 
-The admin queue shows the account name/email, requested resource, sender number, amount, and current status. A mismatch can be rejected with a prefilled email draft. Payment requests store the submitter's phone number and download/verification state; legacy transaction and SMS columns are retained only for historical records. Downloads use an authenticated server stream and one-time payment status. The four subject pages use the shared site navigation and have no Adsterra/AdSense injection. Resource lists offer lazy document previews; individual files may show a fallback when the remote source is unavailable.
+## 🏗 Architecture Overview
 
-The one-time state applies to each payment request in the Study Hub application. Existing Study Hub and Fresh Teacher files may remain publicly accessible to anyone who already has a file URL; making payment verification mandatory for all file access requires separately migrating those resources to private, entitlement-checked delivery.
+```mermaid
+graph TD
+    User["Learner Browser / Mobile Phone"]
+    Pages["GitHub Pages (Astro Frontend)"]
+    API["Render Host (Express Backend API)"]
+    SupaAuth["Supabase Auth & Storage"]
+    DB[("PostgreSQL Database + pgvector")]
+    Gemini["Google Gemini AI API"]
+    OpenAI["OpenAI Embeddings API"]
 
-## Anonymous Suggestions
-
-The suggestions board is available at `/STUDY-HUB/community-chat.html`. Visitors do not need an account and the board does not create or restore a Supabase Auth session. The database stores suggestion text, moderation status, and submission time only; it does not store a name, email, user ID, or IP address.
-
-Apply `supabase/migrations/20261009130000_study_hub_anonymous_suggestions.sql` to the Study Hub Supabase project. The frontend build needs `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`; the public anon key is intended for browser use. Never expose a service-role key in the frontend.
-
-New suggestions are `pending` and remain invisible to visitors. A moderator can review them in the Supabase SQL Editor:
-
-```sql
-select id, created_at, content
-from public.study_hub_suggestions
-where status = 'pending'
-order by created_at;
-
-update public.study_hub_suggestions
-set status = 'approved'
-where id = '<suggestion-id>' and status = 'pending';
+    User -->|1. Loads static UI & cached catalogs| Pages
+    User -->|2. Direct anonymous upload & suggestions| SupaAuth
+    User -->|3. Auth, study plans, payments, AI tutor| API
+    API -->|4. Verifies JWT & executes queries| DB
+    API -->|5. Tutor explanations & study plans| Gemini
+    API -->|6. Topic memory embeddings| OpenAI
 ```
 
-Set `status` to `rejected` instead to dismiss a submission. Approval makes the suggestion publicly readable and refreshes the live board. Public visitors cannot approve, edit, or delete suggestions. The previous authenticated chat table is left untouched by this migration and is no longer used by the public page.
+For detailed architectural workflows, data flows, and security boundaries, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+### Prerequisites
+
+- **Node.js:** `>=22.12.0` (LTS recommended).
+  > **Note:** Astro 7 requires Node 22.12+. Node 20 will cause build failures. Verify your version with `node --version`.
+- **Git**
+
+### Option A: Frontend Only (Recommended for New Contributors)
+
+You can run the frontend in less than 2 minutes without setting up a backend or database. Public catalogs and reading modes work out of the box!
+
+```bash
+# 1. Clone your fork
+git clone https://github.com/<your-username>/STUDY-HUB.git
+cd STUDY-HUB/frontend
+
+# 2. Install dependencies
+npm ci
+
+# 3. Create your local environment file
+cp .env.example .env
+
+# 4. Start the development server
+npm run dev
+```
+
+Open [http://localhost:4321/STUDY-HUB/](http://localhost:4321/STUDY-HUB/) in your browser.
+
+---
+
+### Option B: Full Stack (Frontend + Backend + Local Database)
+
+To develop authentication, AI tutoring, or payment features:
+
+1. **Start the Express backend:**
+   ```bash
+   cd ../backend
+   npm ci
+   cp .env.example .env
+   # Edit backend/.env with your local PostgreSQL or Supabase credentials
+   npm start
+   ```
+2. **Run backend tests:**
+   ```bash
+   npm test
+   ```
+
+For comprehensive instructions on setting up a free local Supabase instance, seeding test data, and testing AI flows, see [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md).
+
+---
+
+## 📂 Project Structure
+
+```text
+STUDY-HUB/
+├── .github/                 # GitHub workflows (CI, Pages deploy, Supabase sync) and issue templates
+├── backend/                 # Express REST API, controllers, middleware, and tests
+│   ├── api/                 # Route controllers and endpoints
+│   ├── database/            # Database configurations, models, and migrations
+│   ├── services/            # AI tutors, storage handlers, and monitoring
+│   └── test/                # Node test runner unit and integration tests
+├── docs/                    # Architecture, deployment, guidelines, and policies
+│   └── archive/             # Historical system audits, UI reviews, and mockups
+├── frontend/                # Astro 7 frontend application
+│   ├── public/              # Static assets, manifests, and catalogs
+│   └── src/                 # Astro pages, React components, layouts, and styles
+├── full_page_flipbook_viewer/ # Standalone flipbook reader engine
+└── supabase/                # Supabase configurations, SQL migrations, and Edge Functions
+```
+
+---
+
+## 📖 Documentation Index
+
+- 🏛 **[Architecture & Data Flow](docs/ARCHITECTURE.md)**
+- 💻 **[Local Development & Testing](docs/LOCAL_DEVELOPMENT.md)**
+- 🤝 **[Collaboration & Governance Policy](docs/COLLABORATION_POLICY.md)**
+- 🔍 **[Code Review Guidelines](docs/CODE_REVIEW_GUIDELINES.md)**
+- 🚀 **[Deployment Runbook](docs/DEPLOYMENT.md)**
+- 🔐 **[Secrets & Environment Variables](docs/SECRETS_AND_ENV.md)**
+- 🗄 **[Database & Migrations Guide](docs/DATABASE_AND_MIGRATIONS.md)**
+- 📝 **[Content & Revision Guidelines](docs/CONTENT_GUIDELINES.md)**
+- 🛡 **[Repository Settings Checklist](docs/REPO_SETTINGS_CHECKLIST.md)**
+- 📊 **[System Audit Report](AUDIT_REPORT.md)**
+- 📋 **[Issues Backlog & Roadmap](ISSUES_BACKLOG.md)**
+
+---
+
+## 🤝 Contributing
+
+We warmly welcome contributions from students, educators, and software developers across Uganda, East Africa, and the world! Whether you are fixing a CSS bug, adding revision notes, or improving documentation, your help is appreciated.
+
+Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** and **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** before opening a pull request.
+
+---
+
+## 📄 License
+
+- **Source Code:** Released under the [MIT License](LICENSE).
+- **Curriculum & Study Materials:** All uploaded educational notes, past examination papers, syllabi, and diagrams belong to their respective copyright holders, schools, or UNEB. See [docs/CONTENT_GUIDELINES.md](docs/CONTENT_GUIDELINES.md) and [LICENSE](LICENSE).
+
+---
+
+## 📬 Contact & Support
+
+- **Project Maintainer:** Jonathan Mwesigwa ([@trustjonathan](https://github.com/trustjonathan))
+- **Email:** [trusteth777@gmail.com](mailto:trusteth777@gmail.com)
+- **Security Inquiries:** See [SECURITY.md](SECURITY.md)

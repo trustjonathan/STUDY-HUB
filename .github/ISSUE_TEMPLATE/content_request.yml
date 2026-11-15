@@ -1,0 +1,43 @@
+name: 📖 Content & Syllabus Request
+description: Request new study notes, curriculum subjects, or UNEB past examination papers.
+title: "[Content Request]: "
+labels: ["content"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to request new academic notes, textbooks, past papers, or corrections to existing curriculum materials.
+  - type: input
+    id: subject
+    attributes:
+      label: Subject Name
+      placeholder: e.g. Geography, Luganda, Subsidiary ICT, Physics Paper 1
+    validations:
+      required: true
+  - type: dropdown
+    id: level
+    attributes:
+      label: Educational Level
+      options:
+        - Primary (P1 - P7 / PLE)
+        - Ordinary Level (S1 - S4 / UCE)
+        - Advanced Level (S5 - S6 / UACE)
+        - Tertiary / University
+        - General Revision
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Description of Material Needed
+      description: Specify exact topics, examination years, or question types.
+      placeholder: Need UACE 2022 and 2023 Physics Paper 2 marking guides and notes on Modern Physics.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Rights & Attribution
+      options:
+        - label: If providing files, I confirm they are publicly shareable under fair educational use or original teacher notes.
+          required: true

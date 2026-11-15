@@ -1,0 +1,71 @@
+name: CI (PR Validation & Build)
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend-test:
+    name: Backend Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run backend tests
+        run: npm test
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-dummy-jwt-secret-at-least-32-characters-long
+          PORT: 4000
+
+  frontend-build:
+    name: Frontend Typecheck & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend application
+        run: npm run build
+        working-directory: frontend
+        env:
+          PUBLIC_SUPABASE_URL: https://dummy-project.supabase.co
+          PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-ci-build
+          PUBLIC_STUDY_HUB_API_URL: http://localhost:4000
+          PUBLIC_GOOGLE_CLIENT_ID: dummy-google-client-id.apps.googleusercontent.com
+          PUBLIC_STUDY_HUB_PAYMENT_PHONE: 0700000000

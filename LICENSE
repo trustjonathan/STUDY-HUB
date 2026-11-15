@@ -1,0 +1,27 @@
+# Study Hub Dual Licensing Model
+
+The Study Hub platform uses a dual-licensing framework to differentiate between application software and academic educational content.
+
+---
+
+## 1. Application Software License
+
+**Copyright (c) 2024-2026 Jonathan Mwesigwa and Study Hub Contributors**
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+## 2. Educational Content & Revision Materials
+
+**Rights Reserved to Respective Authors and Publishers**
+
+The educational study materials, past examination papers, syllabus documents, marking guides, and teacher notes available through Study Hub are the intellectual property of their respective creators, schools, and educational bodies (such as the Uganda National Examinations Board - UNEB):
+
+- Educational materials are indexed and displayed strictly for non-commercial educational purposes and student revision.
+- The open-source software license above does **not** grant rights to commercialize, re-license, or redistribute third-party textbook or examination content without explicit permission from the original copyright holders.
+- To submit a copyright concern or takedown request, refer to [docs/CONTENT_GUIDELINES.md](docs/CONTENT_GUIDELINES.md) or contact `trusteth777@gmail.com`.

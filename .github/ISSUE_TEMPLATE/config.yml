@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability Report
+    url: https://github.com/trustjonathan/STUDY-HUB/security/advisories/new
+    about: Please report security vulnerabilities privately.
+  - name: Community & General Inquiries
+    url: mailto:trusteth777@gmail.com
+    about: Contact maintainer directly for partnerships and general questions.

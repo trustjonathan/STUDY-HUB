@@ -1,0 +1,21 @@
+# Global default owner
+* @trustjonathan
+
+# Security, deployment, and operational workflows
+/.github/workflows/ @trustjonathan
+/.github/CODEOWNERS @trustjonathan
+
+# Database schema, RLS policies, and Supabase Edge Functions
+# Pushes to supabase/ automatically trigger production migrations
+/supabase/ @trustjonathan
+/backend/database/migrations/ @trustjonathan
+
+# Sensitive backend modules: Authentication, Payments, and Database credentials
+/backend/middleware/auth.js @trustjonathan
+/backend/middleware/authMiddleware.js @trustjonathan
+/backend/api/controllers/identityController.js @trustjonathan
+/backend/api/controllers/documentPaymentController.js @trustjonathan
+/backend/api/routes/documentPaymentRoutes.js @trustjonathan
+/backend/api/routes/identityRoutes.js @trustjonathan
+/backend/database/config/ @trustjonathan
+/backend/config/ @trustjonathan
