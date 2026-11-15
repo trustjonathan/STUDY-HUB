@@ -1,12 +1,14 @@
-# Study Hub Dual Licensing Model
+# Study Hub Software License and Content Notice
 
-The Study Hub platform uses a dual-licensing framework to differentiate between application software and academic educational content.
+This file sets separate terms for Study Hub's original application software and explains the rights status of educational and other third-party materials. The MIT license below applies only to original Study Hub software and its accompanying project documentation, unless a file or directory includes a different license or notice.
+
+It does not apply to educational notes, examination papers, syllabi, marking guides, teacher notes, photographs, illustrations, logos, trademarks, or other third-party materials. Their inclusion in this repository or on the Study Hub platform does not grant permission to reuse them.
 
 ---
 
-## 1. Application Software License
+## 1. Application Software (MIT License)
 
-**Copyright (c) 2024-2026 Jonathan Mwesigwa and Study Hub Contributors**
+Copyright (c) 2024-2026 Jonathan Mwesigwa and Study Hub contributors, for their respective contributions.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -16,12 +18,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ---
 
-## 2. Educational Content & Revision Materials
+## 2. Educational Content and Other Materials
 
-**Rights Reserved to Respective Authors and Publishers**
+Rights in educational materials and other third-party works remain with their respective authors, publishers, schools, examination bodies, or other rights holders. Study Hub does not claim ownership of those works.
 
-The educational study materials, past examination papers, syllabus documents, marking guides, and teacher notes available through Study Hub are the intellectual property of their respective creators, schools, and educational bodies (such as the Uganda National Examinations Board - UNEB):
-
-- Educational materials are indexed and displayed strictly for non-commercial educational purposes and student revision.
-- The open-source software license above does **not** grant rights to commercialize, re-license, or redistribute third-party textbook or examination content without explicit permission from the original copyright holders.
-- To submit a copyright concern or takedown request, refer to [docs/CONTENT_GUIDELINES.md](docs/CONTENT_GUIDELINES.md) or contact `trusteth777@gmail.com`.
+- The MIT license above does not grant a right to copy, modify, redistribute, or commercialize those materials.
+- Educational or non-commercial purpose, attribution, or availability on Study Hub does not by itself establish permission or a legal right to use a work. Use material only when you own it, have permission, or have independently confirmed a valid license or other applicable legal basis.
+- Check any item-specific license, attribution, or permission notice before reuse. Contributors must follow the [Content & Curriculum Guidelines](docs/CONTENT_GUIDELINES.md).
+- To raise a copyright concern or request removal, follow the process in the [Content & Curriculum Guidelines](docs/CONTENT_GUIDELINES.md).

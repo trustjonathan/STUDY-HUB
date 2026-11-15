@@ -24,9 +24,11 @@ Examples of unacceptable behavior include:
 
 ## Enforcement Responsibilities
 
-Community leaders and maintainers are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
+Community leaders and maintainers are responsible for clarifying and enforcing these standards. They will respond to reports fairly and take action proportionate to the behavior, its impact, and any relevant history.
 
-Community leaders have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct.
+Possible responses include a warning, removal or editing of content, temporary suspension from a community space, or a permanent ban. Community leaders may also reject contributions that do not align with this Code of Conduct. These examples are not a required sequence; serious conduct may warrant immediate stronger action.
+
+When practical, the person affected will be told what action was taken and why, while respecting the privacy of everyone involved. A person subject to an enforcement action may request a review by replying to the decision within 14 days. Where another community leader is available and was not involved in the original decision, that person should review the appeal.
 
 ## Scope
 
@@ -34,12 +36,14 @@ This Code of Conduct applies within all community spaces (GitHub repositories, i
 
 ## Reporting & Contact
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer:
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported privately to the project maintainer:
 * **Contact:** Jonathan Mwesigwa
 * **Email:** [trusteth777@gmail.com](mailto:trusteth777@gmail.com)
 
-All complaints will be reviewed and investigated promptly and fairly. All community leaders are obligated to respect the privacy and security of the reporter of any incident.
+Please include enough detail to identify the incident and where it occurred. Do not include another person's private information unless it is necessary to explain the report. Reports will be reviewed as promptly and fairly as possible. Information will be shared only with people who need it to assess or respond to the report; absolute confidentiality cannot be guaranteed.
+
+If a report concerns the project maintainer or conduct on GitHub, use GitHub's report-content or support channels.
 
 ## Attribution
 
-This Code of Conduct is adapted from the Contributor Covenant, version 2.1 (https://www.contributor-covenant.org/version/2/1/code_of_conduct.html).
+This Code of Conduct is adapted from the Contributor Covenant, version 2.1 (https://www.contributor-covenant.org/version/2/1/code_of_conduct.html), with project-specific enforcement details.

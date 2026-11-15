@@ -2,16 +2,16 @@
 
 The Study Hub team takes the security of our platform and the privacy of our students and contributors seriously.
 
-## Supported Versions
+## Supported Components and Releases
 
-Security patches and vulnerability fixes are applied to the active development branch (`main`) and rolled out to production deployments.
+We address security reports for the current production deployment and the active `main` branch. We do not publish a separate long-term support schedule for tagged releases, forks, or archived snapshots. Include the affected release, commit, or deployment where known.
 
 | Component | Status |
 | :--- | :--- |
-| Main Branch (`main`) | Supported |
-| GitHub Pages Frontend | Supported |
-| Express Backend API | Supported |
-| Supabase Edge Functions & Database | Supported |
+| Active development branch (`main`) | Supported |
+| Production frontend | Supported |
+| Production Express Backend API | Supported |
+| Production Supabase Edge Functions & Database | Supported |
 
 ## Reporting a Vulnerability
 
@@ -19,13 +19,15 @@ If you discover a security vulnerability, security flaw, or credential leak, ple
 
 ### Reporting Channels
 
-1. **GitHub Private Vulnerability Reporting (Preferred):**
-   Navigate to the repository's [Security tab](https://github.com/trustjonathan/STUDY-HUB/security/advisories) and select **Report a vulnerability**.
-2. **Direct Email:**
-   Send an encrypted or private email to:
+1. **GitHub Private Vulnerability Reporting:**
+   If private vulnerability reporting is enabled, use the repository's [Security tab](https://github.com/trustjonathan/STUDY-HUB/security/advisories) and select **Report a vulnerability**.
+2. **Direct Email (fallback):**
+   Email the maintainer at:
    * **Maintainer:** Jonathan Mwesigwa
    * **Email:** [trusteth777@gmail.com](mailto:trusteth777@gmail.com)
    * **Subject Line:** `[SECURITY] Study Hub Vulnerability Report - <Short Summary>`
+
+Email is not an end-to-end encrypted channel. Do not include passwords, full API keys, access tokens, or unnecessary personal data in a report. For a suspected exposed credential, identify the affected service and location without repeating the secret value.
 
 ### What to Include
 
@@ -35,16 +37,16 @@ To help us triage and resolve the issue quickly, please include:
 - Affected endpoints, scripts, or components.
 - Your assessment of the potential impact.
 
-## Response Expectations & SLAs
+## Response Targets
 
-- **Initial Acknowledgment:** Within 48 hours of receipt.
-- **Triage & Assessment:** Within 5 business days.
-- **Fix & Disclosure:** We aim to release a patch within 14 days, coordinating public disclosure with you after the fix is verified in production.
+These are targets, not guarantees. We aim to acknowledge a report within **5 working days** and provide an initial assessment within **10 working days**. We will share material status updates when practical. Remediation and disclosure timing depend on severity, complexity, and release risk; we will coordinate disclosure with the reporter where possible and will not promise a fixed patch date.
 
 ## Safe Harbor & Research Principles
 
-We consider security research conducted in good faith to be authorized and protected under safe harbor:
+We welcome good-faith research that is limited to systems owned or operated by Study Hub and follows this policy. This policy does not authorize testing third-party systems, override applicable law or platform terms, or guarantee legal immunity. To the extent permitted by law, Study Hub maintainers will not pursue legal action against researchers for security research that follows this policy.
+
 - Do not access, modify, or delete student accounts, exam records, or donor data that does not belong to you.
-- Do not perform denial of service (DoS/DDoS) attacks against production infrastructure.
-- Give us reasonable time to remediate the vulnerability before disclosing it publicly.
-- If you accidentally encounter personal information or credentials during research, cease access immediately and notify us.
+- Do not perform denial-of-service testing or otherwise disrupt production services.
+- Do not use a vulnerability to access, change, or retain data beyond what is necessary to demonstrate the issue; use test accounts and data you control.
+- Give us a reasonable opportunity to investigate and remediate before publicly disclosing the issue.
+- If you unexpectedly encounter personal information or credentials, stop testing, do not copy or share the data, and notify us privately.

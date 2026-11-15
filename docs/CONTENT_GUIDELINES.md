@@ -52,14 +52,15 @@ Every curated resource in the catalog includes the following structured metadata
 
 ---
 
-## 4. Copyright, Attribution & Fair Educational Use
+## 4. Copyright, Attribution & Permissions
 
 Study Hub operates as an educational revision platform. We respect intellectual property and expect all contributors to adhere to the following principles:
 
-1. **Original Notes:** Teachers, tutors, and students may submit their own handwritten or typed revision summaries. Contributors retain moral authorship while granting Study Hub permission to display the notes freely.
-2. **UNEB Past Papers:** Examination papers are distributed under fair educational use for candidate revision. Marking schemes must credit UNEB or the reviewing teachers.
-3. **Commercial Textbooks:** **Never upload full copyrighted commercial textbooks** without explicit written permission from the publisher. Study Hub does not host pirated editions of proprietary school textbooks.
-4. **Attribution:** Always cite the originating school, teacher, or publisher on the cover sheet or catalog entry.
+1. **Original Notes:** Contributors retain ownership of their original work. By submitting it, they grant Study Hub permission to store, index, format as needed for display, and display it through the service. This permission does not transfer ownership or grant other users a general right to redistribute the work.
+2. **Third-Party Materials:** Submit or publish third-party work only when you have permission, the applicable license allows it, or you have confirmed another valid legal basis. Do not assume examination papers, syllabi, marking schemes, or other educational materials are free to redistribute because the use is educational or non-commercial.
+3. **Commercial Textbooks:** **Never upload full copyrighted commercial textbooks** without explicit permission from the rights holder. Study Hub does not authorize or encourage uploading unauthorized copies.
+4. **Attribution:** Cite the originating school, teacher, publisher, or other source where known. Attribution is not a substitute for permission when permission is required.
+5. **Item-Specific Terms:** Follow any license, permission, or rights notice attached to an individual resource. The repository's software license does not license educational content or third-party materials; see the [LICENSE](../LICENSE).
 
 ---
 
@@ -84,4 +85,7 @@ If you believe any content on Study Hub infringes your copyright:
    - The exact URL or title of the material.
    - Proof of ownership or authorization to act on behalf of the copyright owner.
    - Your contact details.
-3. **SLA:** We investigate and take down infringing materials within **48 hours** of receiving a verified notice.
+   - A short explanation of the rights you believe are affected and the action you are requesting.
+3. We aim to acknowledge notices within **5 working days**. We may ask for clarification or supporting information before treating a notice as verified.
+4. We aim to review verified notices and, where a claim appears credible and removal or restriction is appropriate, restrict access to the material within **5 working days** of verification. These are response targets, not guarantees; we will communicate material delays where practical.
+5. Please do not send passwords, access tokens, or unrelated sensitive personal information. Reports will be handled as discreetly as practical.
