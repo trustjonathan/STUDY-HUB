@@ -73,6 +73,8 @@ interface GoogleAuthEnvelope {
 
 let googleScriptPromise: Promise<GoogleIdentityApi> | undefined;
 let supabaseAuthClient: SupabaseClient | undefined;
+let cachedSupabaseAuthUrl: string | undefined;
+let cachedSupabaseAuthKey: string | undefined;
 
 export function loadGoogleIdentity(): Promise<GoogleIdentityApi> {
   if (window.google?.accounts.id) return Promise.resolve(window.google.accounts.id);
@@ -117,7 +119,9 @@ export async function createGoogleNonce(): Promise<{ raw: string; hashed: string
 }
 
 function getSupabaseAuthClient(url: string, anonKey: string): SupabaseClient {
-  if (!supabaseAuthClient) {
+  if (!supabaseAuthClient || cachedSupabaseAuthUrl !== url || cachedSupabaseAuthKey !== anonKey) {
+    cachedSupabaseAuthUrl = url;
+    cachedSupabaseAuthKey = anonKey;
     supabaseAuthClient = createClient(url, anonKey, {
       auth: {
         persistSession: false,
