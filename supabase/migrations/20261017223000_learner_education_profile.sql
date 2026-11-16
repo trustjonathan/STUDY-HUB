@@ -1,6 +1,40 @@
+CREATE TABLE IF NOT EXISTS public.users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255),
+  role VARCHAR(255) NOT NULL DEFAULT 'user',
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 ALTER TABLE public.users
+  ALTER COLUMN password DROP NOT NULL,
+  ADD COLUMN IF NOT EXISTS class_level TEXT,
+  ADD COLUMN IF NOT EXISTS subjects TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS google_id TEXT,
   ADD COLUMN IF NOT EXISTS learner_type TEXT,
   ADD COLUMN IF NOT EXISTS education_level TEXT,
   ADD COLUMN IF NOT EXISTS university_course VARCHAR(160),
   ADD COLUMN IF NOT EXISTS university_year SMALLINT,
   ADD COLUMN IF NOT EXISTS secondary_track TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS users_google_id_unique
+  ON public.users (google_id)
+  WHERE google_id IS NOT NULL;
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.users FROM PUBLIC;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    EXECUTE 'REVOKE ALL ON TABLE public.users FROM anon';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    EXECUTE 'REVOKE ALL ON TABLE public.users FROM authenticated';
+  END IF;
+END
+$$;

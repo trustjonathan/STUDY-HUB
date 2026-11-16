@@ -16,8 +16,7 @@ Historically, migrations developed in two locations:
 ### Consolidation Roadmap
 To prevent split-brain schema discrepancies:
 - **`supabase/migrations/` is designated as the single source of truth.**
-- A dedicated upcoming PR (`database/consolidate-migrations`) will migrate all backend SQL files into `supabase/migrations/`, remove duplicate versions, and ensure fresh clones can execute `supabase db push` cleanly from zero.
-- *Per project owner direction, migration files are not altered in this collaboration setup task.*
+- Backend-only migrations still need to be consolidated into `supabase/migrations/` to keep fresh deployments and the backend schema in sync.
 
 ---
 
@@ -43,7 +42,7 @@ Below is the complete execution order of the system's database migrations:
 | `20261015` | `google_sign_in.sql` | `backend/` | Adds `google_id` column to `public.users`. |
 | `20261016` | `resource_engagement.sql` | `backend/` | Creates `user_ratings` and `user_bookmarks` tables. |
 | `20261017` | `resource_dislikes_and_shares.sql` | `backend/` | Adds dislike ratings and public share counter. |
-| `20261017223000` | `learner_education_profile.sql` | `supabase/` & `backend/` | Adds `learner_type`, `education_level`, `university_course`. |
+| `20261017223000` | `learner_education_profile.sql` | `supabase/` & `backend/` | Ensures the backend `public.users` table exists and adds its learner profile fields. |
 | `20261018` | `document_payments.sql` | `backend/` | Creates `document_payments` queue for UGX 1,000 Mobile Money verification. |
 | `20261019` | `ai_study_memory.sql` | `backend/` | Enables `pgvector` extension and creates `ai_study_memory` embedding table. |
 | `20261021000000` | `study_plans_and_streaks.sql` | `supabase/` & `backend/` | Personalized 7-day study plans, completed sessions, and streaks. |
@@ -53,13 +52,9 @@ Below is the complete execution order of the system's database migrations:
 
 ## 3. The `public.users` Dependency Gap (Critical Context)
 
-Currently, `20261014_auth_learning_profile.sql` (which creates `public.users`) exists only in `backend/database/migrations/`. Because `supabase/migrations/20261017223000_learner_education_profile.sql` runs `ALTER TABLE public.users ...`, a fresh clone running `supabase db push` will fail unless `public.users` is created first.
+`20261014_auth_learning_profile.sql` (which creates `public.users`) remains in `backend/database/migrations/`. The Supabase learner-profile migration now creates that table when absent before adding its profile columns, so `supabase db push` can continue when the Supabase project has no `public.users` yet. The table has RLS enabled and no client-role policies or grants because credentials and account records are backend-only.
 
-### Planned Resolution
-In the upcoming migration consolidation PR:
-1. `backend/database/migrations/20261014_auth_learning_profile.sql` through `20261019_ai_study_memory.sql` will be formally prefixed with ISO timestamps and moved into `supabase/migrations/`.
-2. Duplicate files will be removed.
-3. The remote production schema migration table (`supabase_migrations.schema_migrations`) will be aligned using `supabase migration repair`.
+This is a targeted fix for the missing-table dependency, not full migration consolidation. Other backend-only migrations still need to be incorporated into the Supabase migration chain. Do not mark the failed learner-profile migration as applied; rerun `supabase db push` after reviewing the remaining pending migrations.
 
 ---
 
