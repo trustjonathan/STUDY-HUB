@@ -6,7 +6,20 @@ import { buildSync } from 'esbuild';
 const frontendRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 for (const envFile of ['.env.local', '.env']) {
 	const path = join(frontendRoot, envFile);
-	if (existsSync(path)) process.loadEnvFile(path);
+	if (existsSync(path)) {
+		if (typeof process.loadEnvFile === 'function') {
+			process.loadEnvFile(path);
+		} else {
+			for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
+				const match = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)?\s*$/);
+				if (!match) continue;
+				const [, key, val = ''] = match;
+				if (process.env[key] === undefined) {
+					process.env[key] = val.replace(/^['"]|['"]$/g, '');
+				}
+			}
+		}
+	}
 }
 
 function configuredApiBase() {

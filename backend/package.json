@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test",
-    "db:link": "supabase link --project-ref ttuxelhyoctyshgvjykj",
+    "db:link": "supabase link --project-ref lzgaxsrtdcmrjqfmhvfv",
     "db:status": "supabase migration list --linked",
     "db:dry-run": "supabase db push --linked --include-all --dry-run",
     "db:push": "supabase db push --linked --include-all",

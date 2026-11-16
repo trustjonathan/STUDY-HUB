@@ -41,7 +41,7 @@ This plan builds on work that is already **done and verified**. It is recorded h
 
 | Item | Value |
 |---|---|
-| Supabase project | `ttuxelhyoctyshgvjykj` (org "STUDY HUB RESOURCES", region `eu-west-1`) |
+| Supabase project | `lzgaxsrtdcmrjqfmhvfv` (org "STUDY HUB RESOURCES", region `eu-west-1`) |
 | Storage bucket | `study-hub-resources` (public) |
 | Object prefix | `documents/` → `documents/bio/notes`, `documents/bio/papers`, `documents/chem/papers` |
 | Files migrated | **408 uploaded, 0 failed** (6 zero-byte `.exe` stubs deliberately skipped) |
@@ -52,7 +52,7 @@ This plan builds on work that is already **done and verified**. It is recorded h
 Public URL pattern (unauthenticated, verified `200`):
 
 ```
-https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/documents/<subject>/<category>/<file>
+https://lzgaxsrtdcmrjqfmhvfv.supabase.co/storage/v1/object/public/study-hub-resources/documents/<subject>/<category>/<file>
 ```
 
 > **Do not** use `/object/public/resources/...` — no `resources` bucket exists in this project.
@@ -115,7 +115,7 @@ Every figure below was verified directly against the repository and the live Sup
 | Hardcoded absolute URLs | **71 occurrences across 13 files** (`trustjonathan.github.io/...`) in canonical, `og:image`, `og:url`, twitter-card and JSON-LD tags, plus `sitemap.xml` and `robots.txt` | **The single biggest migration hazard.** Every one breaks under a new base path unless made config-driven first. |
 | Uploaded documents | **408 files / 487.5 MB** in Supabase Storage | Already migrated. This is **not** markdown-able content. |
 | Repository size | **13.13 MiB** (was 528 MiB) | Done — see §0.2. |
-| Supabase project | `ttuxelhyoctyshgvjykj`, org "STUDY HUB RESOURCES" | Dedicated to Study Hub. Do not confuse with `jepsiuddbtboogcjiajh` (StudiFy). |
+| Supabase project | `lzgaxsrtdcmrjqfmhvfv`, org "STUDY HUB RESOURCES" | Dedicated to Study Hub. Do not confuse with `jepsiuddbtboogcjiajh` (StudiFy). |
 | Tooling available | Node **v26.7.0**, npm, Java 21, Supabase CLI **v2.115.0** (linked) | Astro/Next need no new runtime prerequisites. |
 | Test tooling | Astro checker/build (`npm run build`); backend `npm test` remains a placeholder | Frontend build passes; production-preview route smoke test covers the 12 generated routes. |
 

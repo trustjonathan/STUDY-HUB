@@ -9,7 +9,7 @@ import * as tus from 'tus-js-client';
   const title = params.get('title') || 'Study Hub resource';
   const reviewMode = params.get('mode') === 'review';
   const apiBase = document.querySelector('meta[name="study-hub-api-base"]')?.content.trim().replace(/\/+$/, '') || '';
-  const storagePrefix = 'https://ttuxelhyoctyshgvjykj.supabase.co/storage/v1/object/public/study-hub-resources/';
+  const storagePrefix = 'https://lzgaxsrtdcmrjqfmhvfv.supabase.co/storage/v1/object/public/study-hub-resources/';
   const freshTeacherOrigins = new Set([
     'https://fresh-teacher.github.io',
     'https://s6-fresh-teacher.vercel.app',

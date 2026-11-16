@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-hub-ai-study-v1';
+const CACHE_NAME = 'study-hub-ai-study-v2';
 const APP_SCOPE = self.registration.scope;
 const APP_SHELL = new URL('study.html', APP_SCOPE).href;
 const OFFLINE_PAGES = [

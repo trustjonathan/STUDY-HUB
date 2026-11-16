@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Remove expired staged uploads
         env:
-          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://ttuxelhyoctyshgvjykj.supabase.co' }}
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || secrets.PUBLIC_SUPABASE_URL || 'https://lzgaxsrtdcmrjqfmhvfv.supabase.co' }}
           CONTRIBUTION_CLEANUP_SECRET: ${{ secrets.CONTRIBUTION_CLEANUP_SECRET }}
         run: |
           if [ -z "$CONTRIBUTION_CLEANUP_SECRET" ]; then
