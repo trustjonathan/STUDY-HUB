@@ -64,7 +64,7 @@ function apiBase(): string {
   }
 }
 
-function Icon({ name }: { name: 'spark' | 'book' | 'target' | 'calendar' | 'arrow' | 'wifi' | 'download' | 'menu' }) {
+function Icon({ name }: { name: 'spark' | 'book' | 'target' | 'calendar' | 'arrow' | 'wifi' | 'download' | 'menu' | 'chevron-up' | 'chevron-down' }) {
   const paths = {
     spark: <><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" /><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" /></>,
     book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z" /><path d="M4 5.5v16M8 7h8M8 11h8" /></>,
@@ -74,6 +74,8 @@ function Icon({ name }: { name: 'spark' | 'book' | 'target' | 'calendar' | 'arro
     wifi: <><path d="M5 12.5a11 11 0 0 1 14 0M8.5 16a5.5 5.5 0 0 1 7 0M12 20h.01" /><path d="m3 3 18 18" /></>,
     download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5M12 15V3" /></>,
     menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
+    'chevron-up': <path d="m18 15-6-6-6 6" />,
+    'chevron-down': <path d="m6 9 6 6 6-6" />,
   };
 
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
@@ -107,6 +109,102 @@ export default function StudyDashboard({
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [profileSetupRequired, setProfileSetupRequired] = useState(false);
   const planPreparationInFlight = useRef(false);
+
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const [tutorPlanHeight, setTutorPlanHeight] = useState<number>(() => {
+    if (typeof window === 'undefined') return 240;
+    try {
+      const saved = Number(localStorage.getItem('study-hub-tutor-plan-height'));
+      return Number.isFinite(saved) && saved >= 110 && saved <= 650 ? saved : 240;
+    } catch {
+      return 240;
+    }
+  });
+  const [tutorPlanCollapsed, setTutorPlanCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('study-hub-tutor-plan-collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [isDraggingPlan, setIsDraggingPlan] = useState(false);
+  const tutorPlanExpandedHeight = useRef<number>(240);
+  const embeddedViewRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const updateLayout = () => setIsMobileLayout(mq.matches);
+    updateLayout();
+    mq.addEventListener('change', updateLayout);
+    return () => mq.removeEventListener('change', updateLayout);
+  }, []);
+
+  useEffect(() => {
+    if (!tutorPlanCollapsed && tutorPlanHeight >= 110) {
+      tutorPlanExpandedHeight.current = tutorPlanHeight;
+    }
+  }, [tutorPlanCollapsed, tutorPlanHeight]);
+
+  function resizeTutorPlan(clientY: number) {
+    const container = embeddedViewRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const rawHeight = clientY - containerRect.top;
+    const maxHeight = Math.max(160, containerRect.height - 180);
+
+    if (rawHeight < 75) {
+      setTutorPlanCollapsed(true);
+    } else {
+      const clamped = Math.min(maxHeight, Math.max(110, rawHeight));
+      setTutorPlanHeight(clamped);
+      setTutorPlanCollapsed(false);
+    }
+  }
+
+  function finishTutorPlanResize(clientY: number) {
+    setIsDraggingPlan(false);
+    const container = embeddedViewRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const rawHeight = clientY - containerRect.top;
+    const maxHeight = Math.max(160, containerRect.height - 180);
+
+    if (rawHeight < 85) {
+      setTutorPlanCollapsed(true);
+      try {
+        localStorage.setItem('study-hub-tutor-plan-collapsed', 'true');
+      } catch {
+        // ignore
+      }
+    } else {
+      const finalHeight = Math.min(maxHeight, Math.max(110, rawHeight));
+      setTutorPlanHeight(finalHeight);
+      tutorPlanExpandedHeight.current = finalHeight;
+      setTutorPlanCollapsed(false);
+      try {
+        localStorage.setItem('study-hub-tutor-plan-height', String(finalHeight));
+        localStorage.setItem('study-hub-tutor-plan-collapsed', 'false');
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  function toggleTutorPlan() {
+    setTutorPlanCollapsed((collapsed) => {
+      const next = !collapsed;
+      try {
+        localStorage.setItem('study-hub-tutor-plan-collapsed', String(next));
+        if (!next && tutorPlanHeight < 110) {
+          setTutorPlanHeight(tutorPlanExpandedHeight.current || 240);
+        }
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
 
   function resizeSidebar(clientX: number) {
     const sidebar = document.getElementById('study-navigation');
@@ -630,21 +728,101 @@ export default function StudyDashboard({
         </div>}
 
         {view === 'tutor' && (
-          <section className="study-embedded-view" aria-label="AI Tutor">
-            {user?.learnerType === 'student' && (
-              <div className="study-plan-pane" aria-label="Study plan">
-                <StudyPlanWorkspace
-                  compact
-                  apiBase={apiBase()}
-                  resourceCatalogUrl={`${baseHref}study-hub-resources-1-catalog.json`}
-                  freshTeacherCatalogUrl={`${baseHref}fresh-teacher-catalog.json`}
-                  readerBase={`${baseHref}full_page_flipbook_viewer/index.html`}
-                  classLevel={user.classLevel || ''}
-                  subjects={subjects}
-                  supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL || ''}
-                  anonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY || ''}
-                />
-              </div>
+          <section ref={embeddedViewRef} className="study-embedded-view" aria-label="AI Tutor">
+            {!isMobileLayout && user?.learnerType === 'student' && (
+              <>
+                <div
+                  id="study-plan-pane"
+                  className={`study-plan-pane${isDraggingPlan ? ' is-resizing' : ''}${tutorPlanCollapsed ? ' is-collapsed' : ''}`}
+                  aria-label="Study plan"
+                  style={{
+                    height: tutorPlanCollapsed ? 0 : tutorPlanHeight,
+                    flex: tutorPlanCollapsed ? '0 0 0px' : `0 0 ${tutorPlanHeight}px`,
+                    display: tutorPlanCollapsed ? 'none' : 'block',
+                  }}
+                >
+                  <StudyPlanWorkspace
+                    compact
+                    apiBase={apiBase()}
+                    resourceCatalogUrl={`${baseHref}study-hub-resources-1-catalog.json`}
+                    freshTeacherCatalogUrl={`${baseHref}fresh-teacher-catalog.json`}
+                    readerBase={`${baseHref}full_page_flipbook_viewer/index.html`}
+                    classLevel={user.classLevel || ''}
+                    subjects={subjects}
+                    supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL || ''}
+                    anonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY || ''}
+                  />
+                </div>
+                <div
+                  className={`study-plan-resize-bar${isDraggingPlan ? ' is-dragging' : ''}${tutorPlanCollapsed ? ' is-collapsed' : ''}`}
+                  role="separator"
+                  aria-orientation="horizontal"
+                  aria-label="Resize study plan panel"
+                  aria-controls="study-plan-pane"
+                  aria-valuenow={tutorPlanCollapsed ? 0 : tutorPlanHeight}
+                  aria-valuemin={0}
+                  aria-valuemax={600}
+                  tabIndex={0}
+                  onPointerDown={(event) => {
+                    if (event.button !== 0 || isMobileLayout) return;
+                    setIsDraggingPlan(true);
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    resizeTutorPlan(event.clientY);
+                  }}
+                  onPointerMove={(event) => {
+                    if (!isMobileLayout && event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      resizeTutorPlan(event.clientY);
+                    }
+                  }}
+                  onPointerUp={(event) => finishTutorPlanResize(event.clientY)}
+                  onPointerCancel={(event) => finishTutorPlanResize(event.clientY)}
+                  onDoubleClick={toggleTutorPlan}
+                  onKeyDown={(event) => {
+                    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                      event.preventDefault();
+                      const step = event.key === 'ArrowDown' ? 24 : -24;
+                      const nextHeight = tutorPlanCollapsed ? 140 : tutorPlanHeight + step;
+                      if (nextHeight < 90) {
+                        setTutorPlanCollapsed(true);
+                        try { localStorage.setItem('study-hub-tutor-plan-collapsed', 'true'); } catch {}
+                      } else {
+                        const finalHeight = Math.min(550, Math.max(110, nextHeight));
+                        setTutorPlanHeight(finalHeight);
+                        tutorPlanExpandedHeight.current = finalHeight;
+                        setTutorPlanCollapsed(false);
+                        try {
+                          localStorage.setItem('study-hub-tutor-plan-height', String(finalHeight));
+                          localStorage.setItem('study-hub-tutor-plan-collapsed', 'false');
+                        } catch {}
+                      }
+                    } else if (event.key === 'Home') {
+                      event.preventDefault();
+                      setTutorPlanCollapsed(true);
+                      try { localStorage.setItem('study-hub-tutor-plan-collapsed', 'true'); } catch {}
+                    } else if (event.key === 'End' || event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      toggleTutorPlan();
+                    }
+                  }}
+                >
+                  <div className="study-plan-resize-handle">
+                    <span className="study-plan-resize-grip" aria-hidden="true" />
+                    <button
+                      type="button"
+                      className="study-plan-toggle-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTutorPlan();
+                      }}
+                      title={tutorPlanCollapsed ? 'Expand study plan (drag down or click)' : 'Collapse study plan (drag up or click)'}
+                      aria-label={tutorPlanCollapsed ? 'Show study plan' : 'Hide study plan'}
+                    >
+                      <Icon name={tutorPlanCollapsed ? 'chevron-down' : 'chevron-up'} />
+                      <span>{tutorPlanCollapsed ? 'Show study plan' : 'Hide study plan'}</span>
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
             <StudyWorkspace
               homeHref={baseHref}

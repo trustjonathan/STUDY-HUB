@@ -130,7 +130,19 @@ body[data-page='study'] *, body[data-page='assistant'] * { box-sizing: border-bo
 .study-footer a { margin-left: auto; color: #718078; text-decoration: none; }
 .study-footer a:hover { color: var(--color-primary); }
 .study-embedded-view { position: relative; display: flex; min-height: 0; flex: 1 1 auto; overflow: hidden; }
-.study-plan-pane { min-height: 0; flex: 0 1 43%; overflow: hidden; border-bottom: 1px solid var(--color-line); background: var(--color-surface); }
+.study-plan-pane { min-height: 0; flex: 0 0 auto; overflow: hidden; border-bottom: 1px solid var(--color-line); background: var(--color-surface); position: relative; transition: height .16s ease; }
+.study-plan-pane.is-resizing { transition: none; user-select: none; }
+.study-plan-pane.is-collapsed { display: none !important; height: 0 !important; border-bottom: 0 !important; }
+.study-plan-resize-bar { position: relative; z-index: 6; display: flex; align-items: center; justify-content: center; height: 18px; min-height: 18px; background: var(--study-canvas, #f4f7f4); border-top: 1px solid var(--study-line, #e2eae3); border-bottom: 1px solid var(--study-line, #e2eae3); cursor: row-resize; touch-action: none; user-select: none; transition: background .15s ease, border-color .15s ease, height .15s ease; }
+.study-plan-resize-bar:hover, .study-plan-resize-bar:focus-visible, .study-plan-resize-bar.is-dragging { background: #edf5ef; border-color: #bcdac5; }
+.study-plan-resize-bar:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+.study-plan-resize-bar.is-collapsed { height: 24px; min-height: 24px; background: #fbfdfb; border-top: 0; border-bottom: 1px solid var(--study-line, #e2eae3); }
+.study-plan-resize-handle { display: inline-flex; align-items: center; gap: 7px; padding: 1px 11px; border-radius: 999px; background: #fff; border: 1px solid #dce6de; box-shadow: 0 1px 3px rgba(18, 48, 28, .05); }
+.study-plan-resize-grip { display: inline-block; width: 26px; height: 3px; border-radius: 999px; background: #a3b5a8; transition: background .15s ease, width .15s ease; }
+.study-plan-resize-bar:hover .study-plan-resize-grip, .study-plan-resize-bar.is-dragging .study-plan-resize-grip { background: var(--color-primary); width: 32px; }
+.study-plan-toggle-btn { display: inline-flex; align-items: center; gap: 5px; padding: 1px 4px; border: 0; background: transparent; color: #3b5645; cursor: pointer; font: 700 9.5px/1.2 'DM Sans', sans-serif; letter-spacing: .02em; }
+.study-plan-toggle-btn svg { width: 11px; height: 11px; }
+.study-plan-toggle-btn:hover { color: var(--color-primary); }
 .study-embedded-view > .ws { width: 100%; height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); background: var(--study-canvas); }
 .study-embedded-view > .ws .ws-sidebar, .study-embedded-view > .ws .ws-sidebar-backdrop, .study-embedded-view > .ws .ws-topbar { display: none; }
 .study-embedded-view > .ws .ws-main { min-height: 0; height: 100%; }
@@ -222,6 +234,12 @@ body[data-page='study'] *, body[data-page='assistant'] * { box-sizing: border-bo
   .study-tools-grid { grid-template-columns: 1fr; }
   .study-tool-card { min-height: 84px; }
 }
+@media (max-width: 768px) {
+  .study-plan-pane,
+  .study-plan-resize-bar {
+    display: none !important;
+  }
+}
 @media (max-width: 680px) {
   .study-sidebar { width: min(280px, calc(100vw - 48px)); transform: translateX(-105%); visibility: hidden; transition: transform .2s ease, visibility .2s linear; box-shadow: 14px 0 36px rgba(20,40,29,.12); }
   .study-sidebar.is-open { transform: translateX(0); visibility: visible; }
@@ -257,7 +275,7 @@ body[data-page='study'] *, body[data-page='assistant'] * { box-sizing: border-bo
   .study-offline-banner, .study-notice { margin: 10px 15px 0; font-size: 10px; }
   .study-plan { padding: 17px; border-radius: 14px; }
   .study-plan-compact { max-height: 44vh; padding: 14px 15px; border-radius: 0; }
-  .study-plan-pane { flex-basis: 43%; }
+  .study-plan-pane, .study-plan-resize-bar { display: none !important; }
   .study-plan-stats { gap: 6px; }
   .study-plan-stats > div { padding: 10px 8px; }
   .study-plan-stats strong { font-size: 14px; }
