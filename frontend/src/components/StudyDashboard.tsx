@@ -530,6 +530,8 @@ export default function StudyDashboard({
             clientId={googleClientId || ''}
             supabaseUrl={supabaseUrl || ''}
             supabaseAnonKey={supabaseAnonKey || ''}
+            showButton={false}
+            enableAutoSelect={true}
             onSuccess={handleGoogleSuccess}
           />
         )}

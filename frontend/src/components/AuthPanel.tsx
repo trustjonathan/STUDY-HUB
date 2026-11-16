@@ -406,6 +406,7 @@ export default function AuthPanel({
                   clientId={googleClientId}
                   supabaseUrl={supabaseUrl}
                   supabaseAnonKey={supabaseAnonKey}
+                  enableAutoSelect={false}
                   showButton
                   showOneTap={showOneTap}
                   disabled={busy}

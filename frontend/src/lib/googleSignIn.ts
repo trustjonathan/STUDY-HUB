@@ -28,29 +28,45 @@ interface GoogleCredentialResponse {
   credential?: string;
 }
 
-interface GooglePromptNotification {
+export interface GooglePromptNotification {
   isDismissedMoment(): boolean;
-  isSkippedMoment(): boolean;
-  isNotDisplayed(): boolean;
+  isSkippedMoment?(): boolean;
+  isNotDisplayed?(): boolean;
+  getDismissedReason?(): string;
 }
 
-interface GoogleIdentityApi {
-  initialize(options: {
-    client_id: string;
-    nonce: string;
-    callback: (response: GoogleCredentialResponse) => void;
-  }): void;
-  renderButton(element: HTMLElement, options: {
-    type: 'standard';
-    theme: 'outline';
-    size: 'large';
-    shape: 'rectangular';
-    text: 'continue_with';
-    logo_alignment: 'left';
-    width: number;
-  }): void;
-  prompt(callback: (notification: GooglePromptNotification) => void): void;
+export interface GoogleInitializeOptions {
+  client_id: string;
+  nonce?: string;
+  callback: (response: GoogleCredentialResponse) => void;
+  auto_select?: boolean;
+  cancel_on_tap_outside?: boolean;
+  use_fedcm_for_prompt?: boolean;
+  itp_support?: boolean;
+  context?: 'signin' | 'signup' | 'use';
+}
+
+export interface GoogleIdentityApi {
+  initialize(options: GoogleInitializeOptions): void;
+  renderButton(
+    element: HTMLElement,
+    options: {
+      type?: 'standard' | 'icon';
+      theme?: 'outline' | 'filled_blue' | 'filled_black';
+      size?: 'large' | 'medium' | 'small';
+      shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+      text?: 'signin_with' | 'signup_with' | 'continue_with';
+      logo_alignment?: 'left' | 'center';
+      width?: number;
+    }
+  ): void;
+  prompt(callback?: (notification: GooglePromptNotification) => void): void;
   cancel(): void;
+  disableAutoSelect(): void;
+}
+
+export function disableGoogleAutoSelect(): void {
+  window.google?.accounts.id.disableAutoSelect();
 }
 
 declare global {

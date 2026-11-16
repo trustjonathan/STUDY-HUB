@@ -77,6 +77,7 @@ const isStudyPage = routeKey === 'study' || routeKey === 'assistant';
 
 <script>
   import { clearAuthSession, readAuthSession } from '../utils/authSession';
+  import { disableGoogleAutoSelect } from '../lib/googleSignIn';
 
   interface HeaderAccount {
     username?: string;
@@ -147,6 +148,11 @@ const isStudyPage = routeKey === 'study' || routeKey === 'assistant';
   window.addEventListener('study-hub-auth-change', updateHeaderAccount);
   signOutButton?.addEventListener('click', () => {
     clearAuthSession();
+    try {
+      disableGoogleAutoSelect();
+    } catch {
+      // Ignore if Google Identity is not loaded
+    }
     const details = signOutButton.closest('details');
     if (details) details.open = false;
   });

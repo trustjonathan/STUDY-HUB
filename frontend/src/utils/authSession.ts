@@ -1,3 +1,5 @@
+import { disableGoogleAutoSelect } from '../lib/googleSignIn';
+
 const AUTH_SESSION_KEY = 'study-hub-auth';
 const AUTH_SESSION_CHANGE_EVENT = 'study-hub-auth-change';
 
@@ -78,5 +80,10 @@ export function updateAuthSessionUser<TUser>(user: TUser): void {
 
 export function clearAuthSession(): void {
   sessionStorage.removeItem(AUTH_SESSION_KEY);
+  try {
+    disableGoogleAutoSelect();
+  } catch {
+    // Ignore environments where Google Identity is unavailable
+  }
   notifyAuthSessionChange();
 }

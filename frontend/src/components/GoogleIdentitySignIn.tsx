@@ -7,174 +7,183 @@ import {
   signInWithGoogleCredential,
   wasGoogleOneTapDismissed,
   type GoogleAuthResult,
+  type GoogleIdentityApi,
 } from '../lib/googleSignIn';
 
-interface Props {
+export interface GoogleIdentitySignInProps {
   apiBase: string;
   clientId: string;
   supabaseUrl: string;
   supabaseAnonKey: string;
-  showButton?: boolean;
+  context?: 'signin' | 'signup' | 'use';
+  enableAutoSelect?: boolean;
   showOneTap?: boolean;
+  showButton?: boolean;
   disabled?: boolean;
   onSuccess: (result: GoogleAuthResult) => void;
   onError?: (message: string) => void;
 }
 
-export default function GoogleIdentitySignIn({
+export function GoogleIdentitySignIn({
   apiBase,
   clientId,
   supabaseUrl,
   supabaseAnonKey,
-  showButton = false,
+  context = 'signin',
+  enableAutoSelect = false,
   showOneTap = true,
+  showButton = true,
   disabled = false,
   onSuccess,
   onError,
-}: Props) {
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const identityRef = useRef<Awaited<ReturnType<typeof loadGoogleIdentity>> | null>(null);
+}: GoogleIdentitySignInProps) {
+  const buttonRef = useRef<HTMLDivElement | null>(null);
+  const identityRef = useRef<GoogleIdentityApi | null>(null);
+  const signingInRef = useRef(false);
+  const disabledRef = useRef(disabled);
   const onSuccessRef = useRef(onSuccess);
   const onErrorRef = useRef(onError);
-  const disabledRef = useRef(disabled);
-  const signingInRef = useRef(false);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  disabledRef.current = disabled;
   onSuccessRef.current = onSuccess;
   onErrorRef.current = onError;
-  disabledRef.current = disabled;
 
   useEffect(() => {
+    if (!clientId || !supabaseUrl || !supabaseAnonKey) return;
+
     let active = true;
-    let promptTimer = 0;
-    let nonceRaw = '';
-    const button = buttonRef.current;
+    let promptTimer: number | undefined;
+    let resizeObserver: ResizeObserver | undefined;
 
-    function reportError(message: string) {
-      if (!active) return;
-      setError(message);
-      onErrorRef.current?.(message);
-    }
+    const renderResponsiveButton = (identity: GoogleIdentityApi) => {
+      const container = buttonRef.current;
+      if (!showButton || !container) return;
+      const availableWidth = container.getBoundingClientRect().width;
+      const safeWidth = Math.max(220, Math.min(360, Math.floor(availableWidth || 300)));
 
-    async function initializeIdentity(allowOneTap = true) {
-      const nonce = await createGoogleNonce();
-      if (!active) return;
-      nonceRaw = nonce.raw;
-      const identity = identityRef.current;
-      if (!identity) return;
-      identity.initialize({
-        client_id: clientId,
-        nonce: nonce.hashed,
-        callback: (response) => {
-          if (disabledRef.current || signingInRef.current) return;
-          if (!response.credential) {
-            reportError('Google did not return a sign-in credential. Please try again.');
-            return;
-          }
-          signingInRef.current = true;
-          identity.cancel();
-          setBusy(true);
-          setError('');
-          void signInWithGoogleCredential({
-            apiBase,
-            clientId,
-            supabaseUrl,
-            supabaseAnonKey,
-            token: response.credential,
-            nonce: nonceRaw,
-          }).then((result) => {
-            if (active) onSuccessRef.current(result);
-          }).catch((signInError: unknown) => {
-            const message = signInError instanceof Error
-              ? signInError.message
-              : 'Google sign-in could not be completed. Please try again.';
-            reportError(message);
-            if (active && showButton) {
-              void initializeIdentity(false).then(() => {
-                if (active && button) {
-                  button.replaceChildren();
-                  identity.renderButton(button, {
-                    type: 'standard',
-                    theme: 'outline',
-                    size: 'large',
-                    shape: 'rectangular',
-                    text: 'continue_with',
-                    logo_alignment: 'left',
-                    width: Math.min(360, Math.floor(button.clientWidth || 360)),
-                  });
-                }
-              }).catch((retryError: unknown) => {
-                reportError(retryError instanceof Error
-                  ? retryError.message
-                  : 'Google sign-in could not be prepared for another attempt.');
-              });
-            }
-          }).finally(() => {
-            signingInRef.current = false;
-            if (active) setBusy(false);
-          });
-        },
+      container.replaceChildren();
+      identity.renderButton(container, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        text: context === 'signup' ? 'signup_with' : 'continue_with',
+        logo_alignment: 'left',
+        width: safeWidth,
       });
+    };
 
-      if (showButton && button) {
-        button.replaceChildren();
-        identity.renderButton(button, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          shape: 'rectangular',
-          text: 'continue_with',
-          logo_alignment: 'left',
-          width: Math.min(360, Math.floor(button.clientWidth || 360)),
+    async function setup() {
+      try {
+        const [identity, nonce] = await Promise.all([
+          loadGoogleIdentity(),
+          createGoogleNonce(),
+        ]);
+        if (!active) return;
+
+        identityRef.current = identity;
+
+        identity.initialize({
+          client_id: clientId,
+          nonce: nonce.hashed,
+          auto_select: enableAutoSelect,
+          cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: true,
+          itp_support: true,
+          context,
+          callback: (response) => {
+            if (disabledRef.current || signingInRef.current || !response.credential) return;
+
+            signingInRef.current = true;
+            identity.cancel();
+            setBusy(true);
+            setError('');
+
+            void signInWithGoogleCredential({
+              apiBase,
+              clientId,
+              supabaseUrl,
+              supabaseAnonKey,
+              token: response.credential,
+              nonce: nonce.raw,
+            })
+              .then((result) => {
+                if (active) onSuccessRef.current(result);
+              })
+              .catch((err: unknown) => {
+                if (!active) return;
+                const msg = err instanceof Error ? err.message : 'Google sign-in could not be completed.';
+                setError(msg);
+                onErrorRef.current?.(msg);
+              })
+              .finally(() => {
+                signingInRef.current = false;
+                if (active) setBusy(false);
+              });
+          },
         });
-      }
 
-      if (allowOneTap && showOneTap && !wasGoogleOneTapDismissed()) {
-        promptTimer = window.setTimeout(() => {
-          identity.prompt((notification) => {
-            if (notification.isNotDisplayed()) {
-              reportError('Google One Tap is not available in this browser right now. Use the Continue with Google button on the sign-in page.');
-              return;
-            }
-            if (notification.isDismissedMoment() || notification.isSkippedMoment()) {
-              try {
+        renderResponsiveButton(identity);
+
+        if (showButton && buttonRef.current && typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(() => renderResponsiveButton(identity));
+          resizeObserver.observe(buttonRef.current);
+        }
+
+        if (showOneTap && !disabledRef.current && !wasGoogleOneTapDismissed()) {
+          promptTimer = window.setTimeout(() => {
+            if (!active || disabledRef.current || signingInRef.current) return;
+            identity.prompt((notification) => {
+              if (notification.isDismissedMoment() || notification.isSkippedMoment?.()) {
                 rememberGoogleOneTapDismissal();
-              } catch {
-                reportError('This browser could not remember your One Tap dismissal for this session.');
               }
-            }
-          });
-        }, 1200);
+            });
+          }, 900);
+        }
+      } catch (err: unknown) {
+        if (!active) return;
+        const msg = err instanceof Error ? err.message : 'Unable to load Google sign-in.';
+        setError(msg);
+        onErrorRef.current?.(msg);
       }
     }
 
-    if (!clientId || !apiBase || !supabaseUrl || !supabaseAnonKey) {
-      reportError('Google sign-in is not fully configured. Please use email sign-in or try again later.');
-      return () => { active = false; };
-    }
-
-    void loadGoogleIdentity().then((identity) => {
-      if (!active) return;
-      identityRef.current = identity;
-      return initializeIdentity();
-    }).catch((loadError: unknown) => {
-      reportError(loadError instanceof Error
-        ? loadError.message
-        : 'Google sign-in could not be loaded. Please use email sign-in or try again later.');
-    });
+    void setup();
 
     return () => {
       active = false;
-      window.clearTimeout(promptTimer);
+      if (promptTimer) window.clearTimeout(promptTimer);
+      resizeObserver?.disconnect();
       identityRef.current?.cancel();
     };
-  }, [apiBase, clientId, showButton, showOneTap, supabaseAnonKey, supabaseUrl]);
+  }, [apiBase, clientId, supabaseUrl, supabaseAnonKey, context, enableAutoSelect, showOneTap, showButton]);
 
   return (
-    <div className={`google-signin-widget${busy || disabled ? ' is-busy' : ''}`} aria-busy={busy || disabled}>
-      {showButton && <div className="auth-google-button" ref={buttonRef} aria-label="Continue with Google" />}
-      {error && <p className="google-signin-feedback" role="alert">{error}</p>}
+    <div className="google-signin-widget w-full flex flex-col items-center gap-2">
+      {showButton && (
+        <div
+          ref={buttonRef}
+          className={`auth-google-button w-full max-w-[360px] flex justify-center transition-opacity ${
+            busy || disabled ? 'is-busy opacity-60 pointer-events-none' : ''
+          }`}
+          aria-label={context === 'signup' ? 'Sign up with Google' : 'Continue with Google'}
+        />
+      )}
+      {busy && (
+        <p className="auth-google-notice text-xs text-slate-500 animate-pulse">
+          Signing you in with Google…
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="google-signin-feedback text-xs text-red-600 text-center max-w-[360px]">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
+
+export default GoogleIdentitySignIn;
